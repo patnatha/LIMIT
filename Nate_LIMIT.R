@@ -23,11 +23,44 @@ hampel = function(x, t = 3, RemoveNAs = TRUE) {
 }
 
 
-FindICDs = function(pid, data) {
-  time = min(data$timeOffset[which(data$pid == pid)])
-  ind = intersect(which(icdValues$pid == as.numeric(pid)), which(icdValues$timeOffset <= (as.numeric(time) + day_time_offset)))
-  codes = unique(icdValues$icd[ind])
-  return(codes) 
+FindICDs = function(pid, data, patientDemo, icdValues) {
+  #Get the bday of the current pid
+  bday = patientDemo$bdays[which(patientDemo$pid == pid)]
+  
+  #Get the value's date of record and convert to timeOffset from bday
+  dataDate = c(data$l_date[which(data$pid == pid)])
+  timeOffsetVal = c(length(dataDate))
+  for(i in 1:length(dataDate))
+  {
+    timeOffsetVal[i] = as.numeric(dataDate[i] - bday)
+  }
+  
+  #get the minimum timeOffset of most recent value
+  time = min(timeOffsetVal)
+  
+  #Get all the icd values for pid and test their offset
+  icdPID = icdValues[which(icdValues$pid == pid),]
+  if(nrow(icdPID) == 0)
+  {
+    #Return empty code array if no pid's avaialable
+    return(c(0))
+  }
+  
+  #Create list for found icd codes
+  codes = c(length(icdPID), NULL)
+  for(i in 1:nrow(icdPID))
+  {
+    if((as.numeric(icdPID[i,]$icd_date - bday)) <= (as.numeric(time) + day_time_offset))
+    {
+      codes[i] = icdPID[i,]$icd
+    }
+  }
+
+  #Get only the unique ICDs that are not null
+  codes = unique(codes[!is.na(codes)])
+
+  #return the list of found codes
+  return(codes)
 }
 
 PerformFishertestICD = function(ICD, flaggedTable, totalFlagged, unflagged) { 
@@ -102,7 +135,7 @@ while (!converged) {
     
     if (length(flaggedResults$pid) > 10) {
       # Find all ICD codes for patients with flagged test results, before the date of this first flagged test
-      ICDs = sapply(flaggedPatients, FindICDs, flaggedResults)
+      ICDs = sapply(flaggedPatients, FindICDs, flaggedResults, patientDemo, icdValues)
       haveICDs = FALSE
       if (length(ICDs) != 0) {
         ICDtable = as.data.frame(table(unlist(ICDs)), useNA = 'no')
