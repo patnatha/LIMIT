@@ -92,3 +92,7 @@ icdValues = over_sat_icd_values(bad_lab_vals, icdValues, 10)
 #combine all the lab values
 labValues = rbind((normal_lab_vals), (bad_lab_vals))
 remove(normal_lab_vals, bad_lab_vals)
+
+#Save values to disk
+save(patientDemo, icdValues, labValues, file="/home/patnatha/DATA/rand_data.Rdata")
+
