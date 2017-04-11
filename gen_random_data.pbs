@@ -1,15 +1,17 @@
 #!/bin/sh
 
-#PBS -M patnatha@umich.edu
+#PBS -N gen_random_data
+
+#PBS -M patnatha@med.umich.edu
 #PBS -m abe
 
-# Set the job name
-#PBS -A gen_random_data
+#PBS -A example_flux
 #PBS -q flux
 #PBS -l qos=flux
 
 # Change the number of cores (ppn=1), amount of memory, and walltime:
-#PBS -l nodes=1:ppn=1,mem=2000mb,walltime=00:10:00
+#PBS -l nodes=1:ppn=1,mem=2000mb
+#PBS -l walltime=1:15:00
 #PBS -j oe
 #PBS -V
 

@@ -3,11 +3,39 @@ criticalProp = 0.005
 criticalP = 0.05
 criticalHampel = 3
 saving = 'tmp'
-dataType = 'HGB'
-logData = TRUE
 day_time_offset = 5
 
-library(stats)    
+#Load up the data from command line argument
+library(optparse)
+
+#Create the options list
+option_list <- list(
+  make_option("--critical-proportion", type="double", default=0.005, help="critical proportion of icd values to perform fishers"),
+  make_option("--critical-p-value", type="double", default=0.05, help="critical p-value for fisher's test cutoff"),
+  make_option("--critical-hampel", type="integer", default=3, help="hampel algorithm cutoff"),
+  make_option("--output", type="character", default="tmp/", help="directory to put results"),
+  make_option("--input", type="character", default="tmp/", help="file to load Rdata"),
+  make_option("--day-time-offset", type="integer", default=5, help="Offset in days from lab values to include ICD values")
+
+)
+
+#Parse the incoming options
+parser <- OptionParser(usage="%prog [options] file", option_list=option_list)
+
+args <- parse_args(parser)
+opt <- args$options
+file <- args$args
+
+#Assign the parsed options to their variable
+criticalProp = args[['critical-proportion']]
+criticalP = args[['critical-p-value']]
+criticalHampel = args[['critical-hampel']]
+saving = args[['output']]
+inputData = args[['input']]
+day_time_offset = args[['day-time-offset']]
+
+#Load RData from disk
+load(inputData);
 
 #Run the hampel outlier detection
 hampel = function(x, t = 3, RemoveNAs = TRUE) {

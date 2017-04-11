@@ -74,8 +74,10 @@ over_sat_icd_values = function(bad_lab_vals, icdValues, icdsubset)
   return(icdValues)
 }
 
+number_of_patients = 1000
+
 #Create list of unique patient ids
-patientDemo = create_patients(1000)
+patientDemo = create_patients(number_of_patients)
 
 #Create a list of random associated ICD codes
 icdValues = create_icd_values(patientDemo, 2.5)
