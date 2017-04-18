@@ -92,13 +92,13 @@ converged = FALSE
 # Initialise iteration value
 iteration = 1
 
-excludedICDs = list(numeric(0))
+excludedICDs = list(numeric())
 
-exclusionCounts = list(numeric(0))
+exclusionCounts = list(numeric())
 
-exclusionII = list(numeric(0))
+exclusionII = list(numeric())
 
-exclusionPval = list(numeric(0))
+exclusionPval = list(numeric())
 
 excludedIngrs = numeric()
 
