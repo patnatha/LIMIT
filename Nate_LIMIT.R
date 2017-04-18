@@ -2,7 +2,7 @@
 criticalProp = 0.005
 criticalP = 0.05
 criticalHampel = 3
-saving = 'tmp/'
+saving = 'tmp'
 day_time_offset = 5
 
 #Load up the data from command line argument
@@ -13,8 +13,8 @@ option_list <- list(
   make_option("--critical-proportion", type="double", default=0.005, help="critical proportion of icd values to perform fishers"),
   make_option("--critical-p-value", type="double", default=0.05, help="critical p-value for fisher's test cutoff"),
   make_option("--critical-hampel", type="integer", default=3, help="hampel algorithm cutoff"),
-  make_option("--output", type="character", default="tmp/", help="directory to put results"),
-  make_option("--input", type="character", default="tmp/", help="file to load Rdata"),
+  make_option("--output", type="character", default="", help="directory to put results"),
+  make_option("--input", type="character", default="", help="file to load Rdata"),
   make_option("--day-time-offset", type="integer", default=5, help="Offset in days from lab values to include ICD values")
 
 )
@@ -30,7 +30,7 @@ file <- args$args
 criticalProp = args[['critical-proportion']]
 criticalP = args[['critical-p-value']]
 criticalHampel = args[['critical-hampel']]
-saving = args[['output']]
+saving = paste(args[['output']], "/limit_results.Rdata", sep="")
 inputData = args[['input']]
 day_time_offset = args[['day-time-offset']]
 
@@ -190,4 +190,7 @@ print(length(unique(labValues$pid)))
 results = matrix(0, 1, 3)
 results[1, 1:2] = as.numeric(quantile(as.numeric(labValues$l_vals), c(0.025, 0.975), na.rm = TRUE))
 results[1, 3] = length(unique(labValues$pid))
+
+#Save the updated labValues and excluded ICD values
+save(labValues, excludedICDs, file=saving)
 

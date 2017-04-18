@@ -22,15 +22,14 @@ if [ -n "$PBS_NODEFILE" ]; then cat $PBS_NODEFILE; fi
 #  Change to the directory you submitted from
 if [ -n "$PBS_O_WORKDIR" ]; then cd $PBS_O_WORKDIR; fi
 
-
 #Create the run directory
 DIRECTORY="gen_random_data"
 THE_SCRIPT="gen_random_data.R"
 if [ ! -d "$DIRECTORY" ]; then
     mkdir $DIRECTORY
 fi
-RUN_DIR=${DIRECTORY}/$(date '+%Y-%m-%d.%H-%M-%S')
-echo $RUN_DIR
+RUN_DIR=`readlink -f ${DIRECTORY}/$(date '+%Y-%m-%d.%H-%M-%S')`
+echo 'OUTPUT: '$RUN_DIR
 if [ ! -d "$RUN_DIR" ]; then
     mkdir $RUN_DIR
 else
@@ -39,11 +38,12 @@ fi
 
 #Copy over the necessary files to run
 cp $THE_SCRIPT $RUN_DIR/.
+cp .Renviron $RUN_DIR/.
 cd $RUN_DIR
 
 #Load the R module
 module load R
 
 #Submit the script 
-Rscript gen_random_data.R
+Rscript gen_random_data.R --output ${RUN_DIR}
 
