@@ -22,6 +22,28 @@ if [ -n "$PBS_NODEFILE" ]; then cat $PBS_NODEFILE; fi
 #  Change to the directory you submitted from
 if [ -n "$PBS_O_WORKDIR" ]; then cd $PBS_O_WORKDIR; fi
 
+#Parse incoming options
+OPTS=`getopt -o i: --long input: -n 'parse-options' -- "$@"`
+if [ $? != 0 ] ; then echo "Failed parsing options." >&2 ; exit 1 ; fi
+eval set -- "$OPTS"
+
+INPUT_FILE=''
+while true; do
+  case "$1" in
+    -i | --input ) INPUT_FILE=$2; shift ;;
+    -- ) shift; break ;;
+    * ) break ;;
+  esac
+done
+
+#Check to make sur output_file was set
+if [ -z $INPUT_FILE ]; then
+    echo "INPUT_FILE location has not been specificed, use -i/--input"
+    exit
+else
+    #Convert the relative path to absolute path
+    INPUT_FILE=`readlink -f $INPUT_FILE`
+fi
 
 #Create the run directory
 DIRECTORY="Nate_LIMIT"
@@ -29,21 +51,23 @@ THE_SCRIPT="Nate_LIMIT.R"
 if [ ! -d "$DIRECTORY" ]; then
     mkdir $DIRECTORY
 fi
-RUN_DIR=${DIRECTORY}/$(date '+%Y-%m-%d.%H-%M-%S')
-echo $RUN_DIR
+RUN_DIR=`readlink -f ${DIRECTORY}/$(date '+%Y-%m-%d.%H-%M-%S')`
+echo "Output: "$RUN_DIR
 if [ ! -d "$RUN_DIR" ]; then
     mkdir $RUN_DIR
 else
+    #This directory already exists...EXIT
     exit
 fi
 
-#Copy over the necessary files to run
+#Copy over the SCRIPT to run and necessary files
 cp $THE_SCRIPT $RUN_DIR/.
+cp .Renviron $RUN_DIR/.
 cd $RUN_DIR
 
 #Load the R module
 module load R
 
 #Submit the script 
-Rscript Nate_LIMIT.R
+Rscript Nate_LIMIT.R --input ${INPUT_FILE} --output ${RUN_DIR}
 

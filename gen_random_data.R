@@ -1,3 +1,18 @@
+#Default directory to save things
+saving = ''
+
+#Load up the data from command line argument
+library(optparse)
+option_list <- list(
+    make_option("--output", type="character", default="tmp", help="directory to put results")
+)
+
+#Parse the incoming options
+parser <- OptionParser(usage="%prog [options] file", option_list=option_list)
+args <- parse_args(parser)
+
+#Assign the parsed options to their variables
+saving = paste(args[['output']], '/rand_data.Rdata', sep="")
 
 normal_dist_lab_values = function(patientDemo, labObs, mean, sd)
 {
