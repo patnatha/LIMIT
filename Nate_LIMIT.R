@@ -2,7 +2,7 @@
 criticalProp = 0.005
 criticalP = 0.05
 criticalHampel = 3
-saving = 'tmp'
+saving = 'tmp/'
 day_time_offset = 5
 
 #Load up the data from command line argument

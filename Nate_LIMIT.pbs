@@ -1,6 +1,6 @@
 #!/bin/sh
 
-#PBS -N gen_random_data
+#PBS -N Nate_LIMIT
 #PBS -M patnatha@med.umich.edu
 #PBS -m abe
 
@@ -24,8 +24,8 @@ if [ -n "$PBS_O_WORKDIR" ]; then cd $PBS_O_WORKDIR; fi
 
 
 #Create the run directory
-DIRECTORY="gen_random_data"
-THE_SCRIPT="gen_random_data.R"
+DIRECTORY="Nate_LIMIT"
+THE_SCRIPT="Nate_LIMIT.R"
 if [ ! -d "$DIRECTORY" ]; then
     mkdir $DIRECTORY
 fi
@@ -45,5 +45,5 @@ cd $RUN_DIR
 module load R
 
 #Submit the script 
-Rscript gen_random_data.R
+Rscript Nate_LIMIT.R
 
