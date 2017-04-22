@@ -1,2 +1,2 @@
-showq -w acct=leeschro_fluxod
+showq -w acct=leeschro_armis
 qstat -u patnatha

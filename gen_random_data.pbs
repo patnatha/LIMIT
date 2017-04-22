@@ -4,9 +4,9 @@
 #PBS -M patnatha@med.umich.edu
 #PBS -m abe
 
-#PBS -A leeschro_fluxod
-#PBS -q fluxod
-#PBS -l qos=flux
+#PBS -A leeschro_armis
+#PBS -q armis
+#PBS -l qos=armis
 
 # Change the number of cores (ppn=1), amount of memory, and walltime:
 #PBS -l nodes=1:ppn=1,mem=2000mb
@@ -22,13 +22,25 @@ if [ -n "$PBS_NODEFILE" ]; then cat $PBS_NODEFILE; fi
 #  Change to the directory you submitted from
 if [ -n "$PBS_O_WORKDIR" ]; then cd $PBS_O_WORKDIR; fi
 
+#Parse incoming options
+OPTS=`getopt -o o:: --long output:: -n 'parse-options' -- "$@"`
+if [ $? != 0 ] ; then echo "Failed parsing options." >&2 ; exit 1 ; fi
+eval set -- "$OPTS"
+
+#Get default output directory otherwise parse incoming
+source ./output_dir.sh
+OUTPUT_DIR=$OUTPUT_DIR_grd
+while true; do
+  case "$1" in
+    -o | --output ) OUTPUT_FILE=$2; shift ;;
+    -- ) shift; break ;;
+    * ) break ;;
+  esac
+done
+
 #Create the run directory
-DIRECTORY="gen_random_data"
 THE_SCRIPT="gen_random_data.R"
-if [ ! -d "$DIRECTORY" ]; then
-    mkdir $DIRECTORY
-fi
-RUN_DIR=`readlink -f ${DIRECTORY}/$(date '+%Y-%m-%d.%H-%M-%S')`
+RUN_DIR=`readlink -f ${OUTPUT_DIR}/$(date '+%Y-%m-%d.%H-%M-%S')`
 echo 'OUTPUT: '$RUN_DIR
 if [ ! -d "$RUN_DIR" ]; then
     mkdir $RUN_DIR
@@ -42,7 +54,7 @@ cp .Renviron $RUN_DIR/.
 cd $RUN_DIR
 
 #Load the R module
-module load R
+module load R 
 
 #Submit the script 
 Rscript gen_random_data.R --output ${RUN_DIR}
