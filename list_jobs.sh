@@ -1,2 +1,5 @@
+echo "========================Account Jobs========================"
 showq -w acct=leeschro_armis
-qstat -u patnatha
+
+echo "=========================User Jobs=========================="
+qstat -u `whoami`

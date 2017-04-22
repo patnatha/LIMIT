@@ -3,6 +3,7 @@
 .RData
 .Renviron
 .Ruserdata
+.Rproj
 gen_random_data/*
 Nate_LIMIT/*
 *.swp
