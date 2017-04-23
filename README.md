@@ -24,3 +24,5 @@ Poole, Sarah, Lee Frederick Schroeder, and Nigam Shah. "An unsupervised learning
 * get_random_data.R: An algorithm for creating a bimodal dataset and enriching an outlier population of labvalues with a restricted set of Icd codes to test the algorithm.
     * CMD LINE ARGUMENTS: Has an optional -o/--output arguement which can specify an output directory for writing the results. 
     * Submit to PBS: Can use squb command to submit this script to the scheduler. ex: qsub gen_randome_data.pbs -F "--ouput /home/username/rand_data". The -F flag allows a command line argument to be passed to the scheduler when it runs the command.
+
+

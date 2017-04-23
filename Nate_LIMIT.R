@@ -102,14 +102,14 @@ exclusionPval = list(numeric())
 
 excludedIngrs = numeric()
 
-mu = median(as.numeric(labValues$l_vals), na.rm = TRUE)
-sig = mad(as.numeric(labValues$l_vals), na.rm = TRUE)
+mu = median(as.numeric(labValues$l_val), na.rm = TRUE)
+sig = mad(as.numeric(labValues$l_val), na.rm = TRUE)
 
 #CONVERGE
 while (!converged) {
   
   # Initialise indices of outliers
-  outliers = hampel(as.numeric(labValues$l_vals), criticalHampel, TRUE)
+  outliers = hampel(as.numeric(labValues$l_val), criticalHampel, TRUE)
   labValues$outlier[outliers] = TRUE
   
   iteration = iteration + 1
@@ -184,11 +184,11 @@ while (!converged) {
   }
 }
 
-print(as.numeric(quantile(as.numeric(labValues$l_vals), c(0.025, 0.05, 0.95, 0.975), na.rm = TRUE)))
+print(as.numeric(quantile(as.numeric(labValues$l_val), c(0.025, 0.05, 0.95, 0.975), na.rm = TRUE)))
 print(length(unique(labValues$pid)))
 
 results = matrix(0, 1, 3)
-results[1, 1:2] = as.numeric(quantile(as.numeric(labValues$l_vals), c(0.025, 0.975), na.rm = TRUE))
+results[1, 1:2] = as.numeric(quantile(as.numeric(labValues$l_val), c(0.025, 0.975), na.rm = TRUE))
 results[1, 3] = length(unique(labValues$pid))
 
 #Save the updated labValues and excluded ICD values
