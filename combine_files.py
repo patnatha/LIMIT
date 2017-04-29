@@ -22,6 +22,11 @@ except:
     parser.error("Invalid")
     sys.exit(0)
 
+#Static filenames to collapse
+STATIC_FILENAME_MAP = {
+                        'Medicatio...prehensive': 'MedicationAdmi...sComprehensive'
+                      }
+
 #Get the dir to list
 THE_DIR = args.input_dir
 
@@ -34,16 +39,37 @@ for root, dirs, files in os.walk(THE_DIR):
             combined_dict[mods_file] = list()
         combined_dict[mods_file].append(os.path.join(THE_DIR, the_file))
 
+
+#Search for lists of files to combine
+temp_out_dict = combined_dict.copy()
+for tkey in combined_dict:
+    for skey in STATIC_FILENAME_MAP:
+        if(skey in tkey):
+            to_combine_name = STATIC_FILENAME_MAP[skey]
+            files_to_combine = combined_dict[tkey]
+            del temp_out_dict[tkey]
+
+            for tkey2 in combined_dict:
+                if(to_combine_name in tkey2):
+                    for the_item in files_to_combine:
+                        temp_out_dict[tkey2].append(the_item)
+
+#Get the output file structure
+combined_dict = temp_out_dict
+
+#Order all the lists
+for tkey in combined_dict:
+    combined_dict[tkey].sort()
+
+#Print the output structure
+pprint(combined_dict)
+
 #Create output directory, delete if already exists
 output_dir = os.path.join(args.output_dir, 'combined')
 if(os.path.exists(output_dir)):
     print("Output directory already exists")
     sys.exit(1)
 os.mkdir(output_dir)
-
-#Order all the lists
-for tkey in combined_dict:
-    combined_dict[tkey].sort()
 
 #Combine the files
 for tkey in combined_dict:
