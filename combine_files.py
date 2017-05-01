@@ -16,6 +16,10 @@ parser.add_option("-i", "--input", type="string",
                   help="a path to a directory full of  CSV files to combine",
                   dest="input_dir")
 
+parser.add_option("-n", "--name", type="string",
+                  help="a name that you would like to call the output directory",
+                  dest="name")
+
 try:
     (args,options) = parser.parse_args()
 except:
@@ -23,6 +27,7 @@ except:
     sys.exit(0)
 
 #Static filenames to collapse
+#   Map all files that contain the KEY into the files that contain the VALUE
 STATIC_FILENAME_MAP = {
                         'Medicatio...prehensive': 'MedicationAdmi...sComprehensive'
                       }
@@ -65,7 +70,7 @@ for tkey in combined_dict:
 pprint(combined_dict)
 
 #Create output directory, delete if already exists
-output_dir = os.path.join(args.output_dir, 'combined')
+output_dir = os.path.join(args.output_dir, args.name)
 if(os.path.exists(output_dir)):
     print("Output directory already exists")
     sys.exit(1)
@@ -74,7 +79,8 @@ os.mkdir(output_dir)
 #Combine the files
 for tkey in combined_dict:
     #Open the output file name
-    output_filename = os.path.join(output_dir, tkey)
+    okey = re.sub('.*\ \-\ ','', tkey)
+    output_filename = os.path.join(output_dir, okey)
     fout = open(output_filename, 'w')
     
     #Iterate over all the file to combine for this base file
