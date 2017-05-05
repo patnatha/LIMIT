@@ -14,6 +14,7 @@ option_list <- list(
   make_option("--critical-p-value", type="double", default=0.05, help="critical p-value for fisher's test cutoff"),
   make_option("--critical-hampel", type="integer", default=3, help="hampel algorithm cutoff"),
   make_option("--output", type="character", default="", help="directory to put results"),
+  make_option("--name", type="character", default="", help="name of file to output"),
   make_option("--input", type="character", default="", help="file to load Rdata"),
   make_option("--day-time-offset", type="integer", default=5, help="Offset in days from lab values to include ICD values")
 
@@ -30,11 +31,30 @@ file <- args$args
 criticalProp = args[['critical-proportion']]
 criticalP = args[['critical-p-value']]
 criticalHampel = args[['critical-hampel']]
-saving = paste(args[['output']], "/limit_results.Rdata", sep="")
+outputDir = args[['output']]
+outputName = args[['name']]
 inputData = args[['input']]
 day_time_offset = args[['day-time-offset']]
 
+#Check the output directory exists
+if(!dir.exists(outputDir)){
+    print("The output directory doesn't exist")
+    stop()
+}
+
+#Create the output file
+saving = gsub('//', '/', paste(outputDir, outputName, sep="/"))
+saving = paste(saving, '.Rdata', sep="")
+if(file.exists(saving)){
+    print("The output file already exists")
+    stop()
+}
+
 #Load RData from disk
+if(!file.exists(inputData)){
+    print("The input file path doesn't exist")
+    stop()
+}
 load(inputData);
 
 #Run the hampel outlier detection

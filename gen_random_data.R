@@ -111,5 +111,5 @@ labValues = rbind((normal_lab_vals), (bad_lab_vals))
 remove(normal_lab_vals, bad_lab_vals)
 
 #Save values to disk
-save(patientDemo, icdValues, labValues, file="rand_data.Rdata")
+save(patientDemo, icdValues, labValues, file=saving)
 

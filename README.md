@@ -25,4 +25,15 @@ Poole, Sarah, Lee Frederick Schroeder, and Nigam Shah. "An unsupervised learning
     * CMD LINE ARGUMENTS: Has an optional -o/--output arguement which can specify an output directory for writing the results. 
     * Submit to PBS: Can use qsub command to submit this script to the scheduler. ex: qsub gen_randome_data.pbs -F "--output /home/username/rand_data". The -F flag allows a command line argument to be passed to the scheduler.
 
+* import_csv.R: This is an R script that loads up a function 'import_csv([input_dir])' that takes an argument of a path to a driectory. It returns an object indexable using '$' of tables.
+
+* prepare_data.R: This is an R script that uses command line arguments to morph csv data into R objects which can be loaded into the limit scripts. 
+    * CMD ARGS
+        * input: path to directory of csv files to load
+        * output: path to directory of where to write the output
+        * name: identify this run, which will name the file this name
+
+* pair_glucose.R: Script to pair POC vs central lab glucoses.
+
+
 

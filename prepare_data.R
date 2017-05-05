@@ -4,12 +4,27 @@ source("import_csv.R")
 library(optparse)
 option_list <- list(
     make_option("--input", type="character", default=NULL, help="directory to load data from"),
-    make_option("--output", type="character", default=NULL, help="filepath output")
+    make_option("--output", type="character", default=NULL, help="filepath output"),
+    make_option("--name", type="character", default=NULL, help="name of this set analysis")
 )
 parser <- OptionParser(usage="%prog [options] file", option_list=option_list)
 args <- parse_args(parser)
 input_dir = args[['input']]
-output_file = paste(args[['output']], '.Rdata', sep="")
+
+#Parse the output directory and create if doesn't exists
+output_directory = args[['output']]
+if(!dir.exists(output_directory)){
+    print("The output directory doesn't exists")
+    stop()
+}
+
+#Create the final output filename
+output_filename = gsub("//", "/", paste(output_directory, args[['name']], sep=""))
+output_filename = paste(output_filename, '.Rdata', sep="")
+if(file.exists(output_filename)){
+    print("The output filename already exists")
+    stop()
+}
 
 #Load up the csv files
 importDb=import_csv(input_dir)
@@ -44,4 +59,5 @@ labValuesDplyr = labValuesDplyr %>% mutate(timeOffset = as.numeric(as.Date(COLLE
 labValues<-labValuesDplyr %>% as.data.frame()
 
 #Save the massaged data
-save(labValues, icdValues, file=output_file)
+save(labValues, icdValues, file=output_filename)
+
