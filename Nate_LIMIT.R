@@ -100,6 +100,8 @@ iteration = 1
 
 excludedICDs = list(numeric())
 
+excludedPatients = list(character())
+
 exclusionCounts = list(numeric())
 
 exclusionII = list(numeric())
@@ -183,6 +185,7 @@ while (!converged) {
           
             # Create a list of all patients with either significant diseases or drugs
             excludePatients = unique(exclude1)
+            excludedPatients = append(excludedPatients, excludePatients)
             includePatients = setdiff(unique(labValues$pid), excludePatients)
           
             # Remove excluded patients from data base
@@ -203,5 +206,5 @@ print(paste("Patient Count: ", length(unique(labValues$pid))))
 
 #Save the updated labValues and excluded ICD values
 cleanLabValues = labValues
-save(cleanLabValues, excludedICDs, file=saving)
+save(cleanLabValues, excludedPatients, excludedICDs, file=saving)
 
