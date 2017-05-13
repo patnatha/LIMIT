@@ -1,5 +1,5 @@
 # Variable for how close to measure seconds
-diff_in_secs = (60 * 10)
+diff_in_secs = (60 * 5)
 
 # Import the data
 source("import_csv.R")
@@ -24,9 +24,9 @@ date_diff = function(time1, time2){
 #Setup the results array
 results<-data.frame(pid=character(), 
                     one_code=character(), 
-                        one_collect=character(), one_value=character(), one_accesssion=character(), 
+                        one_collect=character(), one_value=numeric(), one_accession=character(), 
                     two_code=character(), 
-                        two_collect=character(), two_value=character(), two_accesssion=character())
+                        two_collect=character(), two_value=numeric(), two_accession=character())
 
 #Set up variables for keeping track of last glucose values
 last_lab_code_GLUCP = ''
@@ -56,11 +56,11 @@ for(i in 1:nrow(ordglucdf)){
                             pid=as.character(last_patient_id_GLUC),
                             one_code=as.character(theData$RESULT_CODE), 
                                 one_collect=as.character(theData$COLLECTION_DATE), 
-                                one_value=as.character(theData$VALUE),
-                                one_accesssion=as.character(theData$ACCESSION_NUMBER),
+                                one_value=as.numeric(theData$VALUE),
+                                one_accession=as.character(theData$ACCESSION_NUMBER),
                             two_code=as.character(last_lab_code_GLUC),
                                 two_collect=as.character(last_lab_coll_GLUC), 
-                                two_value=as.character(last_lab_value_GLUC),
+                                two_value=as.numeric(last_lab_value_GLUC),
                                 two_accession=as.character(last_lab_access_GLUC)
                             )
                 results = rbind(results, rowToAdd)
@@ -80,16 +80,15 @@ for(i in 1:nrow(ordglucdf)){
             if(secondsOff <= diff_in_secs){
                 rowToAdd = data.frame(
                             pid=as.character(last_patient_id_GLUCP),
-                            one_code=as.character(theData$RESULT_CODE),
-                                one_collect=as.character(theData$COLLECTION_DATE), 
-                                one_value=as.character(theData$VALUE),
-                                one_accesssion=as.character(theData$ACCESSION_NUMBER),
-                            two_code=as.character(last_lab_code_GLUCP),
-                                two_collect=as.character(last_lab_coll_GLUCP), 
-                                two_value=as.character(last_lab_value_GLUCP),
-                                two_accession=as.character(last_lab_access_GLUCP)
+                            one_code=as.character(last_lab_code_GLUCP),
+                                one_collect=as.character(last_lab_coll_GLUCP), 
+                                one_value=as.numeric(last_lab_value_GLUCP),
+                                one_accession=as.character(last_lab_access_GLUCP),
+                            two_code=as.character(theData$RESULT_CODE),
+                                two_collect=as.character(theData$COLLECTION_DATE),
+                                two_value=as.numeric(theData$VALUE),
+                                two_accession=as.character(theData$ACCESSION_NUMBER)
                             )
-
                 results = rbind(results, rowToAdd)
             }
         }
