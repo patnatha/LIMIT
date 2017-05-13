@@ -9,8 +9,8 @@
 #PBS -l qos=armis
 
 # Change the number of cores (ppn=1), amount of memory, and walltime:
-#PBS -l nodes=1:ppn=1,mem=2000mb
-#PBS -l walltime=0:05:00
+#PBS -l nodes=1:ppn=1,mem=4gb
+#PBS -l walltime=1:00:00
 #PBS -j oe
 #PBS -V
 
@@ -21,6 +21,9 @@ if [ -n "$PBS_NODEFILE" ]; then cat $PBS_NODEFILE; fi
 
 #  Change to the directory you submitted from
 if [ -n "$PBS_O_WORKDIR" ]; then cd $PBS_O_WORKDIR; fi
+
+#Load the R module
+module load R 
 
 #Parse incoming options
 OPTS=`getopt -o o:: --long output:: -n 'parse-options' -- "$@"`
@@ -53,9 +56,5 @@ cp $THE_SCRIPT $RUN_DIR/.
 cp .Renviron $RUN_DIR/.
 cd $RUN_DIR
 
-#Load the R module
-module load R 
-
-#Submit the script 
-Rscript gen_random_data.R --output ${RUN_DIR}
+Rscript gene_random_data.R --output ${OUTPUT_DIR}
 
