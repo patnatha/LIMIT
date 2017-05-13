@@ -27,9 +27,11 @@ OPTS=`getopt -o o:: --long output:: -n 'parse-options' -- "$@"`
 if [ $? != 0 ] ; then echo "Failed parsing options." >&2 ; exit 1 ; fi
 eval set -- "$OPTS"
 
-#Get default output directory otherwise parse incoming
+#Get default output directory from local source file 
 source ./output_dir.sh
 OUTPUT_DIR=$OUTPUT_DIR_grd
+
+#Parse command line arguments
 while true; do
   case "$1" in
     -o | --output ) OUTPUT_FILE=$2; shift ;;
