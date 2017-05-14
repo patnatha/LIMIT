@@ -7,6 +7,7 @@ day_time_offset = 5
 
 #Load up the data from command line argument
 library(optparse)
+library(dplyr)
 
 #Create the options list
 option_list <- list(
@@ -72,30 +73,39 @@ hampel = function(x, t = 3, RemoveNAs = TRUE) {
 
 
 FindICDs = function(pid, data, icdValues) {
-  time = min(data$timeOffset[which(data$pid == pid)])
-  ind = intersect(which(icdValues$pid == pid), which(icdValues$timeOffset <= (as.numeric(time) + day_time_offset)))
-  codes = unique(icdValues$icd[ind])
-  return(codes) 
+    # Get the first timestamp of labValue for the input pid
+    theTime = min(data$timeOffset[which(data$pid == pid)])
+
+    #Get ICD values assigned before the time of the lab value
+    ind = intersect(which(icdValues$pid == pid), 
+                    which(icdValues$timeOffset <= (as.numeric(theTime) + day_time_offset)))
+
+    #Get the unique list of ICD values
+    codes = unique(icdValues$icd[ind])
+
+    #Return the list of codes 
+    return(codes) 
 }
 
 PerformFishertestICD = function(ICD, flaggedTable, totalFlagged, unflagged) { 
-  if (!is.na(ICD)) {
-    # Find number of flagged patients with the code of interest, and calculate number without
-    numFlaggedWithCode = flaggedTable[which(flaggedTable[, 1] == ICD), 2]
-    numFlaggedWithoutCode = totalFlagged - numFlaggedWithCode
-    
-    allWithCode = unique(icdValues$pid[which(icdValues$icd == as.character(ICD))])
-    
-    # Find number of unflagged patients who have this code, and number who do not
-    numUnflaggedWithCode = length(intersect(unflagged, allWithCode))
-    numUnflaggedWithoutCode = length(unflagged) - numUnflaggedWithCode
-    
-    # Perform Fisher's exact test to see if flagged population has significantly higher proportion of patients with this code. Return p value
-    fisherResult = fisher.test(matrix(c(numFlaggedWithCode, numFlaggedWithoutCode, numUnflaggedWithCode, numUnflaggedWithoutCode), nrow = 2), alternative = "greater")
-    return(fisherResult$p.value)  
-  } else {
-    return(0)
-  }
+    if (!is.na(ICD)) {
+        # Find number of flagged patients with the code of interest, and calculate number without
+        numFlaggedWithCode = flaggedTable[which(flaggedTable$icd == ICD),]$freq
+        numFlaggedWithoutCode = totalFlagged - numFlaggedWithCode
+
+        # Get the pids that use this ICD 
+        allWithCode = unique(icdValues$pid[which(icdValues$icd == as.character(ICD))])
+        
+        # Find number of unflagged patients who have this code, and number who do not
+        numUnflaggedWithCode = length(intersect(unflagged, allWithCode))
+        numUnflaggedWithoutCode = length(unflagged) - numUnflaggedWithCode
+        
+        # Perform Fisher's exact test to see if flagged population has significantly higher proportion of patients with this code. Return p value
+        fisherResult = fisher.test(matrix(c(numFlaggedWithCode, numFlaggedWithoutCode, numUnflaggedWithCode, numUnflaggedWithoutCode), nrow = 2), alternative = "greater")
+        return(fisherResult$p.value)  
+    } else {
+        return(0)
+    }
 }
 
 FindExclusions = function(disease) {
@@ -115,9 +125,6 @@ labValues$outlier = rep(FALSE, length(labValues$pid))
 # Initialise logical convergence indicator
 converged = FALSE
 
-# Initialise iteration value
-iteration = 1
-
 excludedICDs = list(numeric())
 
 excludedPatients = list(character())
@@ -134,19 +141,26 @@ mu = median(as.numeric(labValues$l_val), na.rm = TRUE)
 sig = mad(as.numeric(labValues$l_val), na.rm = TRUE)
 
 #CONVERGE
+debug = TRUE
+iteration = 0
 while (!converged) {
-    # Initialise indices of outliers
+    # Initialise indices of outliers using Hampels method
     outliers = hampel(as.numeric(labValues$l_val), criticalHampel, TRUE)
     labValues$outlier[outliers] = TRUE
-    print(paste("Outliers: ", length(which(labValues$outlier == TRUE)), sep=""))
 
+    #Print some interation output for notification
     iteration = iteration + 1
+    print(paste("Outliers ","(", as.character(iteration), "): ", length(which(labValues$outlier == TRUE)), sep=""))
 
+
+    # Only run algorith if there are some non-outliers
     if (length(which(labValues$outlier == FALSE)) > 100) {
         # Create lists of patients with flagged tests
         flaggedPatients = unique(labValues$pid[which(labValues$outlier == TRUE)])
         totalFlaggedPatients = length(flaggedPatients)
-        #print(paste("Flagged Unique Patients: ", totalFlaggedPatients, sep=""))
+        if(debug){
+            print(paste("Flagged Unique Patients: ", unique(totalFlaggedPatients), sep=""))
+        }
 
         #Create  lists of patients with unflagged test
         unflaggedPatients = setdiff(unique(labValues$pid), flaggedPatients)
@@ -154,44 +168,64 @@ while (!converged) {
 
         # Create list of flagged test results 
         flaggedResults = labValues[which(labValues$outlier == TRUE),]
-        #print(paste("Flagged Results: ", length(flaggedResults), sep=""))   
-
+        
         #Order the values based on age
         flaggedResults = flaggedResults[order(flaggedResults$timeOffset), ]
 
         #Remove duplicate pids
         flaggedResults = flaggedResults[!(duplicated(flaggedResults$pid)), ]
 
-        if (length(flaggedResults$pid) > 5) {
-            # Find all ICD codes for patients with flagged test results, before the date of this first flagged test
+        if(debug){
+            print(paste("Flagged Results: ", length(flaggedResults$pid), sep=""))   
+        }
+
+        if (length(flaggedResults$pid) > 4) {
+            # Find all ICD codes for patients with flagged test results, before the first test
             ICDs = sapply(flaggedPatients, FindICDs, flaggedResults, icdValues)
+
+            # Process the results
             haveICDs = FALSE
             if (length(ICDs) != 0) {
-                ICDtable = as.data.frame(table(unlist(ICDs)), useNA = 'no')
-                ICDtable = ICDtable[order(ICDtable$Freq, decreasing = TRUE), ]
+                #Flatten the list of ICDs with counts
+                ICDtable = as.data.frame(table(unlist(ICDs, recursive=FALSE)), useNA = 'no')
+                
+                #Rename the columns
+                ICDtable$icd = ICDtable$Var1
+                ICDtable$freq = ICDtable$Freq
+                ICDtable = ICDtable[c("icd", "freq")]
+                
+                #Order the ICD tables on freq
+                ICDtable = ICDtable[order(ICDtable$freq, decreasing = TRUE), ]
+                 
+                #We have some ICDs to run
                 haveICDs = TRUE
             }
-          
-            # Create strings listing all diseases and drugs that are significantly overrepresented in out of range patients.
-            # Significant overrepresentation is considered to be present if the p value from the Fisher's exact test is less than criticalP
+
             if (haveICDs) {
-                # Create contingency table for the relationship between a disease and flagged test result.
-                # Perform Fisher's exact test on this table
-                # Only perform this analysis for diseases that are present in a given proportion of flagged patients (criticalProp)
-                limit = which(ICDtable$Freq <= ceiling(totalFlaggedPatients * criticalProp))[1] - 1
+                # Calculate the limit value
+                limit = which(ICDtable$freq <= ceiling(totalFlaggedPatients * criticalProp))[1] - 1
                 if (is.na(limit)) {
-                    limit = length(ICDtable$Freq)
+                    limit = length(ICDtable$freq)
                 }
-                
-                fisherTestICD = sapply(ICDtable[(1:limit), 1], PerformFishertestICD, ICDtable, totalFlaggedPatients, unflaggedPatients)
+           
+                # Perform Fisher's exact test on this table 
+                fisherTestICD = sapply(ICDtable[(1:limit),]$icd, PerformFishertestICD, 
+                                       ICDtable, totalFlaggedPatients, unflaggedPatients)
                 fisherTestICD = p.adjust(fisherTestICD, method = 'bonferroni')
-                DOI = as.character(ICDtable[which.min(fisherTestICD), 1])
-                
+                DOI = as.character(ICDtable[which.min(fisherTestICD),]$icd)
+               
+                # Get the minumum Fisher value 
                 pvalue = min(fisherTestICD)
+
+                print(pvalue)
+
                 if (pvalue > criticalP) {
                     converged = TRUE
-                    exclude1 = numeric(0)
+                    exclude1 = numeric()
                 } else {
+                    # Removing ICD
+                    print(paste('ICD: ', DOI, sep=""))
+
                     # Find all patients who have the significant ICD codes
                     exclude1 = FindExclusions(DOI)
                     exclusionCounts = c(exclusionCounts, length(which(labValues$pid %in% unique(exclude1))))
@@ -200,7 +234,7 @@ while (!converged) {
                     exclusionPval = c(exclusionPval, pvalue)
                 }
             } else {
-                exclude1 = numeric(0)
+                exclude1 = numeric()
             }
           
             # Create a list of all patients with either significant diseases or drugs
@@ -211,7 +245,7 @@ while (!converged) {
             # Remove excluded patients from data base
             labValues = labValues[which(labValues$pid %in% includePatients), ]
         } else {
-          excludePatients = numeric(0)
+          excludePatients = numeric()
           converged = TRUE
         }
     } else {
