@@ -6,8 +6,6 @@ This application was original developed by Dr. Schoreder and Dr. Poole at Standf
 ## FILES
 * list_jobs.sh: is a bash script to list all the jobs currently running on the scheduler for the account specified in the file and also the ones being run by the user.
 
-* output_dir.sh: is a bash script to code in the output directories for batch running..
-
 * clean_dir.sh: is a bash script to clean up all the output files from the portable batch system.
 
 * import_csv.R: This is an R script that loads up a function 'import_csv([input_dir])' that takes an argument of a path to a driectory. It returns an object indexable using '$' of tables.
