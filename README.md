@@ -10,12 +10,6 @@ This application was original developed by Dr. Schoreder and Dr. Poole at Standf
 
 * import_csv.R: This is an R script that loads up a function 'import_csv([input_dir])' that takes an argument of a path to a driectory. It returns an object indexable using '$' of tables.
 
-* prepare_data.R: This is an R script that uses command line arguments to morph csv data into R objects which can be loaded into the limit scripts. 
-    * CMD ARGS
-        * input: path to directory of csv files to load
-        * output: path to directory of where to write the output
-        * name: identify this run, which will name the file this name
-
 ## DIRECTORIES
 * pair_glucose: This is the directory that contains the scripts required for pairing glucose values and then preparing them for analysis in the LIMIT algorithm
 
@@ -24,4 +18,6 @@ This application was original developed by Dr. Schoreder and Dr. Poole at Standf
 * limit_algorithm: This is the directory that contains the scripts for running the LIMIT algorithm on a prepared dataset.
 
 * legacy_code: This is the directory that contains the original LIMIT algorithm.
+
+* prepare_data: This is the directory that contains the scripts for loading text files dumped from SQL queries and prepares it for munching on by the LIMIT algorithm.
 
