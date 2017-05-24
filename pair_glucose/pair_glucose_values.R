@@ -1,9 +1,12 @@
+#The directory from which to read
+source('glucose_paths.R')
+
 # Variable for how close to measure seconds
 diff_in_secs = (60 * 5)
 
 # Import the data
 source("import_csv.R")
-glucoseVals = import_csv('/scratch/leeschro_armis/patnatha/glucose_3_month/')
+glucoseVals = import_csv(inputDir)
 
 #Pick out the columns that we need for analyzing
 selected_glucoses = select(glucoseVals$lab_values, one_of(c('PatientID', 'ACCESSION_NUMBER', 'COLLECTION_DATE', 'RESULT_CODE', 'VALUE')))
@@ -101,5 +104,6 @@ for(i in 1:nrow(ordglucdf)){
     }
 }
 
-save(results, file="paired_glucoses.Rdata")
+#Save the output to an Rdata file
+save(results, file=paired_glucoses)
 

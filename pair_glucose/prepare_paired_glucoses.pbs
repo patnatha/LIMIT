@@ -1,6 +1,6 @@
 #!/bin/sh
 
-#PBS -N pair_glucose
+#PBS -N prepare_paired_glucoses
 #PBS -M patnatha@med.umich.edu
 #PBS -m abe
 
@@ -26,5 +26,5 @@ if [ -n "$PBS_O_WORKDIR" ]; then cd $PBS_O_WORKDIR; fi
 module load R 
 
 #Submit the script 
-Rscript pair_glucose.R
+Rscript prepare_paired_glucoses.R
 
