@@ -17,7 +17,7 @@ option_list <- list(
   make_option("--output", type="character", default="", help="directory to put results"),
   make_option("--name", type="character", default="", help="name of file to output"),
   make_option("--input", type="character", default="", help="file to load Rdata"),
-  make_option("--day-time-offset", type="integer", default=5, help="Offset in days from lab values to include ICD values")
+  make_option("--day-time-offset", type="integer", default=5, help="Offset in days from lab values to include values")
 
 )
 
@@ -57,6 +57,10 @@ if(!file.exists(inputData)){
     stop()
 }
 load(inputData);
+
+if(TRUE){
+    icdValues = medValues
+}
 
 #Run the hampel outlier detection
 hampel = function(x, t = 3, RemoveNAs = TRUE) {
@@ -109,8 +113,9 @@ PerformFishertestICD = function(ICD, flaggedTable, totalFlagged, unflagged) {
 }
 
 FindExclusions = function(disease) {
-  exclude1 = unique(icdValues$pid[which(icdValues$icd == disease)])
-  return(exclude1)
+    #Get list of unique PIDs that have the input value
+    exclude1 = unique(icdValues$pid[which(icdValues$icd == disease)])
+    return(exclude1)
 }
 
 #Print the original results
@@ -129,13 +134,9 @@ excludedICDs = list(numeric())
 
 excludedPatients = list(character())
 
-exclusionCounts = list(numeric())
+excludedCounts = list(numeric())
 
-exclusionII = list(numeric())
-
-exclusionPval = list(numeric())
-
-excludedIngrs = numeric()
+excludedPval = list(numeric())
 
 mu = median(as.numeric(labValues$l_val), na.rm = TRUE)
 sig = mad(as.numeric(labValues$l_val), na.rm = TRUE)
@@ -184,7 +185,7 @@ while (!converged) {
             ICDs = sapply(flaggedPatients, FindICDs, flaggedResults, icdValues)
 
             # Process the results
-            haveICDs = FALSE
+#            haveICDs = FALSE
             if (length(ICDs) != 0) {
                 #Flatten the list of ICDs with counts
                 ICDtable = as.data.frame(table(unlist(ICDs, recursive=FALSE)), useNA = 'no')
@@ -198,10 +199,10 @@ while (!converged) {
                 ICDtable = ICDtable[order(ICDtable$freq, decreasing = TRUE), ]
                  
                 #We have some ICDs to run
-                haveICDs = TRUE
-            }
-
-            if (haveICDs) {
+#                haveICDs = TRUE
+#            }
+#
+#            if (haveICDs) {
                 # Calculate the limit value
                 limit = which(ICDtable$freq <= ceiling(totalFlaggedPatients * criticalProp))[1] - 1
                 if (is.na(limit)) {
@@ -217,36 +218,32 @@ while (!converged) {
                 # Get the minumum Fisher value 
                 pvalue = min(fisherTestICD)
 
-                print(pvalue)
-
                 if (pvalue > criticalP) {
                     converged = TRUE
-                    exclude1 = numeric()
+                    excludePID = numeric()
                 } else {
                     # Removing ICD
-                    print(paste('ICD: ', DOI, sep=""))
+                    print(paste('CODE: ', DOI, sep=""))
 
-                    # Find all patients who have the significant ICD codes
-                    exclude1 = FindExclusions(DOI)
-                    exclusionCounts = c(exclusionCounts, length(which(labValues$pid %in% unique(exclude1))))
-                    exclusionII = c(exclusionII)
+                    # Find all patients who have the significant codes
+                    excludePID = FindExclusions(DOI)
+
+                    #Keep track of which codes were excluded and their p-values at exclusion 
                     excludedICDs = c(excludedICDs, DOI)
-                    exclusionPval = c(exclusionPval, pvalue)
+                    excludedPatients = append(excludedPatients, excludePID)
+                    excludedCounts = c(exclusionCounts, 
+                                        length(which(labValues$pid %in% excludePID)))
+                    excludedPval = c(exclusionPval, pvalue)
                 }
             } else {
-                exclude1 = numeric()
+                excludePID = numeric()
             }
           
-            # Create a list of all patients with either significant diseases or drugs
-            excludePatients = unique(exclude1)
-            excludedPatients = append(excludedPatients, excludePatients)
-            includePatients = setdiff(unique(labValues$pid), excludePatients)
-          
             # Remove excluded patients from data base
+            includePatients = setdiff(unique(labValues$pid), excludePID)
             labValues = labValues[which(labValues$pid %in% includePatients), ]
         } else {
-          excludePatients = numeric()
-          converged = TRUE
+            converged = TRUE
         }
     } else {
         converged = TRUE
