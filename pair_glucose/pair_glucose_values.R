@@ -5,7 +5,7 @@ source('glucose_paths.R')
 diff_in_secs = (60 * 5)
 
 # Import the data
-source("import_csv.R")
+source("../import_csv.R")
 glucoseVals = import_csv(inputDir)
 
 #Pick out the columns that we need for analyzing

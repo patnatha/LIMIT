@@ -28,7 +28,7 @@ labValuesDplyr = labValuesDplyr %>%
                         as.numeric(as.Date(COLLECTION_DATE))
                         - 
                         as.numeric(as.Date(DOB)))
-labValues<-labValuesDplyr %>% select(pid, l_val, timeOffset) %>% as.data.frame()
+labValues<-labValuesDplyr %>% select(pid, l_val, timeOffset, COLLECTION_DATE) %>% as.data.frame()
 
 # Get ICD codes
 diagnosis_process=inner_join(diagnoses, patient_bday, by="PatientID")

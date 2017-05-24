@@ -33,31 +33,45 @@ diagnoses = importDb$diagnoses
 encounter_all = importDb$encounter_all
 encounter_location = importDb$encounter_location
 lab_values = importDb$lab_values
-
-#Get the diagnosis and pair with PtID to build the timeOffset
-diagnosis_process=inner_join(diagnoses, patient_bday, by="PatientID")
-encounter_earliest=encounter_location %>% group_by(EncounterID) %>% summarise(StartDate = min(as.Date(StartDate)))
-diagnosis_process=inner_join(diagnosis_process, encounter_earliest, by="EncounterID")
-
-#Get the columns that we need
-icdValuesDplyr = select(diagnosis_process, one_of(c("PatientID", "DOB", "EncounterID", "TermCodeMapped","TermNameMapped", "StartDate")))
-icdValuesDplyr = rename(icdValuesDplyr, pid = PatientID)
-icdValuesDplyr = rename(icdValuesDplyr, icd = TermCodeMapped)
-icdValuesDplyr = icdValuesDplyr %>% mutate(timeOffset = as.numeric(as.Date(StartDate) - as.Date(DOB)))
-
-#Save the ICD values as a dataframe
-icdValues<-icdValuesDplyr %>% as.data.frame()
+med_admin=glucose_vals$med_admin
 
 #Build the lab values dataset
 labValuesDplyr=inner_join(lab_values, patient_bday)
 labValuesDplyr = select(labValuesDplyr, one_of(c("PatientID", "DOB", "COLLECTION_DATE", "ORDER_CODE", "ORDER_NAME", "VALUE", "UNIT", "RANGE")))
 labValuesDplyr = rename(labValuesDplyr, pid = PatientID)
 labValuesDplyr = rename(labValuesDplyr, l_val = VALUE)
-labValuesDplyr = labValuesDplyr %>% mutate(timeOffset = as.numeric(as.Date(COLLECTION_DATE) - as.Date(DOB))) 
+labValuesDplyr = labValuesDplyr %>% mutate(timeOffset = as.numeric(as.Date(COLLECTION_DATE) - as.Date(DOB)))
+labValues<-labValuesDplyr %>% select(pid, l_val, timeOffset, COLLECTION_DATE) %>% as.data.frame()
 
-#Save lab values as a dataframe
-labValues<-labValuesDplyr %>% as.data.frame()
+#Get the diagnosis and pair with PtID to build the timeOffset
+diagnosis_process=inner_join(diagnoses, patient_bday, by="PatientID")
+encounter_earliest = encounter_location %>%
+                        group_by(EncounterID) %>%
+                        summarise(StartDate = min(as.Date(StartDate)))
+icdValuesDplyr = inner_join(diagnosis_process, encounter_earliest, by="EncounterID")
+icdValuesDplyr = rename(icdValuesDplyr, pid = PatientID)
+icdValuesDplyr = rename(icdValuesDplyr, icd = TermCodeMapped)
+icdValuesDplyr = rename(icdValuesDplyr, icd_name = TermNameMapped)
+icdValuesDplyr = icdValuesDplyr %>%
+                    mutate(timeOffset =
+                        as.numeric(as.Date(StartDate)
+                        -
+                        as.Date(DOB)))
+icdValues<-icdValuesDplyr %>% select(pid, icd, timeOffset, EncounterID) %>% as.data.frame()
+
+#Get Medications that were administered
+medsAdminDyplyr = med_admin %>% filter(MedicationStatus == "Given")
+medsAdminDyplyr = inner_join(medsAdminDyplyr, patient_bday, by="PatientID")
+medsAdminDyplyr = rename(medsAdminDyplyr, pid = PatientID)
+medsAdminDyplyr = rename(medsAdminDyplyr, icd = MedicationTermID)
+medsAdminDyplyr = rename(medsAdminDyplyr, icd_name = MedicationName)
+medsAdminDyplyr = medsAdminDyplyr %>% 
+                    mutate(timeOffset = 
+                        as.numeric(as.Date(DoseStartTime) 
+                        - 
+                        as.Date(DOB)))
+medValues<-medsAdminDyplyr %>% select(pid, icd, timeOffset, icd_name, EncounterID) %>% as.data.frame()
 
 #Save the massaged data
-save(labValues, icdValues, file=output_filename)
+save(labValues, icdValues, medValues, file=output_filename)
 
