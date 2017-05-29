@@ -11,12 +11,13 @@ library(dplyr)
 
 #Create the options list
 option_list <- list(
+  make_option("--output", type="character", default="/scratch/leeschro_armis/patnatha/limit_results/", help="directory to put results"),
+  make_option("--input", type="character", default=NA, help="file to load Rdata"),
+  make_option("--name", type="character", default=NA, help="name of file to output"),
+  make_option("--codes", type="character", default="icd", help="which codes to run against [med|icd]"),
   make_option("--critical-proportion", type="double", default=0.005, help="critical proportion of icd values to perform fishers"),
   make_option("--critical-p-value", type="double", default=0.05, help="critical p-value for fisher's test cutoff"),
   make_option("--critical-hampel", type="integer", default=3, help="hampel algorithm cutoff"),
-  make_option("--output", type="character", default="", help="directory to put results"),
-  make_option("--name", type="character", default="", help="name of file to output"),
-  make_option("--input", type="character", default="", help="file to load Rdata"),
   make_option("--day-time-offset", type="integer", default=5, help="Offset in days from lab values to include values")
 )
 
@@ -35,6 +36,7 @@ outputDir = args[['output']]
 outputName = args[['name']]
 inputData = args[['input']]
 day_time_offset = args[['day-time-offset']]
+codeType = args[['codes']]
 
 #Check the output directory exists
 if(!dir.exists(outputDir)){
@@ -42,24 +44,32 @@ if(!dir.exists(outputDir)){
     stop()
 }
 
-#Create the output file
-saving = gsub('//', '/', paste(outputDir, outputName, sep="/"))
-saving = paste(saving, '.Rdata', sep="")
-if(file.exists(saving)){
-    print("The output file already exists")
+#Check to make sure the name parameter was set
+if(is.na(outputName)){
+    print("The output NAME is invalid")
     stop()
 }
 
+#Create the output file
+saving = gsub('//', '/', paste(outputDir, outputName, sep="/"))
+saving = paste(saving, '.Rdata', sep="")
+
 #Load RData from disk
-if(!file.exists(inputData)){
+if(is.na(inputData) || !file.exists(inputData)){
     print("The input file path doesn't exist")
     stop()
 }
 load(inputData);
 
-# Run algorithm against administered medicines
-if(TRUE){
-    icdValues = medValues
+#Check to see if the code type had been selected
+if(!is.na(codeType)){
+    # Run algorithm against administered medicines
+    if(codeType == 'med'){
+        icdValues = medValues
+    }
+}else{
+    print("A code type has not been selected [icd|med]")
+    stop()
 }
 
 #Run the hampel outlier detection
@@ -99,13 +109,14 @@ PerformFishertestICD = function(ICD, flaggedTable, totalFlagged, unflagged) {
 
         # Get the pids that use this ICD 
         allWithCode = unique(icdValues$pid[which(icdValues$icd == as.character(ICD))])
-        
+
         # Find number of unflagged patients who have this code, and number who do not
         numUnflaggedWithCode = length(intersect(unflagged, allWithCode))
         numUnflaggedWithoutCode = length(unflagged) - numUnflaggedWithCode
         
         # Perform Fisher's exact test to see if flagged population has significantly higher proportion of patients with this code. Return p value
         fisherResult = fisher.test(matrix(c(numFlaggedWithCode, numFlaggedWithoutCode, numUnflaggedWithCode, numUnflaggedWithoutCode), nrow = 2), alternative = "greater")
+        
         return(fisherResult$p.value)  
     } else {
         return(0)
@@ -131,10 +142,11 @@ labValues$outlier = rep(FALSE, length(labValues$pid))
 converged = FALSE
 
 # Structures to keep track of excluded items
-excludedICDs = list(numeric())
-excludedPatients = list(character())
-excludedCounts = list(numeric())
-excludedPval = list(numeric())
+excludedICDs = list()
+excludedICDNames = list()
+excludedPatients = list()
+excludedCounts = list()
+excludedPval = list()
 
 # Get the mean and MAD of the lab values
 mu = median(as.numeric(labValues$l_val), na.rm = TRUE)
@@ -195,19 +207,19 @@ while (!converged) {
                 
                 #Order the ICD tables on freq
                 ICDtable = ICDtable[order(ICDtable$freq, decreasing = TRUE), ]
-                 
+
                 # Calculate the limit value
                 limit = which(ICDtable$freq <= ceiling(totalFlaggedPatients * criticalProp))[1] - 1
                 if (is.na(limit)) {
                     limit = length(ICDtable$freq)
                 }
-           
+
                 # Perform Fisher's exact test on this table 
                 fisherTestICD = sapply(ICDtable[(1:limit),]$icd, PerformFishertestICD, 
                                        ICDtable, totalFlaggedPatients, unflaggedPatients)
                 fisherTestICD = p.adjust(fisherTestICD, method = 'bonferroni')
                 DOI = as.character(ICDtable[which.min(fisherTestICD),]$icd)
-               
+
                 # Get the minumum Fisher value 
                 pvalue = min(fisherTestICD)
 
@@ -226,7 +238,8 @@ while (!converged) {
                     excludePID = FindExclusions(DOI)
 
                     #Keep track of which codes were excluded and their p-values at exclusion 
-                    excludedICDs = c(excludedICDs, c(DOI, DOIName))
+                    excludedICDs = c(excludedICDs, DOI)
+                    excludedICDNames = c(excludedICDNames, DOIName)
                     excludedPatients = append(excludedPatients, excludePID)
                     excludedCounts = c(excludedCounts, 
                                         length(which(labValues$pid %in% excludePID)))
@@ -254,5 +267,5 @@ print(paste("Patient Count: ", length(unique(labValues$pid))))
 
 #Save the updated labValues and excluded ICD values
 cleanLabValues = labValues
-save(cleanLabValues, excludedPatients, excludedICDs, excludedCounts, excludedPval, file=saving)
+save(cleanLabValues, excludedPatients, excludedICDs, excludedICDNames, excludedCounts, excludedPval, file=saving)
 

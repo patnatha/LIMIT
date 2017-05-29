@@ -8,7 +8,7 @@ This application was original developed by Dr. Schoreder and Dr. Poole at Standf
 
 * clean_dir.sh: is a bash script to clean up all the output files from the portable batch system.
 
-* import_csv.R: This is an R script that loads up a function 'import_csv([input_dir])' that takes an argument of a path to a driectory. It returns an object indexable using '$' of tables.
+* import_csv.R: This is an R script that loads up a function 'import_csv([input_dir])' that takes an argument of a path to a directory. It returns an object indexable using '$' of tables.
 
 ## DIRECTORIES
 * pair_glucose: This is the directory that contains the scripts required for pairing glucose values and then preparing them for analysis in the LIMIT algorithm
