@@ -12,10 +12,9 @@ glucoseVals = import_csv(inputDir)
 selected_glucoses = select(glucoseVals$lab_values, one_of(c('PatientID', 'ACCESSION_NUMBER', 'COLLECTION_DATE', 'RESULT_CODE', 'VALUE')))
 
 # Ordered Lab Results based on patient ID and then on Collection ID
-ordered_glucoses = selected_glucoses %>% arrange(PatientID, COLLECTION_DATE)
-
-#Convert dplyr table into data.frame
-ordglucdf<-ordered_glucoses %>% as.data.frame()
+ordglucdf<-selected_glucoses %>% 
+                    arrange(PatientID, COLLECTION_DATE) %>%
+                    as.data.frame()
 
 # Date diff algorithm to get diff in seconds
 date_diff = function(time1, time2){
