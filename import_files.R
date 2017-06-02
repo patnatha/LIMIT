@@ -1,25 +1,37 @@
 library(readr)
 library(plyr)
 library(dplyr)
+library(data.table)
 
-import_csv_fxn <- function(path_to_file){
+import_csv <- function(path_to_file){
+    #dat <- read.delim(path_to_file, sep='|')
+    dat <- fread(path_to_file, sep="|", fill=TRUE, data.table=FALSE)
+    return(tbl_df(dat))
+}
+
+import_txt <- function(path_to_file){
+    #dat <- read.delim(path_to_file, sep='\t', quote="")
+    dat <- fread(path_to_file, sep="|", fill=TRUE, data.table=FALSE)
+    return(tbl_df(dat))
+}
+
+import_files_fxn <- function(path_to_file){
     path_to_file = gsub('//', '/', path_to_file)
     csv_path = paste(path_to_file, ".csv", sep="")
     txt_path = paste(path_to_file, ".txt", sep="")
+
     if(file.exists(csv_path)){
-        dat <- read.delim(csv_path, sep='|')
-        return(tbl_df(dat))
+        return(import_csv(csv_path))
     }
     else if(file.exists(txt_path)){
-        dat <- read.delim(txt_path, sep='\t', quote="")
-        return(tbl_df(dat))
+        return(import_txt(txt_path))
     }
     else{
         return(NULL)
     }
 }
 
-import_csv <- function(input_dir){
+import_files <- function(input_dir){
     #Build the paths
     demo_info_path=file.path(input_dir, "DemographicInfo")
     patient_bday_path=file.path(input_dir, "PatientInfo")
@@ -30,13 +42,13 @@ import_csv <- function(input_dir){
     medication_admin_path=file.path(input_dir, "MedicationAdmi...sComprehensive")
 
     #Load up the csv files
-    demo_info=import_csv_fxn(demo_info_path)
-    patient_bday=import_csv_fxn(patient_bday_path)
-    diagnoses=import_csv_fxn(diagnoses_path)
-    encounter_all=import_csv_fxn(encouter_all_path)
-    encouter_location=import_csv_fxn(encounter_location_path)
-    lab_values=import_csv_fxn(lab_values_path)
-    med_admin=import_csv_fxn(medication_admin_path)
+    demo_info=import_files_fxn(demo_info_path)
+    patient_bday=import_files_fxn(patient_bday_path)
+    diagnoses=import_files_fxn(diagnoses_path)
+    encounter_all=import_files_fxn(encouter_all_path)
+    encouter_location=import_files_fxn(encounter_location_path)
+    lab_values=import_files_fxn(lab_values_path)
+    med_admin=import_files_fxn(medication_admin_path)
 
     l <- list("demo_info" = demo_info, 
                 "patient_bday" = patient_bday, 
