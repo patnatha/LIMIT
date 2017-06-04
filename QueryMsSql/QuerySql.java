@@ -61,7 +61,7 @@ public class QuerySql {
             String[] analytes = new String[]{"POT","POTPL"};
 
             //Use lab values for cohort discovery
-            if(false && findCohort(analytes, conn)){
+            if(true && findCohort(analytes, conn)){
                 System.out.println("LabResults: Success");
             }
             else{
@@ -90,7 +90,15 @@ public class QuerySql {
             }    
 
             //Query for the Diagnosis codes
-            if(false && GetDiagnoses(analytes, cohortPIDS, conn)){
+            if(GetEncounters(analytes, cohortENCS, conn)){
+                System.out.println("Encounters: Success");
+            }
+            else{
+                System.out.println("Encounters: Failure");
+            }
+
+            //Query for the Diagnosis codes
+            if(GetDiagnoses(analytes, cohortPIDS, conn)){
                 System.out.println("Diagnoses: Success");
             }
             else{
@@ -151,18 +159,46 @@ public class QuerySql {
         }
     }
 
+    public static boolean GetEncounters(String[] analytes, String[] uniqueEncs, Connection conn){
+        try{
+            String encountersPath = getEncountersPath(analytes);
+            return GetAssociatedEncounterInfo(uniqueEncs, "EncounterAll", "*", encountersPath, conn);
+        } catch (Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public static boolean GetEncounterLocations(String[] analytes, String[] uniqueEncs, Connection conn){
+        try{
+            String encountersLocPath = getEncounterLocationsPath(analytes);
+            return GetAssociatedEncounterInfo(uniqueEncs, "EncounterLocationsInternal", "*", encountersLocPath, conn);
+        } catch (Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     public static boolean GetAssociatedPidInfo(String[] uniquePids, String sqlTable, String columns, String outputFile, Connection conn) throws SQLException {
+        return GetAssociatedInfo(uniquePids, "PatientID", sqlTable, columns, outputFile, conn);
+    }
+
+    public static boolean GetAssociatedEncounterInfo(String[] uniquePids, String sqlTable, String columns, String outputFile, Connection conn) throws SQLException {
+        return GetAssociatedInfo(uniquePids, "EncounterID", sqlTable, columns, outputFile, conn);
+    }
+
+    public static boolean GetAssociatedInfo(String[] uniqueIds, String whereCol, String sqlTable, String columns, String outputFile, Connection conn) throws SQLException {
         boolean returnRes = false;
         ResultSet rs = null;
         PreparedStatement cursor = null;
         try{
-            if(uniquePids == null || uniquePids.length == 0){
+            if(uniqueIds == null || uniqueIds.length == 0){
                 return false;
             }
 
             //Build the sql parameter
-            String sql = "SELECT " + columns + " FROM " + sqlTable + " WHERE PatientID IN ";
-            sql += "('" + String.join("','", uniquePids) + "');";
+            String sql = "SELECT " + columns + " FROM " + sqlTable + " WHERE " + whereCol + " IN ";
+            sql += "('" + String.join("','", uniqueIds) + "');";
     
             //Setup the statement
             cursor = conn.prepareStatement(sql);
@@ -233,6 +269,16 @@ public class QuerySql {
         }
     }
 
+    public static String getEncountersPath(String[] analytes){
+        String dirPath = findDirPath(analytes);
+        return dirPath + "/EncountersAll.txt";
+    }
+
+    public static String getEncounterLocationsPath(String[] analytes){
+        String dirPath = findDirPath(analytes);
+        return dirPath + "/EncounterLocations.txt";
+    }
+
     public static String getPatientInfoPath(String[] analytes){
         String dirPath = findDirPath(analytes);
         return dirPath + "/PatientInfo.txt";
@@ -287,9 +333,13 @@ public class QuerySql {
         String outputFile = getLabResultsPath(analyte);
 
         //Build the select query 
-        String sql = "SELECT * FROM LabResults WHERE "; 
+        String sql = "SELECT TOP 50000 * FROM LabResults WHERE "; 
+        
+        //This is where you can filter the data range
         sql += "COLLECTION_DATE < '01/01/17' AND COLLECTION_DATE > '01/01/2014' ";
-        sql += "AND (RESULT_CODE = '" + String.join("' RESULT_CODE = '", analyte) + "')";
+        
+        //This is where you can filter the result codes
+        sql += "AND (RESULT_CODE = '" + String.join("' OR RESULT_CODE = '", analyte) + "')";
 
         //System.out.println(sql); 
         ResultSet rs = null;
@@ -376,11 +426,10 @@ public class QuerySql {
                 } else if(curVal.getClass() == java.lang.Integer.class){
                     curRow[i] = Integer.toString(theRow.getInt(colNames[i]));
                 } else if(curVal.getClass() == java.sql.Clob.class){
-                    System.out.println(curVal);
-                    System.out.println(curVal.getClass());;
                     curRow[i] = theRow.getString(colNames[i]);
-                }
-                else{
+                } else if(curVal.getClass() == java.math.BigDecimal.class){
+                    curRow[i] = theRow.getBigDecimal(colNames[i]).toString();
+                } else {
                     //Error column
                     curRow[i] = "";
                     System.out.println("ERROR: convertRowToString");
