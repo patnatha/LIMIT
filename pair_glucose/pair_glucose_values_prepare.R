@@ -31,7 +31,7 @@ binPack = function(x, capacity) {
   grp
 }
 
-#The directory from which to read
+#The dirsource('glucose_paths.R')ectory from which to read
 source('glucose_paths.R')
 
 #Create the output directory
@@ -60,6 +60,7 @@ splitBins = split(pidCnt$n, packedBins)
 
 #Iterate over all the bins
 binCounter = 1
+usedPids = c(character())
 for(bin in splitBins){
     # Create a bin to fill with data
     curBinSize = sum(bin)
@@ -68,11 +69,17 @@ for(bin in splitBins){
 
     # Get all the data and fill the bin
     for(count in bin){
-        foundBin = pidCnt %>% filter(n == count) %>% first()
+        foundBin = pidCnt %>% filter(n == count) %>% filter(!PatientID %in% usedPids) %>% first()
         if(!is.na(foundBin[[1,1]])){
+            #For a pid get all the records
             binPid = foundBin[[1,1]]
             records = selected_glucoses %>% filter(PatientID == binPid)
+
+            #Append the data to the output bin
             binData = rbind(binData, records)
+
+            #Keep track of the PIDs already used
+            usedPids = rbind(usedPids, binPid)
         }
     }
 

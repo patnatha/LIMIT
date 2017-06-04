@@ -5,13 +5,13 @@ library(data.table)
 
 import_csv <- function(path_to_file){
     #dat <- read.delim(path_to_file, sep='|')
-    dat <- fread(path_to_file, sep="|", fill=TRUE, data.table=FALSE)
+    dat <- fread(path_to_file, sep="|", fill=TRUE, data.table=FALSE, blank.lines.skip = TRUE, quote="")
     return(tbl_df(dat))
 }
 
 import_txt <- function(path_to_file){
     #dat <- read.delim(path_to_file, sep='\t', quote="")
-    dat <- fread(path_to_file, sep="|", fill=TRUE, data.table=FALSE)
+    dat <- fread(path_to_file, sep="\t", fill=TRUE, data.table=FALSE, blank.lines.skip = TRUE, quote="")
     return(tbl_df(dat))
 }
 

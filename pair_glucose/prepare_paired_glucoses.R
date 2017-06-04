@@ -2,8 +2,8 @@
 source('glucose_paths.R')
 
 # Load up additional information
-source('../import_csv.R')
-glucose_vals=import_csv(inputDir)
+source('../import_files.R')
+glucose_vals=import_files(inputDir)
 patient_bday=glucose_vals$patient_bday
 diagnoses=glucose_vals$diagnoses
 encounter_location=glucose_vals$encounter_location
@@ -56,5 +56,5 @@ medsAdminDyplyr = medsAdminDyplyr %>% mutate(timeOffset = as.numeric(as.Date(Dos
 medValues<-medsAdminDyplyr %>% select(pid, icd, timeOffset, icd_name, EncounterID) %>% as.data.frame()
 
 #Save the results
-save(labValues, icdValues, medValues, file=prepare_paired_glucoses)
+save(labValues, icdValues, medValues, file=prepare_paired_glucoses_path)
 

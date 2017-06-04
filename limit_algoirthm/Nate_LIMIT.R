@@ -85,7 +85,6 @@ hampel = function(x, t = 3, RemoveNAs = TRUE) {
   return(indx)
 }
 
-
 FindICDs = function(pid, data, icdValues) {
     # Get the first timestamp of labValue for the input pid
     theTime = min(data$timeOffset[which(data$pid == pid)])

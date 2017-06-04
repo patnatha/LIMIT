@@ -1,6 +1,6 @@
 #Load up the paired glucose values
 source('glucose_paths.R')
-load(paired_glucoses)
+load(paired_glucoses_path)
 
 # Find the differences
 results$value_diff = results$one_value - results$two_value
@@ -16,12 +16,12 @@ print(fivenumsum)
 
 #Calculate STD DEV
 stddev<-sd(results$value_diff, na.rm = TRUE)
-print(paste("ERROR:", as.character(stddev), sep=" "))
+print(paste("Std Dev", as.character(stddev), sep=" "))
 
 #Calculate STD ERR
 error <- qnorm(0.975)* stddev / sqrt(length(results$value_diff))
-print(paste("ERROR:", as.character(error), sep=" "))
-left <- mean(results$value_diff) - error
-right <- mean(results$value_diff) + error
+print(paste("STD ERROR:", as.character(error), sep=" "))
+left = mean(results$value_diff, na.rm = TRUE) - error
+right = mean(results$value_diff, na.rm = TRUE) + error
 print(paste("95% CI", as.character(left), '<=>', as.character(right), sep=" "))
 

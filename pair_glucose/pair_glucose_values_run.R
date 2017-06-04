@@ -1,20 +1,30 @@
-#The directory from which to read
-source('glucose_paths.R')
+library(dplyr)
+library(optparse)
+
+# Create the options list
+option_list <- list(
+  make_option("--input", type="character", default="", help="file to run")
+)
+parser <- OptionParser(usage="%prog [options] file", option_list=option_list)
+args <- parse_args(parser)
+
+# Check to see that intput file exists
+if(!file.exists(args[['input']])){
+    print("The input file doesn't exist")
+    stop()
+}
+
+#Parse input file path and create the output file path
+inputPath = args[['input']]
+outputPath = paste(dirname(inputPath), "/", 
+                   gsub(pattern = "bin", "pair",basename(inputPath)), sep="")
 
 # Variable for how close to measure seconds
-diff_in_secs = (60 * 5)
-
-# Import the data
-source("../import_csv.R")
-glucoseVals = import_csv(inputDir)
-
-#Pick out the columns that we need for analyzing
-selected_glucoses = select(glucoseVals$lab_values, one_of(c('PatientID', 'ACCESSION_NUMBER', 'COLLECTION_DATE', 'RESULT_CODE', 'VALUE')))
+diff_in_secs = (60 * 10) # Time in minutes on either side
 
 # Ordered Lab Results based on patient ID and then on Collection ID
-ordglucdf<-selected_glucoses %>% 
-                    arrange(PatientID, COLLECTION_DATE) %>%
-                    as.data.frame()
+load(inputPath)
+ordglucdf <- binData %>% arrange(PatientID, COLLECTION_DATE)
 
 # Date diff algorithm to get diff in seconds
 date_diff = function(time1, time2){
@@ -104,5 +114,5 @@ for(i in 1:nrow(ordglucdf)){
 }
 
 #Save the output to an Rdata file
-save(results, file=paired_glucoses)
+save(results, file=outputPath)
 
