@@ -1,3 +1,7 @@
+#Load up the paired glucose values
+source('glucose_paths.R')
+load(paired_glucoses)
+
 # Find the differences
 results$value_diff = results$one_value - results$two_value
 

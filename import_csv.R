@@ -15,6 +15,7 @@ import_csv <- function(input_dir){
     lab_values_path=file.path(input_dir, "LabResults.csv")
     encouter_all_path=file.path(input_dir, "EncounterAll.csv")
     encounter_location_path=file.path(input_dir, "EncounterLocations.csv")
+    medication_admin_path=file.path(input_dir, "MedicationAdmi...sComprehensive.csv")
 
     #Load up the csv files
     demo_info=import_csv_fxn(demo_info_path)
@@ -23,13 +24,15 @@ import_csv <- function(input_dir){
     encounter_all=import_csv_fxn(encouter_all_path)
     encouter_location=import_csv_fxn(encounter_location_path)
     lab_values=import_csv_fxn(lab_values_path)
+    med_admin=import_csv_fxn(medication_admin_path)
 
     l <- list("demo_info" = demo_info, 
                 "patient_bday" = patient_bday, 
                 "diagnoses" = diagnoses, 
                 "encounter_all" = encounter_all, 
                 "encounter_location" = encouter_location, 
-                "lab_values" = lab_values)
+                "lab_values" = lab_values,
+                "med_admin" = med_admin)
 
     return(l) 
 }

@@ -3,37 +3,21 @@
 ## OVERVIEW
 This application was original developed by Dr. Schoreder and Dr. Poole at Standford university. The LIMIT algorithm is an unsupervised learning algorithm to determine reference ranges for laboratory values. The description of the algorithm can be viewed at the following citation:
 
-Poole, Sarah, Lee Frederick Schroeder, and Nigam Shah. "An unsupervised learning method to identify reference intervals from a clinical database." Journal of biomedical informatics 59 (2016): 276-284. 
 ## FILES
 * list_jobs.sh: is a bash script to list all the jobs currently running on the scheduler for the account specified in the file and also the ones being run by the user.
 
-* output_dir.sh: is a bash script to code in the output directories for batch running..
-
 * clean_dir.sh: is a bash script to clean up all the output files from the portable batch system.
 
-* SarahPoole_LIMIT.R/SarachPoole_sodium.R: Original software algorithm written by Dr. Poole.
+* import_csv.R: This is an R script that loads up a function 'import_csv([input_dir])' that takes an argument of a path to a directory. It returns an object indexable using '$' of tables.
 
-* Nate_LIMIT.R: Nathan's updated version of the LIMITS algorithm
+## DIRECTORIES
+* pair_glucose: This is the directory that contains the scripts required for pairing glucose values and then preparing them for analysis in the LIMIT algorithm
 
-* Nate_LIMIT.pbs: This is a batch script that wraps the R algorithm (Nate_LIMIT.R) for submission to the PBS system. Can also be run locally.
-    * CMD LINE ARGUMENTS: requires an -i/--input with a path to a R variable that can be read using the command load() in R. Has an optional -o/--output arguement which can specify an output directory for writing the results.
-    * Submit to PBS: Can use qsub command to submit this script to the scheduler. ex: qsub Nate_LIMIT.pbs -F "--input /home/username/data.Rdata". The -F flag allows a command line argument to be passed to the scheduler.
+* create_data: This is the directory that contains data creation algorithms for testing the validity of the LIMIT algorithm.
 
-* get_random_data.R: An algorithm for creating a bimodal dataset and enriching an outlier population of lab values with a restricted set of Icd codes to test the algorithm.
+* limit_algorithm: This is the directory that contains the scripts for running the LIMIT algorithm on a prepared dataset.
 
-* get_random_data.pbs: This is a batch script that wraps the R algorithm (gen_randome_data.R) for submission to the PBS system. Can also be run locally..
-    * CMD LINE ARGUMENTS: Has an optional -o/--output arguement which can specify an output directory for writing the results. 
-    * Submit to PBS: Can use qsub command to submit this script to the scheduler. ex: qsub gen_randome_data.pbs -F "--output /home/username/rand_data". The -F flag allows a command line argument to be passed to the scheduler.
+* legacy_code: This is the directory that contains the original LIMIT algorithm.
 
-* import_csv.R: This is an R script that loads up a function 'import_csv([input_dir])' that takes an argument of a path to a driectory. It returns an object indexable using '$' of tables.
-
-* prepare_data.R: This is an R script that uses command line arguments to morph csv data into R objects which can be loaded into the limit scripts. 
-    * CMD ARGS
-        * input: path to directory of csv files to load
-        * output: path to directory of where to write the output
-        * name: identify this run, which will name the file this name
-
-* pair_glucose.R: Script to pair POC vs central lab glucoses.
-
-
+* prepare_data: This is the directory that contains the scripts for loading text files dumped from SQL queries and prepares it for munching on by the LIMIT algorithm.
 
