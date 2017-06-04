@@ -30,10 +30,16 @@ public class QuerySql {
         String driver = "net.sourceforge.jtds.jdbc.Driver";
 
         //Attempt to load credentials from text file
-        Properties prop = new Properties();
-        prop.load(new FileInputStream("credential.txt"));
-        String userName = prop.getProperty("username");
-        String password = prop.getProperty("password");
+        String userName = null;
+        String password = null;
+        try{
+            Properties prop = new Properties();
+            prop.load(new FileInputStream("credential.txt"));
+            userName = prop.getProperty("username");
+            password = prop.getProperty("password");
+        } catch (Exception e){
+            //Do nothing
+        }
 
         //Get the username from the console
         if(userName == null){
