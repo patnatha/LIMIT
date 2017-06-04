@@ -51,13 +51,6 @@ public class QuerySql {
             conn = DriverManager.getConnection(url, userName, password);
             conn.setAutoCommit(false);
             System.out.println("Connected to the database!!!");
-           
-            //Get a list of all the Views 
-            /*DatabaseMetaData dbm = conn.getMetaData();
-            rs = dbm.getTables(null, null, "%", new String[] { "VIEW" });
-            while (rs.next()) {
-                System.out.println(rs.getString(3)); 
-            }*/
 
             //Search for potassium values
             //String[] analytes = new String[]{"SOD"};
