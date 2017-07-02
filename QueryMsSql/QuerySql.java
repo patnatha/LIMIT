@@ -8,6 +8,7 @@ import java.sql.PreparedStatement;
 import java.io.Console;
 import java.util.Scanner;
 import java.util.Properties;
+import java.util.ArrayList;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.Object;
@@ -20,8 +21,16 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.text.SimpleDateFormat;
+import org.apache.commons.io.FileUtils;
 
 public class QuerySql {
+	public static String startDate;
+	public static String endDate;
+	
     public static void main(String[] args) throws SQLException, IOException {
         //Specify all the variable for connecting to the database
         Connection conn = null;
@@ -60,70 +69,152 @@ public class QuerySql {
             conn = DriverManager.getConnection(url, userName, password);
             conn.setAutoCommit(false);
 
-            //Search for potassium values
-            //String[] analytes = new String[]{"SOD"};
+			//Setup the month iterator
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
+			Date start = sdf.parse("2016/01/01");
+			Date end = sdf.parse("2016/04/01");
+			GregorianCalendar gcal = new GregorianCalendar();
+			gcal.setTime(start);
+			
+			//Init the startTime and endTime
+			String startDate = sdf.format(gcal.getTime());
+			String endDate = null;
+			
+			//Create the structures for keeping track of old pids & encounters 
+            HashMap<String, Integer> oldPids = new HashMap<String, Integer>();  
+            HashMap<String, Integer> oldEncs = new HashMap<String, Integer>();
+			
+			//Search for analytes
+            String[] analytes = new String[]{"SOD"};
             //String[] analytes = new String[]{"HGBN","HGB"};
             //String[] analytes = new String[]{"GLUC","GLUC-WB"};
-            String[] analytes = new String[]{"POT","POTPL"};
+            //String[] analytes = new String[]{"POT","POTPL"};
+			
+			//Check to make sure that the destination folder is empty
+			File toTest = new File(getLabResultsPath(analytes));
+			if(toTest.exists()){
+				Scanner sc = new Scanner(System.in);
+				System.out.print("Results Exists, would you like to clear them [Y|N]: ");
+				String clearEm = sc.next();
+				if(clearEm.equals("Y")){
+					FileUtils.deleteDirectory(new File(findDirPath(analytes)));
+				}
+				else{
+					System.out.println("Error: cannot preceed");
+					return;
+				}
+			}
+			
+			while(!gcal.getTime().after(end)){
+				//Add a month to the current time
+				gcal.add(Calendar.MONTH, 1);
+				endDate = sdf.format(gcal.getTime());
+				System.out.println(startDate + " - " + endDate);
+				
+				//Use lab values for cohort discovery
+				if(true && findCohort(analytes, startDate, endDate, conn)){
+					System.out.println("LabResults: Success");
+				}
+				else{
+					System.out.println("LabResults: Failure");
+				}
+		   
+				//Get the list of unique pids and EncIDs in the most recent query
+				String[][] cohortUniq = FindUniquePids(analytes);
+				String[] incomingPIDS = cohortUniq[0];
+				String[] incomingENCS = cohortUniq[1];
 
-            //Use lab values for cohort discovery
-            if(true && findCohort(analytes, conn)){
-                System.out.println("LabResults: Success");
-            }
-            else{
-                System.out.println("LabResults: Failure");
-            }
-       
-            //Get the list of unique pids 
-            String[][] cohortUniq = FindUniquePids(getLabResultsPath(analytes));
-            String[] cohortPIDS = cohortUniq[0];
-            String[] cohortENCS = cohortUniq[1];
+				//Iterate over the new PIDS and examine if they have been searched before
+				ArrayList<String> finalPIDS = new ArrayList<String>();
+				for(int i = 0; i < incomingPIDS.length; i++){
+					String curPid = incomingPIDS[i];
+					if(! oldPids.containsKey(curPid)){
+						finalPIDS.add(curPid);
+						oldPids.put(curPid, 0);
+					}
+				}
+				String[] cohortPIDS = finalPIDS.toArray(new String[finalPIDS.size()]);
+				
+				//Iterate over the new ENCS and examine if they have been searched before
+				ArrayList<String> finalENCS = new ArrayList<String>();
+				for(int i = 0; i < incomingENCS.length; i++){
+					String curEnc = incomingENCS[i];
+					if(! oldEncs.containsKey(curEnc)){
+						finalENCS.add(curEnc);
+						oldEncs.put(curEnc, 0);
+					}
+				}
+				String[] cohortENCS = finalENCS.toArray(new String[finalENCS.size()]);
+				
+				//Query for the demographic info
+				if(GetDemographicInfo(analytes, cohortPIDS, conn)){
+					System.out.println("DemographicInfo: Success");
+				}
+				else{
+					System.out.println("DemographicInfo: Failure");
+				}
 
-            //Query for the demographic info
-            if(GetDemographicInfo(analytes, cohortPIDS, conn)){
-                System.out.println("DemographicInfo: Success");
-            }
-            else{
-                System.out.println("DemographicInfo: Failure");
-            }
+				//Query for patient information
+				if(GetPatientInfo(analytes, cohortPIDS, conn)){
+					System.out.println("PatientInfo: Success");
+				}
+				else{
+					System.out.println("PatientInfo: Failure");
+				}    
 
-            //Query for the Diagnosis codes
-            if(GetPatientInfo(analytes, cohortPIDS, conn)){
-                System.out.println("PatientInfo: Success");
-            }
-            else{
-                System.out.println("PatientInfo: Failure");
-            }    
+				//Query for the encounter results
+				if(GetEncounters(analytes, cohortENCS, conn)){
+					System.out.println("Encounters: Success");
+				}
+				else{
+					System.out.println("Encounters: Failure");
+				}
 
-            //Query for the Diagnosis codes
-            if(GetEncounters(analytes, cohortENCS, conn)){
-                System.out.println("Encounters: Success");
-            }
-            else{
-                System.out.println("Encounters: Failure");
-            }
+				//Query for the Diagnosis codes
+				if(GetDiagnoses(analytes, cohortPIDS, conn)){
+					System.out.println("Diagnoses: Success");
+				}
+				else{
+					System.out.println("Diagnoses: Failure");
+				}
 
-            //Query for the Diagnosis codes
-            if(GetDiagnoses(analytes, cohortPIDS, conn)){
-                System.out.println("Diagnoses: Success");
-            }
-            else{
-                System.out.println("Diagnoses: Failure");
-            }
+				//Query for the Medications
+				if(GetMedications(analytes, cohortENCS, conn)){
+					System.out.println("Medications: Success");
+				}
+				else{
+					System.out.println("Medicaitons: Failure");
+				}
+				
+				//Write the done file
+				GetDone(analytes, conn);
 
-            //Query for the Medications
-            if(GetMedications(analytes, cohortPIDS, conn)){
-                System.out.println("Medications: Success");
-            }
-            else{
-                System.out.println("Medicaitons: Failure");
-            }
+				//Update the startDate with new endDate
+				startDate = endDate;
+			}
+			
+            
+
+            
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
             conn.close();
         }
     }
+	
+	public static boolean GetDone(String[] analytes, Connection conn){
+		try{
+			String dirPath = findDirPath(analytes) + "/Done.txt";
+			BufferedWriter out = new BufferedWriter(new FileWriter(dirPath));
+			out.write("YASE");
+			out.close();
+			return true;
+		} catch (Exception e){
+			e.printStackTrace();
+			return false;
+		}
+	}
 
     public static boolean GetDemographicInfo(String[] analytes, String[] uniquePids, Connection conn){
         try{
@@ -134,7 +225,7 @@ public class QuerySql {
             return false;
         }
     }
-
+ 
     public static boolean GetPatientInfo(String[] analytes, String[] uniquePids, Connection conn){
         try{
             String patientPath = getPatientInfoPath(analytes); 
@@ -155,10 +246,10 @@ public class QuerySql {
         }
     }
 
-    public static boolean GetMedications(String[] analytes, String[] uniquePids, Connection conn){
+    public static boolean GetMedications(String[] analytes, String[] uniqueEncs, Connection conn){
         try{
             String medsPath = getMedicationsPath(analytes); 
-            return GetAssociatedPidInfo(uniquePids, "MedicationAdministrationsComprehensive", "*", medsPath, conn);
+            return GetAssociatedEncounterInfo(uniqueEncs, "MedicationAdministrationsComprehensive", "*", medsPath, conn);
         } catch (Exception e){
             e.printStackTrace();
             return false;
@@ -210,13 +301,13 @@ public class QuerySql {
             cursor = conn.prepareStatement(sql);
             cursor.setFetchDirection(ResultSet.FETCH_FORWARD);
             cursor.setFetchSize(10000);
-            cursor.setQueryTimeout(60 * 60);
+            cursor.setQueryTimeout(60 * 60 * 6);
 
             //Run the statment
             rs = cursor.executeQuery();
 
             //Write the results to an output file
-            returnRes = writeResultSetToFile(rs, outputFile);
+            returnRes = writeResultSetToFile(rs, outputFile, true);
         } catch (Exception e){
             e.printStackTrace();
             returnRes = false;
@@ -229,13 +320,31 @@ public class QuerySql {
         return returnRes;
     }
 
-    public static String[][] FindUniquePids(String filePath){
+    public static String[][] FindUniquePids(String[] analytes){
         try{
-            BufferedReader br = new BufferedReader(new FileReader(filePath));
-
+			//Check that the final output file is there and ready to go
+			String finalOutputFile = getLabResultsPath(analytes);
+			File f = new File(finalOutputFile);
+			Boolean firstWrite = null;
+			BufferedWriter out = null;
+			if(f.exists() && !f.isDirectory()) {
+				out = new BufferedWriter(new FileWriter(finalOutputFile, true));
+				firstWrite = false;
+			}
+			else{
+				out = new BufferedWriter(new FileWriter(finalOutputFile));
+				firstWrite = true;
+			}
+			
+			//Setup the input file
+			String inputTempFile = finalOutputFile + ".temp";
+            BufferedReader br = new BufferedReader(new FileReader(inputTempFile));
+			
+			//Create the structures for keeping track of new pids & encounters 
             HashMap<String, Integer> hm = new HashMap<String, Integer>();  
             HashMap<String, Integer> hmEnc = new HashMap<String, Integer>();
 
+			Integer curLine = 0;
             for (String line = br.readLine(); line != null; line = br.readLine()) {
                 String[] pid = line.split("\t", 3);
                 if(pid.length > 0){
@@ -261,10 +370,20 @@ public class QuerySql {
                         //System.out.println(pidVal);
                     }
                 }
+				
+				//Write the temp file to the output file
+				if((firstWrite && curLine == 0) || (!firstWrite && curLine > 0)){
+					out.write(line + "\n");
+				}
+				
+				curLine += 1;
             }
 
+			//Close the files paths
             br.close();
+			out.close();
 
+			//Return the results
             String[][] outputResult = new String[2][];
             outputResult[0] = hm.keySet().toArray(new String[0]);
             outputResult[1] = hmEnc.keySet().toArray(new String[0]);
@@ -327,26 +446,26 @@ public class QuerySql {
         return theDir.getPath(); 
     }
 
-    public static boolean findCohort(String[] analyte, Connection conn) throws SQLException {
-        if(analyte == null || analyte.length == 0){
+    public static boolean findCohort(String[] analyte, String sTime, String eTime, Connection conn) throws SQLException {
+        if(analyte == null || analyte.length == 0 || sTime == null || eTime == null){
             return false;
         }
-
+				
         //Print some output for debugging
         System.out.println("LabResults: " + String.join(",", analyte));
         
-        //Create the output file
-        String outputFile = getLabResultsPath(analyte);
+        //Create the temp output file
+        String outputFile = getLabResultsPath(analyte) + ".temp";
 
         //Build the select query 
-        String sql = "SELECT TOP 50000 * FROM LabResults WHERE "; 
+        String sql = "SELECT * FROM LabResults WHERE "; 
         
         //This is where you can filter the data range
-        sql += "COLLECTION_DATE < '01/01/17' AND COLLECTION_DATE > '01/01/2014' ";
+        sql += "COLLECTION_DATE <= '" + eTime + "' AND COLLECTION_DATE > '" + sTime + "' ";
         
         //This is where you can filter the result codes
         sql += "AND (RESULT_CODE = '" + String.join("' OR RESULT_CODE = '", analyte) + "')";
-
+		
         //System.out.println(sql); 
         ResultSet rs = null;
         try{
@@ -358,9 +477,9 @@ public class QuerySql {
 
             //Run the statment
             rs = cursor.executeQuery();
-
+			
             //Write the results to an output file
-            return writeResultSetToFile(rs, outputFile);
+            return writeResultSetToFile(rs, outputFile, false);
         } catch (Exception e){
             e.printStackTrace();
             return false;
@@ -369,29 +488,45 @@ public class QuerySql {
         }
     }
 
-    public static boolean writeResultSetToFile(ResultSet rs, String fileName) {
+	
+	
+    public static boolean writeResultSetToFile(ResultSet rs, String fileName, Boolean appendIt) {
         try{
+			//Define the deilimter and end of line characters
+            String delimiter = "\t";
+            String endOfLine = "\n";
+			
             //Get the column names
             String[] colNames = getColumnNames(rs);
 
-            //Iterate over results and write to file
-            try (BufferedWriter out = new BufferedWriter(new FileWriter(fileName))) {
-                //Define the deilimter and end of line characters
-                String delimiter = "\t";
-                String endOfLine = "\n";
+            BufferedWriter out = null;
+			if(! appendIt){
+				//Over write any file that already exists
+				out = new BufferedWriter(new FileWriter(fileName));
+				out.write(String.join(delimiter, colNames) + endOfLine);
+			}
+			else{
+				//Check to see if the file already exists
+				File yase = new File(fileName);
+				if(yase.exists()){
+					//Append results to the output file
+					out = new BufferedWriter(new FileWriter(fileName, true));
+				}
+				else{
+					//Create a new file to write results to 
+					out = new BufferedWriter(new FileWriter(fileName));
+					out.write(String.join(delimiter, colNames) + endOfLine);
+				}
+			}
 
-                //Write the column name lines
-                out.write(String.join(delimiter, colNames) + endOfLine);
+            //Iterate over the results
+            while(rs.next()){
+                //Define the result string of columns
+                String[] curRow = convertRowToString(colNames, rs);
 
-                //Iterate over the results
-                while(rs.next()){
-                    //Define the result string of columns
-                    String[] curRow = convertRowToString(colNames, rs);
-
-                    //Write the current row to text file
-                    if(curRow != null){
-                        out.write(String.join(delimiter, curRow) + endOfLine);
-                    }
+                //Write the current row to text file
+                if(curRow != null){
+                    out.write(String.join(delimiter, curRow) + endOfLine);
                 }
             }
         } catch (Exception e){
