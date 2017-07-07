@@ -1,4 +1,4 @@
-source("import_csv.R")
+source("../import_files.R")
 
 #Parse input from command line
 library(optparse)
@@ -27,16 +27,16 @@ if(file.exists(output_filename)){
 }
 
 #Load up the csv files
-importDb=import_csv(input_dir)
+importDb=import_files(input_dir)
 patient_bday = importDb$patient_bday
 diagnoses = importDb$diagnoses
 encounter_all = importDb$encounter_all
 encounter_location = importDb$encounter_location
 lab_values = importDb$lab_values
-med_admin=glucose_vals$med_admin
+med_admin=importDb$med_admin
 
 #Build the lab values dataset
-labValuesDplyr=inner_join(lab_values, patient_bday)
+labValuesDplyr = inner_join(lab_values, patient_bday)
 labValuesDplyr = select(labValuesDplyr, one_of(c("PatientID", "DOB", "COLLECTION_DATE", "ORDER_CODE", "ORDER_NAME", "VALUE", "UNIT", "RANGE")))
 labValuesDplyr = rename(labValuesDplyr, pid = PatientID)
 labValuesDplyr = rename(labValuesDplyr, l_val = VALUE)
@@ -44,7 +44,7 @@ labValuesDplyr = labValuesDplyr %>% mutate(timeOffset = as.numeric(as.Date(COLLE
 labValues<-labValuesDplyr %>% select(pid, l_val, timeOffset, COLLECTION_DATE) %>% as.data.frame()
 
 #Get the diagnosis and pair with PtID to build the timeOffset
-diagnosis_process=inner_join(diagnoses, patient_bday, by="PatientID")
+diagnosis_process = inner_join(diagnoses, patient_bday, by="PatientID")
 encounter_earliest = encounter_location %>%
                         group_by(EncounterID) %>%
                         summarise(StartDate = min(as.Date(StartDate)))
