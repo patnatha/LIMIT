@@ -11,7 +11,7 @@ import java.util.Properties;
 import java.util.ArrayList;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.lang.Object;
+import java.lang.*;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.File;
@@ -27,17 +27,32 @@ import java.util.GregorianCalendar;
 import java.text.SimpleDateFormat;
 import org.apache.commons.io.FileUtils;
 
-public class QuerySql {
-	public static String startDate;
-	public static String endDate;
-	
+public class QuerySql {	
     public static void main(String[] args) throws SQLException, IOException {
-        //Specify all the variable for connecting to the database
-        Connection conn = null;
-        ResultSet rs = null;
-        String url = "jdbc:jtds:sqlserver://rdw-db.med.umich.edu:1433;databaseName=RDW_Views;domain=UMHS;useNTLMv2=true;useLOBs=false;";
-        String driver = "net.sourceforge.jtds.jdbc.Driver";
+		//Specify all the variable for connecting to the database
+		Connection conn = null;		
+		ResultSet rs = null;
+		String url = "jdbc:jtds:sqlserver://rdw-db.med.umich.edu:1433;databaseName=RDW_Views;domain=UMHS;useNTLMv2=true;useLOBs=false;";
+		String driver = "net.sourceforge.jtds.jdbc.Driver";
+			
+		//Search for analytes
+		String[] analytes = new String[]{"SOD"};
+		//String[] analytes = new String[]{"HGBN","HGB"};
+		//String[] analytes = new String[]{"GLUC","GLUC-WB"};
+		//String[] analytes = new String[]{"POT","POTPL"};
 
+		//Setup the date range to search
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
+		Date start = null;
+		Date end = null;
+		try{
+			start = sdf.parse("2016/01/01");
+			end = sdf.parse("2017/01/01");
+		} 
+		catch(Exception e){
+			return;
+		}
+		
         //Attempt to load credentials from text file
         String userName = null;
         String password = null;
@@ -70,9 +85,6 @@ public class QuerySql {
             conn.setAutoCommit(false);
 
 			//Setup the month iterator
-			SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
-			Date start = sdf.parse("2016/01/01");
-			Date end = sdf.parse("2016/04/01");
 			GregorianCalendar gcal = new GregorianCalendar();
 			gcal.setTime(start);
 			
@@ -83,12 +95,6 @@ public class QuerySql {
 			//Create the structures for keeping track of old pids & encounters 
             HashMap<String, Integer> oldPids = new HashMap<String, Integer>();  
             HashMap<String, Integer> oldEncs = new HashMap<String, Integer>();
-			
-			//Search for analytes
-            String[] analytes = new String[]{"SOD"};
-            //String[] analytes = new String[]{"HGBN","HGB"};
-            //String[] analytes = new String[]{"GLUC","GLUC-WB"};
-            //String[] analytes = new String[]{"POT","POTPL"};
 			
 			//Check to make sure that the destination folder is empty
 			File toTest = new File(getLabResultsPath(analytes));
@@ -128,7 +134,7 @@ public class QuerySql {
 				ArrayList<String> finalPIDS = new ArrayList<String>();
 				for(int i = 0; i < incomingPIDS.length; i++){
 					String curPid = incomingPIDS[i];
-					if(! oldPids.containsKey(curPid)){
+					if(curPid != null && !oldPids.containsKey(curPid)){
 						finalPIDS.add(curPid);
 						oldPids.put(curPid, 0);
 					}
@@ -139,7 +145,7 @@ public class QuerySql {
 				ArrayList<String> finalENCS = new ArrayList<String>();
 				for(int i = 0; i < incomingENCS.length; i++){
 					String curEnc = incomingENCS[i];
-					if(! oldEncs.containsKey(curEnc)){
+					if(curEnc != null && !oldEncs.containsKey(curEnc)){
 						finalENCS.add(curEnc);
 						oldEncs.put(curEnc, 0);
 					}
@@ -147,7 +153,7 @@ public class QuerySql {
 				String[] cohortENCS = finalENCS.toArray(new String[finalENCS.size()]);
 				
 				//Query for the demographic info
-				if(GetDemographicInfo(analytes, cohortPIDS, conn)){
+				if(cohortPIDS.length > 0 && GetDemographicInfo(analytes, cohortPIDS, conn)){
 					System.out.println("DemographicInfo: Success");
 				}
 				else{
@@ -155,23 +161,32 @@ public class QuerySql {
 				}
 
 				//Query for patient information
-				if(GetPatientInfo(analytes, cohortPIDS, conn)){
+				if(cohortPIDS.length > 0 && GetPatientInfo(analytes, cohortPIDS, conn)){
 					System.out.println("PatientInfo: Success");
 				}
 				else{
 					System.out.println("PatientInfo: Failure");
-				}    
+				}
 
+				
 				//Query for the encounter results
-				if(GetEncounters(analytes, cohortENCS, conn)){
+				if(cohortENCS.length > 0 && GetEncounters(analytes, cohortENCS, conn)){
 					System.out.println("Encounters: Success");
 				}
 				else{
 					System.out.println("Encounters: Failure");
 				}
-
+				
+				//Query for the encounter results
+				if(cohortENCS.length > 0 && GetEncounterLocations(analytes, cohortENCS, conn)){
+					System.out.println("Encounters Locations: Success");
+				}
+				else{
+					System.out.println("Encounters Locations: Failure");
+				}
+				
 				//Query for the Diagnosis codes
-				if(GetDiagnoses(analytes, cohortPIDS, conn)){
+				if(cohortPIDS.length > 0 && GetDiagnoses(analytes, cohortPIDS, conn)){
 					System.out.println("Diagnoses: Success");
 				}
 				else{
@@ -179,7 +194,7 @@ public class QuerySql {
 				}
 
 				//Query for the Medications
-				if(GetMedications(analytes, cohortENCS, conn)){
+				if(cohortENCS.length > 0 && GetMedications(analytes, cohortENCS, conn)){
 					System.out.println("Medications: Success");
 				}
 				else{
@@ -229,7 +244,7 @@ public class QuerySql {
     public static boolean GetPatientInfo(String[] analytes, String[] uniquePids, Connection conn){
         try{
             String patientPath = getPatientInfoPath(analytes); 
-            return GetAssociatedPidInfo(uniquePids, "PatientInfo", "DOB", patientPath, conn);
+            return GetAssociatedPidInfo(uniquePids, "PatientInfo", "PatientID, DOB", patientPath, conn);
         } catch (Exception e){
             e.printStackTrace();
             return false;
@@ -239,7 +254,7 @@ public class QuerySql {
     public static boolean GetDiagnoses(String[] analytes, String[] uniquePids, Connection conn){
         try{
             String diagPath = getDiagnosesPath(analytes);
-            return GetAssociatedPidInfo(uniquePids, "DiagnosesComprehensive", "*", diagPath, conn);
+            return GetAssociatedPidInfo(uniquePids, "DiagnosesComprehensive", "PatientID, EncounterID, Lexicon, TermCodeMapped, TermNameMapped, ProblemID", diagPath, conn);
         } catch (Exception e){
             e.printStackTrace();
             return false;
@@ -249,7 +264,7 @@ public class QuerySql {
     public static boolean GetMedications(String[] analytes, String[] uniqueEncs, Connection conn){
         try{
             String medsPath = getMedicationsPath(analytes); 
-            return GetAssociatedEncounterInfo(uniqueEncs, "MedicationAdministrationsComprehensive", "*", medsPath, conn);
+            return GetAssociatedEncounterInfo(uniqueEncs, "MedicationAdministrationsComprehensive", "PatientID, EncounterID, MedicationTermID, MedicationName, MedicationStatus, DoseStartTime, OrderID", medsPath, conn);
         } catch (Exception e){
             e.printStackTrace();
             return false;
@@ -301,7 +316,9 @@ public class QuerySql {
             cursor = conn.prepareStatement(sql);
             cursor.setFetchDirection(ResultSet.FETCH_FORWARD);
             cursor.setFetchSize(10000);
-            cursor.setQueryTimeout(60 * 60 * 6);
+			
+			//Set the timeout at 10 hours
+            cursor.setQueryTimeout(60 * 60 * 10);
 
             //Run the statment
             rs = cursor.executeQuery();
@@ -372,7 +389,7 @@ public class QuerySql {
                 }
 				
 				//Write the temp file to the output file
-				if((firstWrite && curLine == 0) || (!firstWrite && curLine > 0)){
+				if((firstWrite && curLine == 0) || (curLine > 0)){
 					out.write(line + "\n");
 				}
 				
@@ -382,6 +399,10 @@ public class QuerySql {
 			//Close the files paths
             br.close();
 			out.close();
+			
+			//Delete the temp file
+			File ftd = new File(inputTempFile);
+			ftd.delete();
 
 			//Return the results
             String[][] outputResult = new String[2][];
@@ -458,7 +479,9 @@ public class QuerySql {
         String outputFile = getLabResultsPath(analyte) + ".temp";
 
         //Build the select query 
-        String sql = "SELECT * FROM LabResults WHERE "; 
+        String sql = "SELECT ";
+		sql += "PatientID, EncounterID, COLLECTION_DATE, ORDER_CODE, ORDER_NAME, VALUE, UNIT, RANGE ";
+		sql += "FROM LabResults WHERE "; 
         
         //This is where you can filter the data range
         sql += "COLLECTION_DATE <= '" + eTime + "' AND COLLECTION_DATE > '" + sTime + "' ";
@@ -473,7 +496,7 @@ public class QuerySql {
             PreparedStatement cursor = conn.prepareStatement(sql);
             cursor.setFetchDirection(ResultSet.FETCH_FORWARD);
             cursor.setFetchSize(10000);
-            cursor.setQueryTimeout(60 * 60);
+            cursor.setQueryTimeout(60 * 60 * 10);
 
             //Run the statment
             rs = cursor.executeQuery();
@@ -490,8 +513,10 @@ public class QuerySql {
 
 	
 	
-    public static boolean writeResultSetToFile(ResultSet rs, String fileName, Boolean appendIt) {
-        try{
+    public static boolean writeResultSetToFile(ResultSet rs, String fileName, Boolean appendIt) throws IOException {
+        BufferedWriter out = null;
+		
+		try{
 			//Define the deilimter and end of line characters
             String delimiter = "\t";
             String endOfLine = "\n";
@@ -499,7 +524,6 @@ public class QuerySql {
             //Get the column names
             String[] colNames = getColumnNames(rs);
 
-            BufferedWriter out = null;
 			if(! appendIt){
 				//Over write any file that already exists
 				out = new BufferedWriter(new FileWriter(fileName));
@@ -529,11 +553,18 @@ public class QuerySql {
                     out.write(String.join(delimiter, curRow) + endOfLine);
                 }
             }
+			
+			if(out != null){
+				out.close();
+			}
         } catch (Exception e){
+			if(out != null){
+				out.close();
+			}
             e.printStackTrace();
             return false;
         }
-
+		
         return true;
     }
 
@@ -570,6 +601,8 @@ public class QuerySql {
                     curRow[i] = theRow.getString(colNames[i]);
                 } else if(curVal.getClass() == java.math.BigDecimal.class){
                     curRow[i] = theRow.getBigDecimal(colNames[i]).toString();
+				} else if(curVal.getClass() == java.lang.Boolean.class){
+					curRow[i] = theRow.getString(colNames[i]);
                 } else {
                     //Error column
                     curRow[i] = "";
