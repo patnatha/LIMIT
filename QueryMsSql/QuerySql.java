@@ -62,7 +62,7 @@ public class QuerySql {
             userName = prop.getProperty("username");
             password = prop.getProperty("password");
         } catch (Exception e){
-
+            
         }
 
         //Get the username from the console
