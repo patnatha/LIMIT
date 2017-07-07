@@ -11,9 +11,9 @@ QuerySql.class: QuerySql.java
 
 # Run the program
 run: QuerySql.class
-
 	java -cp $(cpFlags) QuerySql
 
 # Clear out the compiled version
 clean: 
 	rm .\QuerySql.class
+	rm ./QuerySql.class

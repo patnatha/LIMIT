@@ -37,11 +37,11 @@ med_admin=glucose_vals$med_admin
 
 #Build the lab values dataset
 labValuesDplyr=inner_join(lab_values, patient_bday)
-labValuesDplyr = select(labValuesDplyr, one_of(c("PatientID", "DOB", "COLLECTION_DATE", "ORDER_CODE", "ORDER_NAME", "VALUE", "UNIT", "RANGE")))
+labValuesDplyr = select(labValuesDplyr, one_of(c("PatientID", "EncounterID", "DOB", "COLLECTION_DATE", "ORDER_CODE", "ORDER_NAME", "VALUE", "UNIT", "RANGE")))
 labValuesDplyr = rename(labValuesDplyr, pid = PatientID)
 labValuesDplyr = rename(labValuesDplyr, l_val = VALUE)
 labValuesDplyr = labValuesDplyr %>% mutate(timeOffset = as.numeric(as.Date(COLLECTION_DATE) - as.Date(DOB)))
-labValues<-labValuesDplyr %>% select(pid, l_val, timeOffset, COLLECTION_DATE) %>% as.data.frame()
+labValues<-labValuesDplyr %>% select(pid, l_val, timeOffset, COLLECTION_DATE, EncounterID) %>% as.data.frame()
 
 #Get the diagnosis and pair with PtID to build the timeOffset
 diagnosis_process=inner_join(diagnoses, patient_bday, by="PatientID")
