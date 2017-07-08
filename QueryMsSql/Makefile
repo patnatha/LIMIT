@@ -7,13 +7,14 @@ endif
 
 # Compile the program
 QuerySql.class: QuerySql.java
-	javac -classpath $(cpFlags) QuerySql.java
+	javac -classpath $(cpFlags) -Xlint QuerySql.java
 
 # Run the program
 run: QuerySql.class
-	java -cp $(cpFlags) QuerySql
+	java -cp $(cpFlags) -Xmx1024m QuerySql
 
 # Clear out the compiled version
 clean: 
 	rm .\QuerySql.class
 	rm ./QuerySql.class
+	

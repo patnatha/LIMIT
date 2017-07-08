@@ -20,6 +20,7 @@ import java.io.StringWriter;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.HashMap;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Calendar;
 import java.util.Date;
@@ -27,31 +28,80 @@ import java.util.GregorianCalendar;
 import java.text.SimpleDateFormat;
 import org.apache.commons.io.FileUtils;
 
-public class QuerySql {	
-    public static void main(String[] args) throws SQLException, IOException {
-		//Specify all the variable for connecting to the database
-		Connection conn = null;		
-		ResultSet rs = null;
-		String url = "jdbc:jtds:sqlserver://rdw-db.med.umich.edu:1433;databaseName=RDW_Views;domain=UMHS;useNTLMv2=true;useLOBs=false;";
-		String driver = "net.sourceforge.jtds.jdbc.Driver";
+public class QuerySql {
+    public static void main(String[] args) throws SQLException, IOException {	
+		//Construct variables for keeping track of values to search for
+		ArrayList<ArrayList<String>> analytess = new ArrayList<ArrayList<String>>();
+		ArrayList<String> temp = null;
+		
+		//Load up the values to choose from
+		temp = new ArrayList<String>(Arrays.asList("SOD"));
+		analytess.add(temp);
+		temp = new ArrayList<String>(Arrays.asList("HGBN","HGB"));
+		analytess.add(temp);
+		temp = new ArrayList<String>(Arrays.asList("GLUC","GLUC-WB"));
+		analytess.add(temp);
+		temp = new ArrayList<String>(Arrays.asList("POT","POTPL"));
+		analytess.add(temp);
+		
+		//Scanner for getting user input
+		Scanner sc = new Scanner(System.in);
+		
+		//Print out the selection choices to the user
+		System.out.println("**********Analyte Selection**********");
+		System.out.println("Which analyte would you like to analyze?");
+		for(int i = 0; i < analytess.size(); i++){
+			Integer to = i + 1;
+			System.out.println(to.toString() + ") " + analytess.get(i));
+		}
+	
+		//Get user input
+		ArrayList<String> analytes_temp = null;
+		try{
+			Integer to = analytess.size();
+			System.out.print("Which One [1 - " + to.toString() + "]: ");
+			String whichAnalyte = sc.next();
+			analytes_temp = analytess.get(Integer.parseInt(whichAnalyte) - 1);
+		}
+		catch(Exception e){
+			return;
+		}
+	
+		//Assign the user intput to a variable for analyzing
+		String[] analytes = analytes_temp.toArray(new String[analytes_temp.size()]);
+	
+		//Check to make sure that the destination folder is empty
+		File toTest = new File(getLabResultsPath(analytes));
+		if(toTest.exists()){
+			System.out.println("**********Overwrite Results**********");
+			System.out.print("Results Exists, would you like to clear them [Y|N]: ");
+			String clearEm = sc.next();
+			if(clearEm.equals("Y") || clearEm.equals("y")){
+				FileUtils.deleteDirectory(new File(findDirPath(analytes)));
+			}
+			else{
+				System.out.println("Error: cannot preceed");
+				return;
+			}
+		}
 			
-		//Search for analytes
-		String[] analytes = new String[]{"SOD"};
-		//String[] analytes = new String[]{"HGBN","HGB"};
-		//String[] analytes = new String[]{"GLUC","GLUC-WB"};
-		//String[] analytes = new String[]{"POT","POTPL"};
-
 		//Setup the date range to search
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
 		Date start = null;
 		Date end = null;
 		try{
-			start = sdf.parse("2016/01/01");
+			start = sdf.parse("2015/01/01");
 			end = sdf.parse("2017/01/01");
-		} 
+		}
 		catch(Exception e){
 			return;
 		}
+		
+		//Specify all the variable for connecting to the database
+		Connection conn = null;		
+		ResultSet rs = null;
+		String url = "jdbc:jtds:sqlserver://rdw-db.med.umich.edu:1433;databaseName=RDW_Views;domain=UMHS;useNTLMv2=true;useLOBs=false;";
+		String driver = "net.sourceforge.jtds.jdbc.Driver";
 		
         //Attempt to load credentials from text file
         String userName = null;
@@ -66,8 +116,8 @@ public class QuerySql {
         }
 
         //Get the username from the console
+		System.out.println("**********Database Connection**********");
         if(userName == null){
-            Scanner sc = new Scanner(System.in);
             System.out.print("Username: ");
             userName = sc.next();
         }
@@ -95,25 +145,11 @@ public class QuerySql {
 			//Create the structures for keeping track of old pids & encounters 
             HashMap<String, Integer> oldPids = new HashMap<String, Integer>();  
             HashMap<String, Integer> oldEncs = new HashMap<String, Integer>();
-			
-			//Check to make sure that the destination folder is empty
-			File toTest = new File(getLabResultsPath(analytes));
-			if(toTest.exists()){
-				Scanner sc = new Scanner(System.in);
-				System.out.print("Results Exists, would you like to clear them [Y|N]: ");
-				String clearEm = sc.next();
-				if(clearEm.equals("Y")){
-					FileUtils.deleteDirectory(new File(findDirPath(analytes)));
-				}
-				else{
-					System.out.println("Error: cannot preceed");
-					return;
-				}
-			}
-			
+						
+			System.out.println("**********Downloading**********");
 			while(!gcal.getTime().after(end)){
 				//Add a month to the current time
-				gcal.add(Calendar.MONTH, 1);
+				gcal.add(Calendar.DAY_OF_YEAR, 14);
 				endDate = sdf.format(gcal.getTime());
 				System.out.println(startDate + " - " + endDate);
 				
