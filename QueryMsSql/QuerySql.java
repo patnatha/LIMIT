@@ -90,7 +90,7 @@ public class QuerySql {
 		Date start = null;
 		Date end = null;
 		try{
-			start = sdf.parse("2015/01/01");
+			start = sdf.parse("2013/01/01");
 			end = sdf.parse("2017/01/01");
 		}
 		catch(Exception e){
