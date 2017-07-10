@@ -53,6 +53,7 @@ labValues<-labValuesDplyr %>% select(pid, l_val, timeOffset, COLLECTION_DATE, En
 diagnosis_process = inner_join(diagnoses, patient_bday, by="PatientID")
 encounter_earliest = encounter_location %>%
                         mutate(StartDate = ifelse(StartDate == "", EndDate, StartDate)) %>%
+                        filter(StartDate != "") %>%
                         group_by(EncounterID) %>%
                         summarise(StartDate = min(as.Date(StartDate)))
 icdValuesDplyr = inner_join(diagnosis_process, encounter_earliest, by="EncounterID")
