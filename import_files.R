@@ -32,47 +32,17 @@ import_files_fxn <- function(path_to_file){
     }
 }
 
-import_files <- function(input_dir){
-    #Build the paths
-    demo_info_path=file.path(input_dir, "DemographicInfo")
-    patient_bday_path=file.path(input_dir, "PatientInfo")
-    diagnoses_path=file.path(input_dir, "DiagnosesComprehensive")
-    lab_values_path=file.path(input_dir, "LabResults")
-    encouter_all_path=file.path(input_dir, "EncountersAll")
-    encounter_location_path=file.path(input_dir, "EncounterLocations")
-    medication_admin_path=file.path(input_dir, "MedicationAdministrationsComprehensive")
+import_lab_values <- function(input_dir){ return(import_files_fxn(file.path(input_dir, "LabResults"))) }
 
-    #Load up the csv files
-    print("Load Lab Values")
-    lab_values=import_files_fxn(lab_values_path)
-    print('Done')
-    print('Load Demo Info')
-    demo_info=import_files_fxn(demo_info_path)
-    print('Done')
-    print('Load Patient Info')
-    patient_bday=import_files_fxn(patient_bday_path)
-    print('Done')
-    print('Load Encounters')
-    encounter_all=import_files_fxn(encouter_all_path)
-    print('Done')
-    print('Load Encounter Locations')
-    encouter_location=import_files_fxn(encounter_location_path)
-    print('Done')
-    print('Load Med Administration')
-    med_admin=import_files_fxn(medication_admin_path)
-    print('Done')
-    print('Load Diagnoses')
-    diagnoses=import_files_fxn(diagnoses_path)
-    print('Done')
+import_demo_info <- function(input_dir){ return(import_files_fxn(file.path(input_dir, "DemographicInfo"))) }
 
-    l <- list("demo_info" = demo_info, 
-                "patient_bday" = patient_bday, 
-                "diagnoses" = diagnoses, 
-                "encounter_all" = encounter_all, 
-                "encounter_location" = encouter_location, 
-                "lab_values" = lab_values,
-                "med_admin" = med_admin)
+import_patient_bday <- function(input_dir){ return(import_files_fxn(file.path(input_dir, "PatientInfo"))) }
 
-    return(l) 
-}
+import_encounter_all <- function(input_dir){ return(import_files_fxn(file.path(input_dir, "EncountersAll"))) }
+
+import_encounter_location <- function(input_dir){ return(import_files_fxn(file.path(input_dir, "EncounterLocations"))) }
+
+import_diagnoses <- function(input_dir){ return(import_files_fxn(file.path(input_dir, "DiagnosesComprehensive"))) }
+
+import_med_admin <- function(input_dir){ return(import_files_fxn(file.path(input_dir, "MedicationAdministrationsComprehensive"))) }
 

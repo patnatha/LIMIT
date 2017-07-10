@@ -3,11 +3,7 @@ source('glucose_paths.R')
 
 # Load up additional information
 source('../import_files.R')
-glucose_vals=import_files(inputDir)
-patient_bday=glucose_vals$patient_bday
-diagnoses=glucose_vals$diagnoses
-encounter_location=glucose_vals$encounter_location
-med_admin=glucose_vals$med_admin
+patient_bday=import_patient_bday(input_dir)
 
 # Create the diff lab value and then convert to Dplyr
 load(paste(inputDir, 'paired_glucoses.Rdata', sep=""))
@@ -31,10 +27,14 @@ labValuesDplyr = labValuesDplyr %>%
 labValues<-labValuesDplyr %>% select(pid, l_val, timeOffset, COLLECTION_DATE) %>% as.data.frame()
 
 # Get ICD codes
+diagnoses = import_diagnoses(input_dir)
 diagnosis_process=inner_join(diagnoses, patient_bday, by="PatientID")
+remove(diagnoses)
+encounter_location=import_encounter_location(input_dir)
 encounter_earliest = encounter_location %>% 
                         group_by(EncounterID) %>% 
                         summarise(StartDate = min(as.Date(StartDate)))
+remove(encounter_location)
 icdValuesDplyr = inner_join(diagnosis_process, encounter_earliest, by="EncounterID")
 icdValuesDplyr = rename(icdValuesDplyr, pid = PatientID)
 icdValuesDplyr = rename(icdValuesDplyr, icd = TermCodeMapped)
@@ -47,7 +47,9 @@ icdValuesDplyr = icdValuesDplyr %>%
 icdValues<-icdValuesDplyr %>% select(pid, icd, timeOffset, EncounterID) %>% as.data.frame()
 
 #Get Medications that were administered
+med_admin = import_med_admin(input_dir)
 medsAdminDyplyr = med_admin %>% filter(MedicationStatus == "Given")
+remove(med_admin)
 medsAdminDyplyr = inner_join(medsAdminDyplyr, patient_bday, by="PatientID")
 medsAdminDyplyr = rename(medsAdminDyplyr, pid = PatientID)
 medsAdminDyplyr = rename(medsAdminDyplyr, icd = MedicationTermID)

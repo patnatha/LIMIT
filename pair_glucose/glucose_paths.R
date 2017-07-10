@@ -1,5 +1,5 @@
 #analysisType = "gluc1mo"
-analysisType = "gluc3yr"
+analysisType = "gluc2yr"
 
 #The base base path
 basicPath='/scratch/leeschro_armis/patnatha/'
@@ -10,10 +10,10 @@ if(analysisType == "gluc1mo"){
     inputDir=paste(basicPath, 'glucose_1_month/', sep="")
     prepare_paired_glucoses_path=paste(prepare_paired_glucoses_path, 
         '1mo_paired_glucoses.Rdata', sep="")
-} else if(analysisType == "gluc3yr"){
-    inputDir=paste(basicPath, 'glucose_3_years/', sep="")
+} else if(analysisType == "gluc2yr"){
+    inputDir=paste(basicPath, 'glucose_2_years/', sep="")
     prepare_paired_glucoses_path=paste(prepare_paired_glucoses_path, 
-        '3yr_paired_glucoses.Rdata', sep="")
+        '2yr_paired_glucoses.Rdata', sep="")
 }
 
 print(paste("inputDir", inputDir, sep="|"))
