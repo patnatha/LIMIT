@@ -45,7 +45,7 @@ source("../import_files.R")
 glucoseVals = import_files(inputDir)
 
 #Pick out the columns that we need for analyzing
-selected_glucoses = select(glucoseVals$lab_values, one_of(c('PatientID', 'ACCESSION_NUMBER', 'COLLECTION_DATE', 'RESULT_CODE', 'VALUE')))
+selected_glucoses = select(glucoseVals, one_of(c('PatientID', 'ACCESSION_NUMBER', 'COLLECTION_DATE', 'RESULT_CODE', 'VALUE')))
 
 #Get a count of the largest bin
 pidCnt = selected_glucoses %>% group_by(PatientID) %>% count() %>% filter(n > 1) 

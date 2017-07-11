@@ -516,7 +516,7 @@ public class QuerySql {
 
         //Build the select query 
         String sql = "SELECT ";
-		sql += "PatientID, EncounterID, COLLECTION_DATE, ORDER_CODE, ORDER_NAME, VALUE, UNIT, RANGE ";
+		sql += "PatientID, EncounterID, COLLECTION_DATE, ORDER_CODE, ORDER_NAME, RESULT_CODE, ACCESSION_NUMBER, VALUE, UNIT, RANGE ";
 		sql += "FROM LabResults WHERE "; 
         
         //This is where you can filter the data range
