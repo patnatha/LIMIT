@@ -23,13 +23,13 @@ if(! 'name' %in% args){
 } else {
 	#Create the final output filename
 	output_filename = gsub("//", "/", paste(output_directory, args[['name']], sep="/"))
-	output_filename = paste(output_filename, '.Rdata', sep="")
-	if(file.exists(output_filename)){
-		print("The output filename already exists")
-		stop()
-	}
 }
-print(paste("Writing to: ", output_filename, sep=""))
+output_filename = paste(output_filename, '.Rdata', sep="")
+if(file.exists(output_filename)){
+    print("The output filename already exists")
+    stop()
+}
+print(output_filename)
 
 #Load up the csv files
 patient_bday = import_patient_bday(input_dir)
