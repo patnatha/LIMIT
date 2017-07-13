@@ -34,15 +34,28 @@ public class QuerySql {
 		ArrayList<ArrayList<String>> analytess = new ArrayList<ArrayList<String>>();
 		ArrayList<String> temp = null;
 		
-		//Load up the values to choose from
+		//Add the BMP values
 		temp = new ArrayList<String>(Arrays.asList("SOD"));
-		analytess.add(temp);
-		temp = new ArrayList<String>(Arrays.asList("HGBN","HGB"));
 		analytess.add(temp);
 		temp = new ArrayList<String>(Arrays.asList("GLUC","GLUC-WB"));
 		analytess.add(temp);
 		temp = new ArrayList<String>(Arrays.asList("POT","POTPL"));
 		analytess.add(temp);
+		temp = new ArrayList<String>(Arrays.asList("CHLOR"));
+		analytess.add(temp);
+		temp = new ArrayList<String>(Arrays.asList("CAL"));
+		analytess.add(temp);
+		temp = new ArrayList<String>(Arrays.asList("UN"));
+		analytess.add(temp);
+		temp = new ArrayList<String>(Arrays.asList("BCARB"));
+		analytess.add(temp);
+		temp = new ArrayList<String>(Arrays.asList("CREAT"));
+		analytess.add(temp);
+		
+		//Add the CBC values
+		temp = new ArrayList<String>(Arrays.asList("HGBN","HGB"));
+		analytess.add(temp);
+		
 		
 		//Scanner for getting user input
 		Scanner sc = new Scanner(System.in);
