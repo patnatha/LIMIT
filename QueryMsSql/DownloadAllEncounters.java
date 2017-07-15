@@ -70,10 +70,11 @@ public class DownloadAllEncounters {
             conn = DriverManager.getConnection(url, userName, password);
             conn.setAutoCommit(false);
             
-            String sql = "SELECT * FROM Encounter"
-            
+            String sql = "SELECT ";
+			sql += "PatientID,EncounterID,ActivityDate,VisitNumber,AdmitDate,DischargeDate,AdmissionTypeCode,AdmissionTypeName,DischargeTypeCode,DischargeTypeName,PatientClassCode,PatientClassName,PatientClassCodeSource,PatientClassNameSource,PatientTypeCode,PatientTypeName,DRGCode,DRGName ";
+            sql += "FROM EncounterAll";
+			
             //System.out.println(sql); 
-			ResultSet rs = null;
 			try{
 				//Setup the statement
 				PreparedStatement cursor = conn.prepareStatement(sql);
@@ -85,10 +86,10 @@ public class DownloadAllEncounters {
 				rs = cursor.executeQuery();
 			
 				//Write the results to an output file
-				return writeResultSetToFile(rs, outputFile, false);
+				String outputFile = findDirPath() + "/EncoutnersAll.txt";
+				writeResultSetToFile(rs, outputFile, false);
 			} catch (Exception e){
 				e.printStackTrace();
-				return false;
 			} finally {
 				rs.close();
 			}
@@ -102,6 +103,120 @@ public class DownloadAllEncounters {
             e.printStackTrace();
         } finally {
             conn.close();
+        }
+    }
+	
+	public static boolean writeResultSetToFile(ResultSet rs, String fileName, Boolean appendIt) throws IOException {
+        BufferedWriter out = null;
+		
+		try{
+			//Define the deilimter and end of line characters
+            String delimiter = "\t";
+            String endOfLine = "\n";
+			
+            //Get the column names
+            String[] colNames = getColumnNames(rs);
+
+			if(! appendIt){
+				//Over write any file that already exists
+				out = new BufferedWriter(new FileWriter(fileName));
+				out.write(String.join(delimiter, colNames) + endOfLine);
+			}
+			else{
+				//Check to see if the file already exists
+				File yase = new File(fileName);
+				if(yase.exists()){
+					//Append results to the output file
+					out = new BufferedWriter(new FileWriter(fileName, true));
+				}
+				else{
+					//Create a new file to write results to 
+					out = new BufferedWriter(new FileWriter(fileName));
+					out.write(String.join(delimiter, colNames) + endOfLine);
+				}
+			}
+
+            //Iterate over the results
+            while(rs.next()){
+                //Define the result string of columns
+                String[] curRow = convertRowToString(colNames, rs);
+
+                //Write the current row to text file
+                if(curRow != null){
+                    out.write(String.join(delimiter, curRow) + endOfLine);
+                }
+            }
+			
+			if(out != null){
+				out.close();
+			}
+        } catch (Exception e){
+			if(out != null){
+				out.close();
+			}
+            e.printStackTrace();
+            return false;
+        }
+		
+        return true;
+    }
+
+    public static String[] getColumnNames(ResultSet rs) throws SQLException {
+        //Get the meta data
+        ResultSetMetaData rsmd = rs.getMetaData();
+        String[] colNames = new String[rsmd.getColumnCount()];
+        for(int i = 0; i < rsmd.getColumnCount(); i++){
+            colNames[i] = (rsmd.getColumnName(i + 1));
+        }
+
+        return colNames;   
+    }
+
+    public static String[] convertRowToString(String[] colNames, ResultSet theRow) {
+        try{
+            //Create the output string array
+            String[] curRow = new String[colNames.length];
+       
+            //Itrerate over the columns
+            for(int i = 0; i < colNames.length; i++){
+                //Get the column data
+                Object curVal = theRow.getObject(colNames[i]);
+
+                //Switch on the column class type
+                if(curVal == null){
+                    curRow[i] = "";
+                }
+                else if(curVal.getClass() == java.lang.String.class){
+                    curRow[i] = theRow.getString(colNames[i]);
+                } else if(curVal.getClass() == java.lang.Integer.class){
+                    curRow[i] = Integer.toString(theRow.getInt(colNames[i]));
+                } else if(curVal.getClass() == java.sql.Clob.class){
+                    curRow[i] = theRow.getString(colNames[i]);
+                } else if(curVal.getClass() == java.math.BigDecimal.class){
+                    curRow[i] = theRow.getBigDecimal(colNames[i]).toString();
+				} else if(curVal.getClass() == java.lang.Boolean.class){
+					curRow[i] = theRow.getString(colNames[i]);
+                } else {
+                    //Error column
+                    curRow[i] = "";
+                    System.out.println("ERROR: convertRowToString");
+                    System.out.println(colNames[i]);
+                    System.out.println(curVal);
+                    System.out.println(curVal.getClass());
+                }
+
+                //Remove invalid characters from input
+                curRow[i] = curRow[i].replace("\"","");
+                curRow[i] = curRow[i].replace("\t","");
+                curRow[i] = curRow[i].replace("\n","");
+                curRow[i] = curRow[i].replace("\r","");
+            }
+
+            //Return the row
+            return curRow;
+        } catch (Exception e){
+            e.printStackTrace();
+            return null;
         }
     }
     
