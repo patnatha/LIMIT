@@ -10,7 +10,7 @@
 
 # Change the number of cores (ppn=1), amount of memory, and walltime:
 #PBS -l nodes=1:ppn=2,pmem=8gb
-#PBS -l walltime=10:00:00
+#PBS -l walltime=30:00:00
 #PBS -j oe
 #PBS -V
 
