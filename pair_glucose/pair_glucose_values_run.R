@@ -24,7 +24,7 @@ diff_in_secs = (60 * 10) # Time in minutes on either side
 
 # Ordered Lab Results based on patient ID and then on Collection ID
 load(inputPath)
-ordglucdf <- binData %>% arrange(PatientID, COLLECTION_DATE)
+ordglucdf <- records %>% arrange(PatientID, COLLECTION_DATE)
 
 # Date diff algorithm to get diff in seconds
 date_diff = function(time1, time2){

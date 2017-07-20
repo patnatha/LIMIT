@@ -23,7 +23,7 @@ if [ -n "$PBS_NODEFILE" ]; then cat $PBS_NODEFILE; fi
 if [ -n "$PBS_O_WORKDIR" ]; then cd $PBS_O_WORKDIR; fi
 
 #Load the R module
-module load R 
+module load R/3.3.3 
 
 #Submit the script 
 Rscript pair_glucose_values_combine.R

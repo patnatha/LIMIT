@@ -48,7 +48,9 @@ glucoseVals = import_lab_values(inputDir)
 selected_glucoses = select(glucoseVals, one_of(c('PatientID', 'ACCESSION_NUMBER', 'COLLECTION_DATE', 'RESULT_CODE', 'VALUE')))
 
 #Get a count of the largest bin
-pidCnt = selected_glucoses %>% group_by(PatientID) %>% count() %>% filter(n > 1) 
+opidCnt = selected_glucoses %>% group_by(PatientID) %>% count() %>% filter(n > 1) 
+pidCnt = (tbl_df(opidCnt))
+pidCnt$rowname = as.integer(pidCnt$rowname)
 maxPtCnt = max(pidCnt$n)
 if(maxPtCnt < 100000){
     maxPtCnt = 100000
@@ -58,33 +60,47 @@ if(maxPtCnt < 100000){
 packedBins = binPack(pidCnt$n, maxPtCnt)
 splitBins = split(pidCnt$n, packedBins)
 
-#Iterate over all the bins
-binCounter = 1
-usedPids = c(character())
+newSplitBins = list()
 for(bin in splitBins){
-    # Create a bin to fill with data
-    curBinSize = sum(bin)
-    print(paste("Binning (",as.character(curBinSize), "): ", as.character(binCounter), '/', as.character(length(splitBins)), sep=""))
-    binData = data.frame()
+    # Get frequency of bins occurences
+    binCnts = table(bin)
+    tmpBinList = list()
 
-    # Get all the data and fill the bin
-    for(count in bin){
-        foundBin = pidCnt %>% filter(n == count) %>% filter(!PatientID %in% usedPids) %>% first()
-        if(!is.na(foundBin[[1,1]])){
-            #For a pid get all the records
-            binPid = foundBin[[1,1]]
-            records = selected_glucoses %>% filter(PatientID == binPid)
-
-            #Append the data to the output bin
-            binData = rbind(binData, records)
-
-            #Keep track of the PIDs already used
-            usedPids = rbind(usedPids, binPid)
+    #Iterate over all these frequencies
+    for(cntName in names(binCnts)){
+        #Get the Pids with this many bins
+        foundBin =  tibble::rownames_to_column(pidCnt) %>%
+                    filter(n == as.numeric(cntName)) %>% 
+                    head(binCnts[[cntName]])
+        
+        if(nrow(foundBin) > 0){
+            for(pid in foundBin$PatientID){
+                tmpBinList[[length(tmpBinList)+1]] = pid
+            }
+           
+            # Remove the used Pids
+            pidCnt = pidCnt[-(as.integer(foundBin$rowname)),]
         }
     }
 
+    #update the bins
+    newSplitBins[[length(newSplitBins)+1]] = tmpBinList
+}
+
+#Iterate over all the bins
+binCounter = 1
+for(bin in newSplitBins){
+    # Get all the records
+    records = selected_glucoses %>% filter(PatientID %in% bin)
+
+    # Create a bin to fill with data
+    print(paste("Binning (", as.character(nrow(records)), "): ", as.character(binCounter), '/', as.character(length(splitBins)), sep=""))
+
+    # Get all the records 
+    records = selected_glucoses %>% filter(PatientID %in% bin)
+
     #Save the output file
-    save(binData, file=paste(paired_pieces_output, as.character(binCounter), ".bin", sep=""))
-    binCounter = binCounter + 1 
+    save(records, file=paste(paired_pieces_output, as.character(binCounter), ".bin", sep=""))
+    binCounter = binCounter + 1
 }
 

@@ -8,6 +8,7 @@ day_time_offset = 5
 #Load up the data from command line argument
 library(optparse)
 library(dplyr)
+library(parallel)
 
 #Create the options list
 option_list <- list(
@@ -44,16 +45,6 @@ if(!dir.exists(outputDir)){
     stop()
 }
 
-#Check to make sure the name parameter was set
-if(is.na(outputName)){
-    print("The output NAME is invalid")
-    stop()
-}
-
-#Create the output file
-saving = gsub('//', '/', paste(outputDir, outputName, sep="/"))
-saving = paste(saving, '.Rdata', sep="")
-
 #Load RData from disk
 if(is.na(inputData) || !file.exists(inputData)){
     print("The input file path doesn't exist")
@@ -72,6 +63,17 @@ if(!is.na(codeType)){
     stop()
 }
 
+#Check to make sure the name parameter was set
+if(is.na(outputName)){
+    outputName = strsplit(basename(inputData), "[.]")[[1]][[1]]
+    outputName = paste(outputName, codeType, sep="_")
+}
+
+#Create the output file
+saving = gsub('//', '/', paste(outputDir, outputName, sep="/"))
+saving = paste(saving, '.Rdata', sep="")
+
+
 #Run the hampel outlier detection
 hampel = function(x, t = 3, RemoveNAs = TRUE) {
   #
@@ -85,7 +87,7 @@ hampel = function(x, t = 3, RemoveNAs = TRUE) {
   return(indx)
 }
 
-FindICDs = function(pid, data, icdValues) {
+FindICDs = function(pid, data, icdValues, day_time_offset) {
     # Get the first timestamp of labValue for the input pid
     theTime = min(data$timeOffset[which(data$pid == pid)])
 
@@ -100,7 +102,7 @@ FindICDs = function(pid, data, icdValues) {
     return(codes) 
 }
 
-PerformFishertestICD = function(ICD, flaggedTable, totalFlagged, unflagged) { 
+PerformFishertestICD = function(ICD, icdValues, flaggedTable, totalFlagged, unflagged) { 
     if (!is.na(ICD)) {
         # Find number of flagged patients with the code of interest, and calculate number without
         numFlaggedWithCode = flaggedTable[which(flaggedTable$icd == ICD),]$freq
@@ -151,6 +153,9 @@ excludedPval = list()
 mu = median(as.numeric(labValues$l_val), na.rm = TRUE)
 sig = mad(as.numeric(labValues$l_val), na.rm = TRUE)
 
+#number of cores to spin up
+parallelCores = 4
+
 #CONVERGE
 debug = TRUE
 iteration = 0
@@ -192,7 +197,10 @@ while (!converged) {
 
         if (length(flaggedResults$pid) > 4) {
             # Find all ICD codes for patients with flagged test results, before the first test
-            ICDs = sapply(flaggedPatients, FindICDs, flaggedResults, icdValues)
+            cl = makeCluster(parallelCores)
+            #ICDs = sapply(flaggedPatients, FindICDs, flaggedResults, icdValues)
+            ICDs = parSapply(cl=cl, flaggedPatients, FindICDs, flaggedResults, icdValues, day_time_offset)
+            stopCluster(cl)
 
             # Process the results
             if (length(ICDs) != 0) {
@@ -214,8 +222,11 @@ while (!converged) {
                 }
 
                 # Perform Fisher's exact test on this table 
-                fisherTestICD = sapply(ICDtable[(1:limit),]$icd, PerformFishertestICD, 
-                                       ICDtable, totalFlaggedPatients, unflaggedPatients)
+                #fisherTestICD = sapply(ICDtable[(1:limit),]$icd, PerformFishertestICD, ICDtable, icdValues, totalFlaggedPatients, unflaggedPatients)
+                cl <- startCluster(parallelCores)
+                fisherTestICD = parSapply(cl=cl, ICDtable[(1:limit),]$icd, PerformFishertestICD, ICDtable, icdValues, totalFlaggedPatients, unflaggedPatients)                
+                stopCluster(cl)
+
                 fisherTestICD = p.adjust(fisherTestICD, method = 'bonferroni')
                 DOI = as.character(ICDtable[which.min(fisherTestICD),]$icd)
 
