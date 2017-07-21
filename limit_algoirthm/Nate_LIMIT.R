@@ -154,7 +154,7 @@ mu = median(as.numeric(labValues$l_val), na.rm = TRUE)
 sig = mad(as.numeric(labValues$l_val), na.rm = TRUE)
 
 #number of cores to spin up
-parallelCores = 4
+parallelCores = 8
 
 #CONVERGE
 debug = TRUE
@@ -197,10 +197,15 @@ while (!converged) {
 
         if (length(flaggedResults$pid) > 4) {
             # Find all ICD codes for patients with flagged test results, before the first test
+            start.time <- Sys.time()
+            #ICDs = sapply(flaggedPatients, FindICDs, flaggedResults, icdValues, day_time_offset)
             cl = makeCluster(parallelCores)
-            #ICDs = sapply(flaggedPatients, FindICDs, flaggedResults, icdValues)
             ICDs = parSapply(cl=cl, flaggedPatients, FindICDs, flaggedResults, icdValues, day_time_offset)
             stopCluster(cl)
+            time.taken <- as.numeric(Sys.time() - start.time, units="secs")
+            if(debug){
+                print(paste("Finding ICDs: ", as.character(time.taken), " secs", sep=""))
+            }
 
             # Process the results
             if (length(ICDs) != 0) {
@@ -222,10 +227,15 @@ while (!converged) {
                 }
 
                 # Perform Fisher's exact test on this table 
-                #fisherTestICD = sapply(ICDtable[(1:limit),]$icd, PerformFishertestICD, ICDtable, icdValues, totalFlaggedPatients, unflaggedPatients)
-                cl <- startCluster(parallelCores)
-                fisherTestICD = parSapply(cl=cl, ICDtable[(1:limit),]$icd, PerformFishertestICD, ICDtable, icdValues, totalFlaggedPatients, unflaggedPatients)                
+                start.time <- Sys.time()
+                #fisherTestICD = sapply(ICDtable[(1:limit),]$icd, PerformFishertestICD, icdValues, ICDtable, totalFlaggedPatients, unflaggedPatients)
+                cl <- makeCluster(parallelCores)
+                fisherTestICD = parSapply(cl=cl, ICDtable[(1:limit),]$icd, PerformFishertestICD, icdValues, ICDtable, totalFlaggedPatients, unflaggedPatients)                
                 stopCluster(cl)
+                time.taken <- Sys.time() - start.time
+                if(debug){
+                    print(paste("Fisher Testing: ", as.character(as.numeric(time.taken), units="secs"), " secs", sep=""))
+                }
 
                 fisherTestICD = p.adjust(fisherTestICD, method = 'bonferroni')
                 DOI = as.character(ICDtable[which.min(fisherTestICD),]$icd)

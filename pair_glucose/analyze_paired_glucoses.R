@@ -1,6 +1,12 @@
 #Load up the paired glucose values
+source('../encounters_wrapper.R')
 source('glucose_paths.R')
 load(paired_glucoses_path)
+
+# results is the array to use
+unique_pids = unique(results$pid)
+con = connect_sqlite()
+pidEncs = get_encounters(unique_pids, con)
 
 # Find the differences
 results$value_diff = results$one_value - results$two_value
@@ -8,6 +14,10 @@ results$value_diff = results$one_value - results$two_value
 #Get ride of invalid values
 the_inds=which(is.na(results$value_diff))
 results=setdiff(results, results[the_inds,])
+
+#Print out a list of all the results
+print("Results Count")
+print(nrow(results))
 
 #Calculate five numb sum
 fivenumsum<-summary(results$value_diff)
