@@ -2,6 +2,7 @@ library(readr)
 library(plyr)
 library(dplyr)
 library(data.table)
+source('../encounters_wrapper.R')
 
 import_csv <- function(path_to_file){
     #dat <- read.delim(path_to_file, sep='|')
@@ -38,7 +39,14 @@ import_demo_info <- function(input_dir){ return(import_files_fxn(file.path(input
 
 import_patient_bday <- function(input_dir){ return(import_files_fxn(file.path(input_dir, "PatientInfo"))) }
 
-import_encounter_all <- function(input_dir){ return(import_files_fxn(file.path(input_dir, "EncountersAll"))) }
+import_encounter_all <- function(pids){
+    encountersAll = get_encounters(unique(pids)) 
+    outEncAll = data.frame()
+    for(x in encountersAll){
+        outEncAll = rbind(outEncAll, x)
+    }
+    return(outEncAll)
+}
 
 import_encounter_location <- function(input_dir){ return(import_files_fxn(file.path(input_dir, "EncounterLocations"))) }
 

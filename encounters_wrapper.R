@@ -1,31 +1,55 @@
+library("parallel")
 library("RSQLite")
-library("dplyr")
 
 connect_sqlite <- function(){
     con = dbConnect(drv=SQLite(), dbname="/scratch/leeschro_armis/patnatha/EncountersAll/EncountersAll.db")
     return(con)
 }
 
-query_encounters <- function(pid, con){
-    sql = paste('SELECT * FROM EncountersAll WHERE PatientID = "', pid, '"', sep="")
-    myQuery = dbGetQuery(con, sql)
-    return(myQuery)
+async_query_encs <- function(pids, con){
+    out <- tryCatch(
+        if(length(pids) > 0){
+            #Build the query and execute
+            sql = paste('SELECT * FROM EncountersAll WHERE PatientID IN ("', paste(pids, collapse="\",\""), '")', sep="")
+            con = connect_sqlite()
+            myQuery = dbGetQuery(con, sql)
+            dbDisconnect(con)
+            print(nrow(myQuery))
+            return(myQuery)
+        }
+    ,error=function(cond) {
+            message(cond)
+            return(NA)
+        }
+    )
 }
 
-get_encounters <- function(pids, con){
+get_encounters <- function(pids){
     if(length(pids) > 0){
-        data = paste(pids, collapse="\",\"")
-        allData = data.frame()
-        cnt = 1
+        # Chunkify
+        toChunk = 1000
+        cnt = 0
+        tmpList = list()
+        finalList = list()
         for(pid in pids){
-            sql = paste('SELECT * FROM EncountersAll WHERE PatientID = "', pid, '"', sep="")
-            myQuery = dbGetQuery(con, sql)
-            allData = rbind(allData, myQuery)
-            print(paste(as.character(cnt), " / ", as.character(length(pids)), sep = ""))
+            tmpList[(cnt %% toChunk) + 1] = pid
             cnt = cnt + 1
+
+            if(cnt %% toChunk == 0){
+                #Reset the list to empty
+                finalList[[length(finalList) + 1]] = tmpList
+                tmpList = list()
+            }
         }
 
-        return(my_data)
+        #Build the final list set
+        if(length(tmpList) > 0){
+            finalList[[length(finalList) + 1]] = tmpList
+        }
+
+        print(paste("Download Encounters: ", as.character(length(pids)),sep=""))
+        allData = mclapply(finalList, async_query_encs, con, mc.cores = 16)
+        return(allData)
     }
     else{
         return(NULL)

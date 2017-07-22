@@ -3,11 +3,6 @@ source('../encounters_wrapper.R')
 source('glucose_paths.R')
 load(paired_glucoses_path)
 
-# results is the array to use
-unique_pids = unique(results$pid)
-con = connect_sqlite()
-pidEncs = get_encounters(unique_pids, con)
-
 # Find the differences
 results$value_diff = results$one_value - results$two_value
 
