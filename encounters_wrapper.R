@@ -14,7 +14,7 @@ async_query_encs <- function(pids, con){
             con = connect_sqlite()
             myQuery = dbGetQuery(con, sql)
             dbDisconnect(con)
-            print(nrow(myQuery))
+            #print(nrow(myQuery))
             return(myQuery)
         }
     ,error=function(cond) {

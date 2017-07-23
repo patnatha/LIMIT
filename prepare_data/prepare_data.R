@@ -69,27 +69,33 @@ if(file.exists(output_filename)){
 patient_bday = import_patient_bday(input_dir)
 
 #Load up all the encouters for the given pids
-encounter_all = import_encounter_all(patient_bday$PatientID)
+encountersAll = import_encounter_all(patient_bday$PatientID)
 
 #Build the lab values dataset
 lab_values = import_lab_values(input_dir)
 labValuesDplyr = inner_join(lab_values, patient_bday)
 remove(lab_values)
-labValuesDplyr = rename(labValuesDplyr, pid = PatientID)
-labValuesDplyr = rename(labValuesDplyr, l_val = VALUE)
-labValuesDplyr = labValuesDplyr %>% mutate(timeOffset = as.numeric(as.Date(COLLECTION_DATE) - as.Date(DOB)))
-labValues<-labValuesDplyr %>% select(pid, l_val, timeOffset, COLLECTION_DATE, EncounterID) %>% as.data.frame()
+labValuesDplyr = labValuesDplyr %>% mutate(
+                                        timeOffset = as.numeric(
+                                            as.Date(COLLECTION_DATE) - as.Date(DOB)
+                                        )
+                                    )
 
 #Exclude all the lab values that are not consistent with a grouping
 if(toInclude == "inpatient"){
-    labValuesDplyr = inner_join(labValuesDplyr, encounter_all %>% filter(PatientClassNameSource == "Inpatient"))
+    labValuesDplyr = inner_join(labValuesDplyr, 
+                                encountersAll %>% filter(PatientClassNameSource == "Inpatient"))
 } else if(toInclude == "outpatient"){
-    labValuesDplyr = inner_join(labValuesDplyr, encounter_all %>% filter(PatientClassNameSource == "Outpatient"))
+    labValuesDplyr = inner_join(labValuesDplyr, 
+                                encountersAll %>% filter(PatientClassNameSource == "Outpatient"))
 }
-remove(encounter_all)
 
 #Get only the columns we want
-labValuesDplyr = select(labValuesDplyr, one_of(c("PatientID", "EncounterID", "DOB", "COLLECTION_DATE", "ORDER_CODE", "ORDER_NAME", "VALUE", "UNIT", "RANGE")))
+labValuesDplyr = rename(labValuesDplyr, pid = PatientID)
+labValuesDplyr = rename(labValuesDplyr, l_val = VALUE)
+labValues<-labValuesDplyr %>% select(pid, l_val, timeOffset, EncounterID) 
+            %>% as.data.frame()
+remove(labValuesDplyr)
 
 #Get the diagnosis and pair with PtID to build the timeOffset
 diagnoses = import_diagnoses(input_dir)
@@ -103,9 +109,11 @@ remove(diagnoses)
 #                        summarise(StartDate = min(as.Date(StartDate)))
 #remove(encounter_location)
 
-encounter_earliest = encounter_all %>% filter(AdmitDate != "")
+encounter_earliest = encountersAll %>% filter(AdmitDate != "")
 icdValuesDplyr = inner_join(diagnosis_process, encounter_earliest, by="EncounterID")
 remove(encounter_earliest)
+
+#Get the icd code assignment as an offset value
 icdValuesDplyr = rename(icdValuesDplyr, pid = PatientID)
 icdValuesDplyr = rename(icdValuesDplyr, icd = TermCodeMapped)
 icdValuesDplyr = rename(icdValuesDplyr, icd_name = TermNameMapped)
@@ -114,12 +122,16 @@ icdValuesDplyr = icdValuesDplyr %>%
                         as.numeric(as.Date(AdmitDate)
                         -
                         as.Date(DOB)))
-icdValues<-icdValuesDplyr %>% select(pid, icd, timeOffset, EncounterID) %>% as.data.frame()
+icdValues<-icdValuesDplyr %>% select(pid, icd, icd_name, timeOffset, EncounterID) 
+            %>% as.data.frame()
+remove(icdValuesDplyr)
 
 #Get Medications that were administered
 med_admin = import_med_admin(input_dir)
 medsAdminDyplyr = med_admin %>% filter(MedicationStatus == "Given")
 remove(med_admin)
+
+#Get the administration date as an offset value
 medsAdminDyplyr = inner_join(medsAdminDyplyr, patient_bday, by="PatientID")
 medsAdminDyplyr = rename(medsAdminDyplyr, pid = PatientID)
 medsAdminDyplyr = rename(medsAdminDyplyr, icd = MedicationTermID)
@@ -129,7 +141,10 @@ medsAdminDyplyr = medsAdminDyplyr %>%
                         as.numeric(as.Date(DoseStartTime) 
                         - 
                         as.Date(DOB)))
+medValues<-medsAdminDyplyr %>% select(pid, icd, icd_name, timeOffset, EncounterID)
+            %>% as.data.frame()
+remove(medsAdminDyplyr)
 
 #Save the massaged data
-save(labValues, icdValues, medValues, encountersAll, file=output_filename)
+save(labValues, icdValues, medValues, file=output_filename)
 

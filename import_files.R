@@ -41,10 +41,32 @@ import_patient_bday <- function(input_dir){ return(import_files_fxn(file.path(in
 
 import_encounter_all <- function(pids){
     encountersAll = get_encounters(unique(pids)) 
-    outEncAll = data.frame()
+    
+    #Get a count of the rows and columns
+    rowCnt = 0
+    colCnt = 0
     for(x in encountersAll){
-        outEncAll = rbind(outEncAll, x)
+        rowCnt = rowCnt + nrow(x)
+        if(colCnt == 0){
+            colCnt = ncol(x)
+        }
     }
+
+    print(paste("ROWS: ", as.character(rowCnt), sep=""))
+
+    #Copy all the results into one table
+    outEncAll = rbindlist(encountersAll, use.names=TRUE, fill=TRUE, idcol=FALSE)
+    remove(encountersAll)
+
+    #curRInd = 1
+    #outEncAll=data.frame(matrix(NA, ncol = colCnt, nrow = rowCnt))
+    #for(x in encountersAll){
+    #    outEncAll[seq(curRInd, curRInd + nrow(x) - 1), ] = x[seq(1, nrow(x)), ]
+    #    curRInd = curRInd + nrow(x)
+    #    remove(x)
+    #    print(paste(as.character(curRInd), ' / ', as.character(rowCnt), sep=""))
+    #}
+
     return(outEncAll)
 }
 
