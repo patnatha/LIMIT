@@ -15,10 +15,10 @@ else:
     print("ERROR CMD LINE INPUT")
     sys.exit(1)
 
-basedir = "/scratch/leeschro_armis/patnatha/EncountersAll/"
-txtfile = os.path.join(basedir, "EncountersAll.txt")
+#Edit this line below to upload a text file to a sqlite file
+txtfile = "/scratch/leeschro_armis/patnatha/EncountersAll/EncountersAll.txt"
 tablename = os.path.basename(os.path.splitext(txtfile)[0])
-dbfile = os.path.join(basedir, tablename + ".db")
+dbfile = os.path.join(os.path.basename(txtfile), tablename + ".db")
 print(dbfile)
 
 conn = sqlite3.connect(dbfile)
