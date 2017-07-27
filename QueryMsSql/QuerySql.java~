@@ -103,8 +103,8 @@ public class QuerySql {
 		Date start = null;
 		Date end = null;
 		try{
-			start = sdf.parse("2017/01/01");
-			end = sdf.parse("2017/03/01");
+			start = sdf.parse("2013/01/01");
+			end = sdf.parse("2017/01/01");
 		}
 		catch(Exception e){
 			return;
@@ -219,7 +219,7 @@ public class QuerySql {
 
 				
 				//Query for the encounter results
-				if(cohortENCS.length > 0 && GetEncounters(analytes, cohortENCS, conn)){
+				/*if(cohortENCS.length > 0 && GetEncounters(analytes, cohortENCS, conn)){
 					System.out.println("Encounters: Success");
 				}
 				else{
@@ -232,7 +232,7 @@ public class QuerySql {
 				}
 				else{
 					System.out.println("Encounters Locations: Failure");
-				}
+				}*/
 				
 				//Query for the Diagnosis codes
 				if(cohortPIDS.length > 0 && GetDiagnoses(analytes, cohortPIDS, conn)){

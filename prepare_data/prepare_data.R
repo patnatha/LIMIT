@@ -93,8 +93,7 @@ if(toInclude == "inpatient"){
 #Get only the columns we want
 labValuesDplyr = rename(labValuesDplyr, pid = PatientID)
 labValuesDplyr = rename(labValuesDplyr, l_val = VALUE)
-labValues<-labValuesDplyr %>% select(pid, l_val, timeOffset, EncounterID) 
-            %>% as.data.frame()
+labValues<-labValuesDplyr %>% select(pid, l_val, timeOffset, EncounterID) %>% as.data.frame()
 remove(labValuesDplyr)
 
 #Get the diagnosis and pair with PtID to build the timeOffset
@@ -110,7 +109,7 @@ remove(diagnoses)
 #remove(encounter_location)
 
 encounter_earliest = encountersAll %>% filter(AdmitDate != "")
-icdValuesDplyr = inner_join(diagnosis_process, encounter_earliest, by="EncounterID")
+icdValuesDplyr = inner_join(diagnosis_process, encounter_earliest)
 remove(encounter_earliest)
 
 #Get the icd code assignment as an offset value
@@ -122,8 +121,7 @@ icdValuesDplyr = icdValuesDplyr %>%
                         as.numeric(as.Date(AdmitDate)
                         -
                         as.Date(DOB)))
-icdValues<-icdValuesDplyr %>% select(pid, icd, icd_name, timeOffset, EncounterID) 
-            %>% as.data.frame()
+icdValues<-icdValuesDplyr %>% select(pid, icd, icd_name, timeOffset, EncounterID, Lexicon) %>% as.data.frame()
 remove(icdValuesDplyr)
 
 #Get Medications that were administered
@@ -141,10 +139,9 @@ medsAdminDyplyr = medsAdminDyplyr %>%
                         as.numeric(as.Date(DoseStartTime) 
                         - 
                         as.Date(DOB)))
-medValues<-medsAdminDyplyr %>% select(pid, icd, icd_name, timeOffset, EncounterID)
-            %>% as.data.frame()
+medValues<-medsAdminDyplyr %>% select(pid, icd, icd_name, timeOffset, EncounterID) %>% as.data.frame()
 remove(medsAdminDyplyr)
 
 #Save the massaged data
-save(labValues, icdValues, medValues, file=output_filename)
+save(labValues, icdValues, medValues, encountersAll, file=output_filename)
 
