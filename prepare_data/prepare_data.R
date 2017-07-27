@@ -117,7 +117,7 @@ diagnosis_process = inner_join(diagnoses, patient_bday, by="PatientID")
 remove(diagnoses)
 
 encounter_earliest = encountersAll %>% filter(AdmitDate != "")
-icdValuesDplyr = inner_join(diagnosis_process, encounter_earliest, by=c("EncounterID", "PatientID"))
+icdValuesDplyr = inner_join(diagnosis_process, encounter_earliest)
 remove(encounter_earliest)
 
 #Get the icd code assignment as an offset value
@@ -130,7 +130,8 @@ icdValuesDplyr = icdValuesDplyr %>%
                         as.numeric(as.Date(AdmitDate)
                         -
                         as.Date(DOB)))
-icdValues<-icdValuesDplyr %>% select(pid, icd, icd_name, timeOffset, EncounterID) %>% as.data.frame()
+
+						icdValues<-icdValuesDplyr %>% select(pid, icd, icd_name, timeOffset, EncounterID, Lexicon) %>% as.data.frame()
 remove(icdValuesDplyr)
 
 #Get Medications that were administered
@@ -157,5 +158,6 @@ remove(medsAdminDyplyr)
 
 #Save the massaged data
 print("SAVING RESULTS")
-save(labValues, icdValues, medValues, file=output_filename)
+save(labValues, icdValues, medValues, encountersAll, file=output_filename)
+
 
