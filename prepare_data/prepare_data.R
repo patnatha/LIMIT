@@ -102,10 +102,12 @@ if(!is.null(toInclude)){
 
 #Get only the columns we want
 print("LV: Select columns for output")
-labValuesDplyr = rename(labValuesDplyr, pid = PatientID.x)
+labValuesDplyr = rename(labValuesDplyr, pid = PatientID)
 labValuesDplyr = rename(labValuesDplyr, l_val = VALUE)
 labValues<-labValuesDplyr %>% select(pid, l_val, timeOffset, EncounterID) %>% as.data.frame()
 remove(labValuesDplyr)
+
+save(patient_bday, encountersAll, patient_bday, file="results.Rdata")
 
 #Get the diagnosis and pair with PtID to build the timeOffset
 print("Loading Diagnoses")
@@ -115,7 +117,7 @@ diagnosis_process = inner_join(diagnoses, patient_bday, by="PatientID")
 remove(diagnoses)
 
 encounter_earliest = encountersAll %>% filter(AdmitDate != "")
-icdValuesDplyr = inner_join(diagnosis_process, encounter_earliest, by="EncounterID")
+icdValuesDplyr = inner_join(diagnosis_process, encounter_earliest, by=c("EncounterID", "PatientID"))
 remove(encounter_earliest)
 
 #Get the icd code assignment as an offset value
