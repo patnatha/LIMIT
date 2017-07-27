@@ -50,7 +50,6 @@ selected_glucoses = select(glucoseVals, one_of(c('PatientID', 'ACCESSION_NUMBER'
 #Get a count of the largest bin
 opidCnt = selected_glucoses %>% group_by(PatientID) %>% count() %>% filter(n > 1) 
 pidCnt = (tbl_df(opidCnt))
-pidCnt$rowname = as.integer(pidCnt$rowname)
 maxPtCnt = max(pidCnt$n)
 if(maxPtCnt < 100000){
     maxPtCnt = 100000

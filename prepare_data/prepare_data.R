@@ -21,14 +21,18 @@ if(!dir.exists(output_directory)){
 }
 
 if(is.null(args[["age"]])){
-    ageBias = NULL
+    ageBias = "adult"
+} else if(args[["age"]] == "all"){
+    ageBias = "all"
+} else if(args[["age"]] == "adult"){
+    ageBias = "adult"
 } else {
-    theSplit = strsplit(args[['age']], "|")
+    theSplit = strsplit(args[['age']], "_")
     if(length(theSplit) == 2){
-        ageBiad = theSplit
+        ageBias = args[['age']]
     }
     else{
-        print("ERROR: age format [start]|[end] in decimals of years")
+        print("ERROR: age format [start]_[end] in decimals of years")
         stop()
     }
 }
@@ -47,7 +51,7 @@ if(is.null(args[["name"]])){
     #Build the filename
     theBasename = basename(input_dir)
     if(!is.null(ageBias)){
-        theBasename = paste(theBasename, "_age_", paste(ageBias, sep="_"), sep="")
+        theBasename = paste(theBasename, ageBias, sep="_")
     }
 
     if(!is.null(toInclude)){
@@ -84,6 +88,15 @@ labValuesDplyr = labValuesDplyr %>% mutate(
                                             as.Date(COLLECTION_DATE) - as.Date(DOB)
                                         )
                                     )
+if(ageBias == "all"){
+    # Do nothin #Parse out age range
+} else if(ageBias == "adult"){
+    # Only get the lab values of patients older than 19 years 
+    labValuesDplyr = labValuesDplyr %>% filter(timeOffset > (18 * 365))
+    glimpse(labValuesDplyr)
+} else{
+    #Parse out age range
+}
 
 #Exclude all the lab values that are not consistent with a grouping
 if(!is.null(toInclude)){
@@ -107,22 +120,20 @@ labValuesDplyr = rename(labValuesDplyr, l_val = VALUE)
 labValues<-labValuesDplyr %>% select(pid, l_val, timeOffset, EncounterID) %>% as.data.frame()
 remove(labValuesDplyr)
 
-save(patient_bday, encountersAll, patient_bday, file="results.Rdata")
-
 #Get the diagnosis and pair with PtID to build the timeOffset
 print("Loading Diagnoses")
 diagnoses = import_diagnoses(input_dir)
-print("DX: Calculate Time-Offset")
 diagnosis_process = inner_join(diagnoses, patient_bday, by="PatientID")
 remove(diagnoses)
 
+print("DX: Combine with encounters")
 encounter_earliest = encountersAll %>% filter(AdmitDate != "")
 icdValuesDplyr = inner_join(diagnosis_process, encounter_earliest)
 remove(encounter_earliest)
 
 #Get the icd code assignment as an offset value
-print("DX: Select columns for output")
-icdValuesDplyr = rename(icdValuesDplyr, pid = PatientID.x)
+print("DX: Calculate Time-Offset")
+icdValuesDplyr = rename(icdValuesDplyr, pid = PatientID)
 icdValuesDplyr = rename(icdValuesDplyr, icd = TermCodeMapped)
 icdValuesDplyr = rename(icdValuesDplyr, icd_name = TermNameMapped)
 icdValuesDplyr = icdValuesDplyr %>%
@@ -131,7 +142,8 @@ icdValuesDplyr = icdValuesDplyr %>%
                         -
                         as.Date(DOB)))
 
-						icdValues<-icdValuesDplyr %>% select(pid, icd, icd_name, timeOffset, EncounterID, Lexicon) %>% as.data.frame()
+print("Dx: Select columns for output")
+icdValues<-icdValuesDplyr %>% select(pid, icd, icd_name, timeOffset, EncounterID, Lexicon) %>% as.data.frame()
 remove(icdValuesDplyr)
 
 #Get Medications that were administered
