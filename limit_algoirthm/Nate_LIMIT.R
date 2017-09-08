@@ -5,6 +5,10 @@ criticalHampel = 3
 saving = 'tmp'
 day_time_offset = 5
 
+#Count the number of CPUs available
+cpuCnt<-system("nproc", ignore.stderr = TRUE, intern = TRUE)
+parallelCores<-strtoi(cpuCnt)
+
 #Load up the data from command line argument
 library(optparse)
 library(dplyr)
@@ -167,9 +171,6 @@ excludedPval = list()
 # Get the mean and MAD of the lab values
 mu = median(as.numeric(labValues$l_val), na.rm = TRUE)
 sig = mad(as.numeric(labValues$l_val), na.rm = TRUE)
-
-#number of cores to spin up
-parallelCores = 4
 
 #CONVERGE
 debug = TRUE
