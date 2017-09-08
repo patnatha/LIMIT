@@ -1,5 +1,5 @@
-#analysisType = "gluc1mo"
-analysisType = "gluc4yr"
+analysisType = "gluc1mo"
+#analysisType = "gluc4yr"
 
 #The base base path
 basicPath='/scratch/leeschro_armis/patnatha/'

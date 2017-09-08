@@ -18,15 +18,15 @@ saving = gsub('//', '/', saving)
 normal_dist_lab_values = function(patientDemo, labObs, mean, sd)
 {
   #Create lab values table
-  l_vals<-rnorm(labObs, mean=mean, sd=sd)
+  l_val<-rnorm(labObs, mean=mean, sd=sd)
   
   #Add random pids to these lab values
   pid<-sample(patientDemo$pid, replace = TRUE, labObs)
   
   #Create the dataframe
-  labValues<-data.frame(pid, l_vals)
-  labValues$l_date = rep(as.Date(1900/01/01, origin = '1970-01-01'),length(labValues$l_vals))
-  labValues$timeOffset = rep(0,length(labValues$l_vals))
+  labValues<-data.frame(pid, l_val)
+  labValues$l_date = rep(as.Date(1900/01/01, origin = '1970-01-01'),length(labValues$l_val))
+  labValues$timeOffset = rep(0,length(labValues$l_val))
   
   #Create a timestamp for each lab val
   for(i in 1:nrow(labValues))
@@ -118,7 +118,7 @@ over_sat_icd_values = function(the_bad_lab_vals, allIcdValues, icdsubset)
 }
 
 #Create a base number of patients
-number_of_patients = 30000
+number_of_patients = 1000
 
 #Create list of unique patient ids
 print("Creating Patients")
@@ -132,12 +132,12 @@ print("Added ICD values")
 
 #Create some normally distributed lab observations
 print("Create Normal Lab Values")
-normal_lab_vals = normal_dist_lab_values(patientDemo, 400000, 12, 2)
+normal_lab_vals = normal_dist_lab_values(patientDemo, 10000, 12, 2)
 print("Created Normal Lab Values")
 
 #Create some more normally distributed lab observations
 print("Create Bad Lab Values")
-bad_lab_vals = normal_dist_lab_values(patientDemo, 10000, 20, 2)
+bad_lab_vals = normal_dist_lab_values(patientDemo, 500, 20, 2)
 print("Created Bad Lab Values")
 
 #Over saturate a set of lab values with small selection of icds values

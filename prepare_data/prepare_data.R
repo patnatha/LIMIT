@@ -93,7 +93,6 @@ if(ageBias == "all"){
 } else if(ageBias == "adult"){
     # Only get the lab values of patients older than 19 years 
     labValuesDplyr = labValuesDplyr %>% filter(timeOffset > (18 * 365))
-    glimpse(labValuesDplyr)
 } else{
     #Parse out age range
 }
@@ -103,13 +102,11 @@ if(!is.null(toInclude)){
     if(toInclude == "inpatient"){
         print("LV: Extract Inpatients")
         labValuesDplyr = inner_join(labValuesDplyr, 
-                                    encountersAll %>% filter(PatientClassNameSource == "Inpatient"), 
-                                    by="EncounterID")
+                                    encountersAll %>% filter(PatientClassNameSource == "Inpatient"))
     } else if(toInclude == "outpatient"){
         print("LV: Extract Outpatients")
         labValuesDplyr = inner_join(labValuesDplyr, 
-                                    encountersAll %>% filter(PatientClassNameSource == "Outpatient"),
-                                    by="EncounterID")
+                                    encountersAll %>% filter(PatientClassNameSource == "Outpatient"))
     }
 }
 
@@ -128,8 +125,10 @@ remove(diagnoses)
 
 print("DX: Combine with encounters")
 encounter_earliest = encountersAll %>% filter(AdmitDate != "")
+remove(encountersAll)
 icdValuesDplyr = inner_join(diagnosis_process, encounter_earliest)
 remove(encounter_earliest)
+
 
 #Get the icd code assignment as an offset value
 print("DX: Calculate Time-Offset")
@@ -170,6 +169,6 @@ remove(medsAdminDyplyr)
 
 #Save the massaged data
 print("SAVING RESULTS")
-save(labValues, icdValues, medValues, encountersAll, file=output_filename)
+save(labValues, icdValues, medValues, file=output_filename)
 
 

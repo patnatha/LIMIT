@@ -88,12 +88,22 @@ hampel = function(x, t = 3, RemoveNAs = TRUE) {
 }
 
 FindICDs = function(pid, data, icdValues, day_time_offset) {
+    if(is.na(pid) | is.null(pid) | pid == ""){
+        return(list())
+    }
+
     # Get the first timestamp of labValue for the input pid
     theTime = min(data$timeOffset[which(data$pid == pid)])
 
+    #Return NA for errors
+    if(is.na(theTime) | is.null(theTime)){
+        return(list())
+    }
+
     #Get ICD values assigned before the time of the lab value
-    ind = intersect(which(icdValues$pid == pid), 
-                    which(icdValues$timeOffset <= (as.numeric(theTime) + day_time_offset)))
+    #ind = intersect(which(icdValues$pid == pid), 
+    #                which(icdValues$timeOffset <= (as.numeric(theTime) + day_time_offset)))
+    ind = which(icdValues$pid == pid & icdValues$timeOffset <= (as.numeric(theTime) + day_time_offset))
 
     #Get the unique list of ICD values
     codes = unique(icdValues$icd[ind])
@@ -130,6 +140,11 @@ FindExclusions = function(disease) {
     return(exclude1)
 }
 
+# Remove the empty values
+labValues = labValues %>% filter(!is.na(pid) & !is.null(pid) & !pid == "")
+labValues = labValues %>% filter(!is.na(as.numeric(l_val)))
+
+
 #Print the original results
 print("Lab Values Quartiles")
 print(as.numeric(quantile(as.numeric(labValues$l_val), c(0.025, 0.05, 0.95, 0.975), na.rm = TRUE)))
@@ -154,7 +169,7 @@ mu = median(as.numeric(labValues$l_val), na.rm = TRUE)
 sig = mad(as.numeric(labValues$l_val), na.rm = TRUE)
 
 #number of cores to spin up
-parallelCores = 8
+parallelCores = 4
 
 #CONVERGE
 debug = TRUE
@@ -199,11 +214,11 @@ while (!converged) {
             # Find all ICD codes for patients with flagged test results, before the first test
             start.time <- Sys.time()
             #ICDs = sapply(flaggedPatients, FindICDs, flaggedResults, icdValues, day_time_offset)
-            cl = makeCluster(parallelCores)
+            cl = makeCluster(parallelCores, outfile='~/parSapply.out')
             ICDs = parSapply(cl=cl, flaggedPatients, FindICDs, flaggedResults, icdValues, day_time_offset)
             stopCluster(cl)
-            time.taken <- as.numeric(Sys.time() - start.time, units="secs")
             if(debug){
+                time.taken <- as.numeric(Sys.time() - start.time, units="secs")
                 print(paste("Finding ICDs: ", as.character(time.taken), " secs", sep=""))
             }
 
@@ -232,9 +247,9 @@ while (!converged) {
                 cl <- makeCluster(parallelCores)
                 fisherTestICD = parSapply(cl=cl, ICDtable[(1:limit),]$icd, PerformFishertestICD, icdValues, ICDtable, totalFlaggedPatients, unflaggedPatients)                
                 stopCluster(cl)
-                time.taken <- Sys.time() - start.time
                 if(debug){
-                    print(paste("Fisher Testing: ", as.character(as.numeric(time.taken), units="secs"), " secs", sep=""))
+                    time.taken <- as.numeric(Sys.time() - start.time, units="secs")
+                    print(paste("Fisher Testing: ", as.character(time.taken, units="secs"), " secs", sep=""))
                 }
 
                 fisherTestICD = p.adjust(fisherTestICD, method = 'bonferroni')
