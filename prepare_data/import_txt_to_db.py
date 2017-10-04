@@ -42,12 +42,6 @@ if(whichProc == "INSERT"):
                 sql = "CREATE TABLE " + tablename + " (" + (" TEXT, ").join(splitline) + " TEXT)" 
                 c.execute(sql)
                 conn.commit()
-                #sql = "CREATE INDEX pid_key ON " + tablename + "(PatientID); "
-                #c.execute(sql)
-                #conn.commit()
-                #sql = "CREATE INDEX enc_key ON " + tablename + "(EncounterID); "
-                #c.execute(sql)
-                #conn.commit()
                
                 for i in range(0, len(splitline)): questArray.append("?")
             else:
