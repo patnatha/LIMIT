@@ -25,7 +25,6 @@ conn.commit()
 c.execute("CREATE INDEX pid_key_ei ON " + tablename + " (PatientID)")
 conn.commit()
 
-
 #Stuct to remember pids already found
 pids = dict()
 
@@ -35,7 +34,7 @@ for result in c.execute("SELECT PatientID, AdmitDate, PatientClassCode FROM Enco
     cnt = cnt + 1
     if(cnt % 100000 == 0):
         tdiff = time.time() - stime
-        print cnt, "-", tdiff, "secs"
+        print cnt, "-", round(tdiff, 2), "secs"
         stime = time.time()
 
     if(result[0] != None and result[0] != "" and result[1] != None and result[1] != "" \
@@ -71,4 +70,8 @@ for result in c.execute("SELECT PatientID, AdmitDate, PatientClassCode FROM Enco
  
             ic.execute("UPDATE " + tablename + " SET FirstED = \"" + curRec[3] + "\", EDCnt = " + str(curRec[4] + 1) + " WHERE PatientID = \"" + pid + "\"")
             conn.commit()
+
+c.close()
+ic.close()
+conn.close()
 
