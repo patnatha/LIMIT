@@ -41,7 +41,8 @@ toInclude = NULL
 if(!is.null(args[["include"]])){
     toInclude = args[["include"]]
     if(toInclude != "inpatient" &
-       toInclude != "outpatient"){
+       toInclude != "outpatient" &
+       toInclude != "never_inpatient"){
         toInclude == NULL
     }
 }    
@@ -99,6 +100,7 @@ if(ageBias == "all"){
 
 #Exclude all the lab values that are not consistent with a grouping
 if(!is.null(toInclude)){
+    preFilLen = nrow(labValuesDplyr)
     if(toInclude == "inpatient"){
         print("LV: Extract Inpatients")
         labValuesDplyr = inner_join(labValuesDplyr, 
@@ -107,7 +109,23 @@ if(!is.null(toInclude)){
         print("LV: Extract Outpatients")
         labValuesDplyr = inner_join(labValuesDplyr, 
                                     encountersAll %>% filter(PatientClassNameSource == "Outpatient"))
+    } else if(toInclude == "never_inpatient"){
+        print("LV: Extract Never Inpatients")
+    
+        #Get list of PIDs who have been inpatient
+        library("RSQLite")
+        con = dbConnect(drv=SQLite(), dbname="/scratch/leeschro_armis/patnatha/EncountersAll/EncountersAll.db")
+        p1 = dbGetQuery(con,'SELECT PatientID, FirstInpatient, InpatientCnt FROM ever_inpatient WHERE InpatientCnt > 0')
+        dbDisconnect(con)
+
+        #Join labvalues and list of patients who have been inpatient
+        labValuesDplyr = left_join(labValuesDplyr, p1, by="PatientID")
+        #Exclude labvalues that occured after atheir first inpatient admission
+        labValuesDplyr = labValuesDplyr %>% filter(is.null(FirstInpatient) | as.Date(COLLECTION_DATE) < as.Date(FirstInpatient))
+        remove(p1)
     }
+
+    print(paste("Extracted:", preFilLen, '=>', nrow(labValuesDplyr), sep=" "))
 }
 
 #Get only the columns we want
@@ -170,5 +188,4 @@ remove(medsAdminDyplyr)
 #Save the massaged data
 print("SAVING RESULTS")
 save(labValues, icdValues, medValues, file=output_filename)
-
 
