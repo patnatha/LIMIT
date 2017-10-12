@@ -24,11 +24,10 @@ option_list <- list(
   make_option("--critical-p-value", type="double", default=0.05, help="critical p-value for fisher's test cutoff"),
   make_option("--critical-hampel", type="integer", default=3, help="hampel algorithm cutoff"),
   make_option("--day-time-offset", type="integer", default=5, help="Offset in days from lab values to include values")
-)
+
 
 #Parse the incoming options
 parser <- OptionParser(usage="%prog [options] file", option_list=option_list)
-
 args <- parse_args(parser)
 opt <- args$options
 file <- args$args
@@ -42,6 +41,7 @@ outputName = args[['name']]
 inputData = args[['input']]
 day_time_offset = args[['day-time-offset']]
 codeType = args[['codes']]
+versioning = '1.1'
 
 #Check the output directory exists
 if(!dir.exists(outputDir)){
@@ -77,6 +77,37 @@ if(is.na(outputName)){
 saving = gsub('//', '/', paste(outputDir, outputName, sep="/"))
 saving = paste(saving, '.Rdata', sep="")
 
+#Check to see if the file exists
+if(file.exists(saving)){
+    #Extract the filename from the path
+    persplit = strsplit(basename(saving), ".", fixed = TRUE)[[1]]
+    getnum = strsplit(persplit[1], "_")[[1]]
+    
+    #Calculate the new path name
+    if(is.na(as.numeric(tail(getnum, n = 1)))){
+        getnum[[length(getnum) + 1]] = 1
+    }
+    else{
+        getnum[[length(getnum)]] = as.numeric(tail(getnum, n=1)) + 1
+    }
+  
+    #Build the new path 
+    outputName=paste(getnum, collapse="_") 
+    saving = gsub('//', '/', paste(outputDir, outputName, sep="/"))
+    saving = paste(saving, '.Rdata', sep="")
+}
+
+#Save all the parameters to a structure
+parameters<-1:9
+attr(parameters, "criticalProp") <- criticalProp
+attr(parameters, "criticalP") <- criticalP
+attr(parameters, "criticalHampel") <- criticalHampel
+attr(parameters, "outputDir") <- outputDir
+attr(parameters, "outputName") <- outputName
+attr(parameters, "day_time_offset") <- day_time_offset
+attr(parameters, "codeType") <- codeType
+attr(parameters, "versioning") <- versioning
+attr(parameters, "inputData") <- inputData
 
 #Run the hampel outlier detection
 hampel = function(x, t = 3, RemoveNAs = TRUE) {
@@ -303,5 +334,5 @@ print(paste("Patient Count: ", length(unique(labValues$pid))))
 
 #Save the updated labValues and excluded ICD values
 cleanLabValues = labValues
-save(cleanLabValues, excludedPatients, excludedICDs, excludedICDNames, excludedCounts, excludedPval, file=saving)
+save(parameters, cleanLabValues, excludedPatients, excludedICDs, excludedICDNames, excludedCounts, excludedPval, file=saving)
 
