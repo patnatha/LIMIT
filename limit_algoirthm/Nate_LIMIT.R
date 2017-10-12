@@ -24,13 +24,11 @@ option_list <- list(
   make_option("--critical-p-value", type="double", default=0.05, help="critical p-value for fisher's test cutoff"),
   make_option("--critical-hampel", type="integer", default=3, help="hampel algorithm cutoff"),
   make_option("--day-time-offset", type="integer", default=5, help="Offset in days from lab values to include values")
-
+)
 
 #Parse the incoming options
 parser <- OptionParser(usage="%prog [options] file", option_list=option_list)
 args <- parse_args(parser)
-opt <- args$options
-file <- args$args
 
 #Assign the parsed options to their variable
 criticalProp = args[['critical-proportion']]
