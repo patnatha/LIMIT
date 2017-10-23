@@ -13,6 +13,11 @@ parser <- OptionParser(usage="%prog [options] file", option_list=option_list)
 args <- parse_args(parser)
 input_dir = args[['input']]
 
+#Calculate the file size
+filesize<-system(paste("ls -l ", input_dir, " | awk '{ total += $5 }; END { print total }'", sep=""), ignore.stderr = TRUE, intern = TRUE)
+x<-paste("Total Filesize: ", round(as.double(filesize) / (1024.0 * 1024.0 * 1024.0), digit=2), " GB", sep="")
+print(x)
+
 #Parse the output directory and create if doesn't exists
 output_directory = args[['output']]
 if(!dir.exists(output_directory)){
@@ -42,7 +47,8 @@ if(!is.null(args[["include"]])){
     toInclude = args[["include"]]
     if(toInclude != "inpatient" &
        toInclude != "outpatient" &
-       toInclude != "never_inpatient"){
+       toInclude != "never_inpatient" &
+       toInclude != "outpatient_and_never_inpatient"){
         toInclude == NULL
     }
 }    
@@ -104,12 +110,12 @@ if(!is.null(toInclude)){
     if(toInclude == "inpatient"){
         print("LV: Extract Inpatients")
         labValuesDplyr = inner_join(labValuesDplyr, 
-                                    encountersAll %>% filter(PatientClassNameSource == "Inpatient"))
+                                    encountersAll %>% filter(PatientClassCode == "Inpatient"))
     } else if(toInclude == "outpatient"){
         print("LV: Extract Outpatients")
         labValuesDplyr = inner_join(labValuesDplyr, 
-                                    encountersAll %>% filter(PatientClassNameSource == "Outpatient"))
-    } else if(toInclude == "never_inpatient"){
+                                    encountersAll %>% filter(PatientClassCode == "Outpatient"))
+    } else if(toInclude == "never_inpatient" | toInclude == "never_inpatient_and_not_ed"){
         print("LV: Extract Never Inpatients")
     
         #Get list of PIDs who have been inpatient
@@ -120,9 +126,16 @@ if(!is.null(toInclude)){
 
         #Join labvalues and list of patients who have been inpatient
         labValuesDplyr = left_join(labValuesDplyr, p1, by="PatientID")
+        remove(p1)
+
         #Exclude labvalues that occured after atheir first inpatient admission
         labValuesDplyr = labValuesDplyr %>% filter(is.null(FirstInpatient) | as.Date(COLLECTION_DATE) < as.Date(FirstInpatient))
-        remove(p1)
+
+        #Make sure that also the current lab value is not in the ED
+        if(toInclude == "outpatient_and_never_inpatient"){
+            labValuesDplyr = inner_join(labValuesDplyr,
+                                        encountersAll %>% filter(PatientClassCode != "Outpatient"))
+        }
     }
 
     print(paste("Extracted:", preFilLen, '=>', nrow(labValuesDplyr), sep=" "))

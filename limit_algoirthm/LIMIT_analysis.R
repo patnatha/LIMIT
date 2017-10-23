@@ -12,8 +12,10 @@ args <- parse_args(parser)
 inputData = args[['input']]
 load(inputData)
 
-print("PARAMETERS")
-print(attributes(parameters))
+if(exists("parameters")){
+    print("PARAMETERS")
+    print(attributes(parameters))
+}
 
 print("Lab Values Quartiles")
 print(as.numeric(quantile(as.numeric(cleanLabValues$l_val), c(0.025, 0.05, 0.95, 0.975), na.rm = TRUE)))
