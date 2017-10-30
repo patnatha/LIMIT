@@ -1,4 +1,5 @@
 library(optparse)
+library(dplyr)
 
 #Create the options list
 option_list <- list(
@@ -21,4 +22,11 @@ print("Lab Values Quartiles")
 print(as.numeric(quantile(as.numeric(cleanLabValues$l_val), c(0.025, 0.05, 0.95, 0.975), na.rm = TRUE)))
 print(paste("Lab Values Count: ", length(cleanLabValues$l_val)))
 print(paste("Unique Patient Count: ", length(unique(cleanLabValues$pid))))
+
+#Create a histogram of the results
+jpeg('hist.jpg')
+minval=round(min(as.numeric(cleanLabValues$l_val))) - 1
+maxval=round(max(as.numeric(cleanLabValues$l_val))) + 1
+hist(as.numeric(cleanLabValues$l_val), breaks=seq(minval, maxval, by=0.5), xlim=c(5,25))
+dev.off()
 
