@@ -6,7 +6,7 @@ option_list <- list(
     make_option("--input", type="character", default=NULL, help="directory to load data from"),
     make_option("--output", type="character", default="/scratch/leeschro_armis/patnatha/prepared_data/", help="filepath output"),
     make_option("--name", type="character", default=NULL, help="name of this set analysis"),
-    make_option("--age", type="character", default=NULL, help="enter range of ages separate by |"),
+    make_option("--age", type="character", default=NULL, help="enter range of ages separate by _"),
     make_option("--include", type="character", default=NULL, help="groups to include")
 )
 parser <- OptionParser(usage="%prog [options] file", option_list=option_list)
@@ -25,16 +25,90 @@ if(!dir.exists(output_directory)){
     stop()
 }
 
-if(is.null(args[["age"]])){
-    ageBias = "adult"
+convert_month_to_days = function(tTime){
+    stTime = tTime * floor(tTime / 12) * 365
+    addMon = tTime %% 12
+    if(addMon >= 1){
+        stTime = stTime + 31
+    }
+    if(addMon >= 2){
+        stTime = stTime + 28
+    }
+    if(addMon >= 3){
+        stTime = stTime + 31
+    } 
+    if(addMon >= 4){
+        stTime = stTime + 30
+    } 
+    if(addMon >= 5){
+        stTime = stTime + 31
+    } 
+    if(addMon >= 6){
+        stTime = stTime + 30
+    } 
+    if(addMon >= 7){
+        stTime = stTime + 31
+    }
+    if(addMon >= 8){
+        stTime = stTime + 31
+    } 
+    if(addMon >= 9){
+        stTime = stTime + 30
+    }
+    if(addMon >= 10){
+        stTime = stTime + 31
+    }
+    if(addMon >= 11){
+        stTime = stTime + 30
+    } 
+    if(addMon >= 12){
+        stTime = stTime + 31
+    }
+    return(stTime)
+}
+
+if(is.null(args[["age"]]) || is.na(args[["age"]]) || args[["age"]] == "adult"){
+    #By default get all adults
+    args[["age"]] = "adult"
+    ageBias = c(18 * 365, 100 * 365)
 } else if(args[["age"]] == "all"){
-    ageBias = "all"
-} else if(args[["age"]] == "adult"){
-    ageBias = "adult"
+    #If specified all then get all
+    ageBias = c(0, 100 * 365)
 } else {
-    theSplit = strsplit(args[['age']], "_")
+    theSplit = strsplit(args[['age']], "_")[[1]]
     if(length(theSplit) == 2){
-        ageBias = args[['age']]
+        startTime = theSplit[[1]]
+        endTime = theSplit[[2]]
+
+        sTimeUnit = substr(startTime, nchar(startTime), nchar(startTime))
+        startTime = as.numeric(substr(startTime, 1, nchar(startTime)-1))
+        sTime = NA
+        if(sTimeUnit == "Y"){
+            sTime = startTime * 365
+        } else if(sTimeUnit == "M"){
+            sTime = convert_month_to_days(startTime)
+        } else if(sTimeUnit == "D"){
+            sTime = startTime
+        } else {
+            print("ERROR: Start Time is not Y|M|D")
+            stop()
+        }
+
+        eTimeUnit = substr(endTime, nchar(endTime), nchar(endTime))
+        endTime = as.numeric(substr(endTime, 1, nchar(endTime) - 1))
+        eTime = NA
+        if(eTimeUnit == "Y"){
+            eTime = endTime * 365
+        } else if(eTimeUnit == "M"){
+            eTime = convert_month_to_days(endTime)
+        } else if(eTimeUnit == "D"){
+            eTime = endTime
+        } else {
+            print("ERROR: End Time is not Y|M|D")
+            stop()
+        }
+
+        ageBias = c(sTime, eTime)
     }
     else{
         print("ERROR: age format [start]_[end] in decimals of years")
@@ -57,10 +131,13 @@ if(!is.null(args[["include"]])){
 if(is.null(args[["name"]])){
     #Build the filename
     theBasename = basename(input_dir)
-    if(!is.null(ageBias)){
-        theBasename = paste(theBasename, ageBias, sep="_")
+
+    #Add teh age range if it is in there
+    if(!is.null(args[["age"]])){
+        theBasename = paste(theBasename, args[["age"]], sep="_")
     }
 
+    #Add the inclusion groups
     if(!is.null(toInclude)){
         theBasename = paste(theBasename, "_", toInclude, sep="")
     }
@@ -95,13 +172,9 @@ labValuesDplyr = labValuesDplyr %>% mutate(
                                             as.Date(COLLECTION_DATE) - as.Date(DOB)
                                         )
                                     )
-if(ageBias == "all"){
-    # Do nothin #Parse out age range
-} else if(ageBias == "adult"){
+if(!is.null(ageBias)){
     # Only get the lab values of patients older than 19 years 
-    labValuesDplyr = labValuesDplyr %>% filter(timeOffset > (18 * 365))
-} else{
-    #Parse out age range
+    labValuesDplyr = labValuesDplyr %>% filter(timeOffset < ageBias[[1]] & timeOffset < ageBias[[2]])
 }
 
 #Exclude all the lab values that are not consistent with a grouping
@@ -115,7 +188,7 @@ if(!is.null(toInclude)){
         print("LV: Extract Outpatients")
         labValuesDplyr = inner_join(labValuesDplyr, 
                                     encountersAll %>% filter(PatientClassCode == "Outpatient"))
-    } else if(toInclude == "never_inpatient" | toInclude == "never_inpatient_and_not_ed"){
+    } else if(toInclude == "never_inpatient" | toInclude == "outpatient_and_never_inpatient"){
         print("LV: Extract Never Inpatients")
     
         #Get list of PIDs who have been inpatient
