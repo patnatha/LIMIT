@@ -1,5 +1,5 @@
 tolistpath=$1
-preplist==`ls -1 ${tolistpath} | tr '\n' '\0' | xargs -0 -n 1 basename`
+preplist=`ls -1 ${tolistpath} | tr '\n' '\0' | xargs -0 -n 1 basename`
 
 echo "=====Run these files?====="
 theCnt=0
