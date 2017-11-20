@@ -7,6 +7,7 @@ option_list <- list(
     make_option("--output", type="character", default="/scratch/leeschro_armis/patnatha/prepared_data/", help="filepath output"),
     make_option("--name", type="character", default=NULL, help="name of this set analysis"),
     make_option("--age", type="character", default=NULL, help="enter range of ages separate by _"),
+    make_option("--sex", type="character", default=NULL, help="enter Male|Female|Both"),
     make_option("--include", type="character", default=NULL, help="groups to include")
 )
 parser <- OptionParser(usage="%prog [options] file", option_list=option_list)
@@ -15,9 +16,23 @@ input_dir = args[['input']]
 
 #Calculate the file size
 filesize<-system(paste("ls -l ", input_dir, " | awk '{ total += $5 }; END { print total }'", sep=""), ignore.stderr = TRUE, intern = TRUE)
-x<-paste("Total Filesize: ", round(as.double(filesize) / (1024.0 * 1024.0 * 1024.0), digit=2), " GB", sep="")
-print(x)
+print(paste("Total Filesize: ", round(as.double(filesize) / (1024.0 * 1024.0 * 1024.0), digit=2), " GB", sep=""))
 
+#Deteremine the incoming arugment for which sex to parse out
+sex=tolower(args[['sex']])
+includeSex=NA
+print(sex)
+if(sex == "male"){
+    includeSex = "M"
+} else if(sex == "female"){
+    includeSex = "F"
+} else if(sex == "both"){
+    includeSex = NA
+} else {
+    print("ERROR: sex is invalid Male|Female|Both")
+    exit
+}
+ 
 #Parse the output directory and create if doesn't exists
 output_directory = args[['output']]
 if(!dir.exists(output_directory)){
@@ -70,7 +85,7 @@ convert_month_to_days = function(tTime){
 if(is.null(args[["age"]]) || is.na(args[["age"]]) || args[["age"]] == "adult"){
     #By default get all adults
     args[["age"]] = "adult"
-    ageBias = c(18 * 365, 100 * 365)
+    ageBias = c(20 * 365, 100 * 365)
 } else if(args[["age"]] == "all"){
     #If specified all then get all
     ageBias = c(0, 100 * 365)
@@ -137,6 +152,11 @@ if(is.null(args[["name"]])){
         theBasename = paste(theBasename, args[["age"]], sep="_")
     }
 
+    #Add the inclusion sex
+    if(!is.na(sex)){
+        theBasename = paste(theBasename, "_", sex, sep="")
+    }
+
     #Add the inclusion groups
     if(!is.null(toInclude)){
         theBasename = paste(theBasename, "_", toInclude, sep="")
@@ -156,6 +176,16 @@ if(file.exists(output_filename)){
 #Load up the csv files
 print("Loading Patient B-Day")
 patient_bday = import_patient_bday(input_dir)
+
+#Load up the patient demo graphic info and combine with patient bday info
+patient_demo = import_demographic_info(input_dir)
+patient_bday = inner_join(patient_bday, patient_demo %>% select(PatientID, GenderCode, GenderName, RaceCode, RaceName))
+remove(patient_demo)
+
+#Select on Male or Female
+if(!is.na(includeSex)){
+    patient_bday %>% filter(GenderCode == includeSex)
+}
 
 #Load up all the encouters for the given pids
 print("Loading Patient Encounter's")
