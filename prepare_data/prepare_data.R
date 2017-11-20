@@ -207,7 +207,7 @@ if(!is.null(toInclude)){
         #Make sure that also the current lab value is not in the ED
         if(toInclude == "outpatient_and_never_inpatient"){
             labValuesDplyr = inner_join(labValuesDplyr,
-                                        encountersAll %>% filter(PatientClassCode != "Outpatient"))
+                                        encountersAll %>% filter(PatientClassCode == "Outpatient"))
         }
     }
 

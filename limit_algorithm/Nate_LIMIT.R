@@ -52,6 +52,7 @@ if(is.na(inputData) || !file.exists(inputData)){
     print("The input file path doesn't exist")
     stop()
 }
+print(paste("Loading Data: ", inputData, sep=""))
 load(inputData);
 
 #Check to see if the code type had been selected
@@ -177,8 +178,8 @@ FindExclusions = function(disease) {
 
 # Remove the empty values
 labValues = labValues %>% filter(!is.na(pid) & !is.null(pid) & !pid == "")
-labValues = labValues %>% filter(!is.na(as.numeric(l_val)))
-
+labValues = labValues %>% filter(!is.na(l_val))
+origLabValuesLength = nrow(labValues)
 
 #Print the original results
 print("Lab Values Quartiles")
@@ -334,5 +335,5 @@ print(paste("Patient Count: ", length(unique(labValues$pid))))
 
 #Save the updated labValues and excluded ICD values
 cleanLabValues = labValues
-save(parameters, cleanLabValues, excludedPatients, excludedICDs, excludedICDNames, excludedCounts, excludedPval, file=saving)
+save(parameters, cleanLabValues, excludedPatients, excludedICDs, excludedICDNames, excludedCounts, excludedPval, origLabValuesLength, file=saving)
 

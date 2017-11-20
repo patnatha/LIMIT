@@ -18,6 +18,10 @@ if(exists("parameters")){
     print(attributes(parameters))
 }
 
+if(exists("origLabValuesLength")){
+    print(paste("Original LabValues Length:", toString(origLabValuesLength), sep=""))
+}
+
 print("Lab Values Quartiles")
 print(as.numeric(quantile(as.numeric(cleanLabValues$l_val), c(0.025, 0.05, 0.95, 0.975), na.rm = TRUE)))
 print(paste("Lab Values Count: ", length(cleanLabValues$l_val)))
