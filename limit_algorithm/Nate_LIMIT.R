@@ -3,7 +3,7 @@ criticalProp = 0.005
 criticalP = 0.05
 criticalHampel = 3
 saving = 'tmp'
-day_time_offset = 5
+day_time_offset = 30
 
 #Count the number of CPUs available
 cpuCnt<-system("nproc", ignore.stderr = TRUE, intern = TRUE)

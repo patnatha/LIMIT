@@ -178,7 +178,7 @@ print("Loading Patient B-Day")
 patient_bday = import_patient_bday(input_dir)
 
 #Load up the patient demo graphic info and combine with patient bday info
-patient_demo = import_demographic_info(input_dir)
+patient_demo = import_demo_info(input_dir)
 patient_bday = inner_join(patient_bday, patient_demo %>% select(PatientID, GenderCode, GenderName, RaceCode, RaceName))
 remove(patient_demo)
 

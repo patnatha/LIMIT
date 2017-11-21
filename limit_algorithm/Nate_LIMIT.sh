@@ -5,14 +5,17 @@ echo "=====Which prepared file?====="
 theCnt=0
 for tfile in $prepfile;
 do
-   theCnt=$((theCnt+1))
-   echo "${theCnt}) $tfile"
+    if [ $tfile != 'hgb_4_years_archive' ]; then
+        finarr+="${tfile}|"
+        theCnt=$((theCnt+1))
+        echo "${theCnt}) $tfile"
+    fi
 done
 read -r -p '=====Choose a number=====: ' var
 
 preppedfile=''
 theCnt=0
-for tfile in $prepfile;
+for tfile in $(echo $finarr | tr "|" "\n");
 do
     if [[ $theCnt == $((var-1)) ]];
     then
