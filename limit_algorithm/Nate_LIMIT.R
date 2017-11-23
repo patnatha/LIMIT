@@ -177,14 +177,16 @@ FindExclusions = function(disease) {
     return(exclude1)
 }
 
-# Remove the empty values
+# Remove the empty values and numericize the column of interest
 labValues = labValues %>% filter(!is.na(pid) & !is.null(pid) & !pid == "")
 labValues = labValues %>% filter(!is.na(l_val))
+labValues$l_val = as.numeric(labValues$l_val)
+labValues = labValues  %>% filter(!is.na(l_val))
 origLabValuesLength = nrow(labValues)
 
 #Print the original results
 print("Lab Values Quartiles")
-print(as.numeric(quantile(as.numeric(labValues$l_val), c(0.025, 0.05, 0.95, 0.975), na.rm = TRUE)))
+print(as.numeric(quantile(labValues$l_val, c(0.025, 0.05, 0.95, 0.975), na.rm = TRUE)))
 print(paste("Lab Values Count: ", length(labValues$l_val)))
 print(paste("Patient Count: ", length(unique(labValues$pid))))
 
@@ -202,15 +204,15 @@ excludedCounts = list()
 excludedPval = list()
 
 # Get the mean and MAD of the lab values
-mu = median(as.numeric(labValues$l_val), na.rm = TRUE)
-sig = mad(as.numeric(labValues$l_val), na.rm = TRUE)
+mu = median(labValues$l_val, na.rm = TRUE)
+sig = mad(labValues$l_val, na.rm = TRUE)
 
 #CONVERGE
 debug = TRUE
 iteration = 0
 while (!converged) {
     # Initialise indices of outliers using Hampels method
-    outliers = hampel(as.numeric(labValues$l_val), criticalHampel, TRUE)
+    outliers = hampel(labValues$l_val, criticalHampel, TRUE)
     labValues$outlier[outliers] = TRUE
 
     #Print some interation output for notification
@@ -358,6 +360,7 @@ bootresultlower = boot.ci(bootresult, conf = limitConf, type = "basic", index = 
 bootresultupper = boot.ci(bootresult, conf = limitConf, type = "basic", index = 2)
 
 #Get the upper and lower limits for limits for displaying
+print(bootresultlower$basic)
 lowerRefLowLimit = round(bootresultlower$basic[4], digits=3)
 lowerRefUpperLimit = round(bootresultlower$basic[5], digits=3)
 upperRefLowLimit = round(bootresultupper$basic[4], digits=3)
