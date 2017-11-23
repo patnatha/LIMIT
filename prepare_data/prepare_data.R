@@ -21,7 +21,6 @@ print(paste("Total Filesize: ", round(as.double(filesize) / (1024.0 * 1024.0 * 1
 #Deteremine the incoming arugment for which sex to parse out
 sex=tolower(args[['sex']])
 includeSex=NA
-print(sex)
 if(sex == "male"){
     includeSex = "M"
 } else if(sex == "female"){
@@ -82,7 +81,8 @@ convert_month_to_days = function(tTime){
     return(stTime)
 }
 
-if(is.null(args[["age"]]) || is.na(args[["age"]]) || args[["age"]] == "adult"){
+ageBias = NA
+if(is.null(args[["age"]]) || is.null(args[["age"]]) || args[["age"]] == "adult"){
     #By default get all adults
     args[["age"]] = "adult"
     ageBias = c(20 * 365, 100 * 365)
@@ -131,14 +131,15 @@ if(is.null(args[["age"]]) || is.na(args[["age"]]) || args[["age"]] == "adult"){
     }
 }
 
-toInclude = NULL
+#Parse the include statement
+toInclude = NA
 if(!is.null(args[["include"]])){
     toInclude = args[["include"]]
     if(toInclude != "inpatient" &
        toInclude != "outpatient" &
        toInclude != "never_inpatient" &
        toInclude != "outpatient_and_never_inpatient"){
-        toInclude == NULL
+        toInclude == NA
     }
 }    
 
@@ -158,7 +159,7 @@ if(is.null(args[["name"]])){
     }
 
     #Add the inclusion groups
-    if(!is.null(toInclude)){
+    if(!is.na(toInclude)){
         theBasename = paste(theBasename, "_", toInclude, sep="")
     }
 
@@ -167,9 +168,8 @@ if(is.null(args[["name"]])){
     output_filename = gsub("//", "/", paste(output_directory, args[['name']], sep="/"))
 }
 output_filename = paste(output_filename, '.Rdata', sep="")
-print(output_filename)
 if(file.exists(output_filename)){
-    print("The output filename already exists")
+    print(paste("The output filename already exists: ", output_filename, sep=""))
     stop()
 }
 
@@ -178,13 +178,17 @@ print("Loading Patient B-Day")
 patient_bday = import_patient_bday(input_dir)
 
 #Load up the patient demo graphic info and combine with patient bday info
+print("Loading Patient Demographics")
 patient_demo = import_demo_info(input_dir)
+
+print("Combine Patient D-Day & Demographics")
 patient_bday = inner_join(patient_bday, patient_demo %>% select(PatientID, GenderCode, GenderName, RaceCode, RaceName))
 remove(patient_demo)
 
 #Select on Male or Female
 if(!is.na(includeSex)){
-    patient_bday %>% filter(GenderCode == includeSex)
+    print("Filter Patient Info Based on Sex")
+    patient_bday = patient_bday %>% filter(GenderCode == includeSex)
 }
 
 #Load up all the encouters for the given pids
@@ -202,13 +206,14 @@ labValuesDplyr = labValuesDplyr %>% mutate(
                                             as.Date(COLLECTION_DATE) - as.Date(DOB)
                                         )
                                     )
-if(!is.null(ageBias)){
-    # Only get the lab values of patients older than 19 years 
-    labValuesDplyr = labValuesDplyr %>% filter(timeOffset < ageBias[[1]] & timeOffset < ageBias[[2]])
+
+#Filter labValues based on age bias
+if(!is.na(ageBias)){
+    labValuesDplyr = labValuesDplyr %>% filter(timeOffset > ageBias[[1]] & timeOffset < ageBias[[2]])
 }
 
 #Exclude all the lab values that are not consistent with a grouping
-if(!is.null(toInclude)){
+if(!is.na(toInclude)){
     preFilLen = nrow(labValuesDplyr)
     if(toInclude == "inpatient"){
         print("LV: Extract Inpatients")
@@ -232,7 +237,7 @@ if(!is.null(toInclude)){
         remove(p1)
 
         #Exclude labvalues that occured after atheir first inpatient admission
-        labValuesDplyr = labValuesDplyr %>% filter(is.null(FirstInpatient) | as.Date(COLLECTION_DATE) < as.Date(FirstInpatient))
+        labValuesDplyr = labValuesDplyr %>% filter(is.null(FirstInpatient) | is.na(FirstInpatient) | FirstInpatient == "" | as.Date(COLLECTION_DATE) < as.Date(FirstInpatient))
 
         #Make sure that also the current lab value is not in the ED
         if(toInclude == "outpatient_and_never_inpatient"){
