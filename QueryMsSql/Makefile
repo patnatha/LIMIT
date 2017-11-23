@@ -10,6 +10,9 @@ QuerySql.class: QuerySql.java
 
 DownloadAllEncounters.class: DownloadAllEncounters.java
 	javac -classpath $(cpFlags) DownloadAllEncounters.java
+	
+DownloadAllLabs.class: DownloadAllLabs.java
+	javac -classpath $(cpFlags) DownloadAllLabs.java
 
 downAnalyte: QuerySql.class
 	java -cp $(cpFlags) -Xmx1024m QuerySql
@@ -17,7 +20,11 @@ downAnalyte: QuerySql.class
 downEnc: DownloadAllEncounters.class
 	java -cp $(cpFlags) -Xmx1024m DownloadAllEncounters
 
+downLab: DownloadAllLabs.class
+	java -cp $(cpFlags) -Xmx1024m DownloadAllLabs
+
 clean: 
-	rm .\QuerySql.class
 	rm ./QuerySql.class
+	rm ./DownloadAllEncounters.class
+	rm ./DownloadAllLabs.class
 	
