@@ -40,6 +40,7 @@ import_demo_info <- function(input_dir){ return(import_files_fxn(file.path(input
 import_patient_bday <- function(input_dir){ return(import_files_fxn(file.path(input_dir, "PatientInfo"))) }
 
 import_encounter_all <- function(pids){
+    print("Loading Encounters from DB")
     encountersAll = get_encounters(unique(pids)) 
     
     #Get a count of the rows and columns

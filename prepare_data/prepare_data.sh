@@ -6,7 +6,7 @@ theCnt=0
 finarr=()
 for tfile in $prepfile;
 do
-    if [ $tfile != 'EncountersAll' ] && [ $tfile != 'RESULT_CODES.txt' ] && [ $tfile != 'limit_results' ] && [ $tfile != 'prepared_data' ]; then
+    if [ $tfile != 'EncountersAll' ] && [ $tfile != 'RESULT_CODES.txt' ] && [ $tfile != 'limit_results' ] && [ $tfile != 'prepared_data' ] && [ $tfile != 'LabResults' ]; then
         finarr+="${tfile}|"
         theCnt=$((theCnt+1))
         echo "${theCnt}) $tfile"
@@ -83,7 +83,27 @@ else
     exit
 fi 
 
-fincmd="qsub prepare_data.pbs -F \"--input $finfile --age $theage --sex $thesex --include $incGrp\""
+echo "=====RACE====="
+echo "1) All"
+echo "2) White"
+echo "3) Black"
+read -r -p '=====Choose a number=====: ' var
+therace=""
+if [ $var == "1" ]
+then
+    therace="all"
+elif [ $var == "2" ]
+then
+    therace="white"
+elif [ $var == "3" ]
+then
+    therace="black"
+else
+    echo "ERROR: 1|2|3 only"
+    exit
+fi
+
+fincmd="qsub prepare_data.pbs -F \"--input $finfile --age $theage --sex $thesex --race $therace --include $incGrp\""
 echo $fincmd
 eval $fincmd
 

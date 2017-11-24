@@ -3,12 +3,13 @@ source("../import_files.R")
 #Parse input from command line
 library(optparse)
 option_list <- list(
-    make_option("--input", type="character", default=NULL, help="directory to load data from"),
+    make_option("--input", type="character", default="", help="directory to load data from"),
     make_option("--output", type="character", default="/scratch/leeschro_armis/patnatha/prepared_data/", help="filepath output"),
-    make_option("--name", type="character", default=NULL, help="name of this set analysis"),
-    make_option("--age", type="character", default=NULL, help="enter range of ages separate by _"),
-    make_option("--sex", type="character", default=NULL, help="enter Male|Female|Both"),
-    make_option("--include", type="character", default=NULL, help="groups to include")
+    make_option("--name", type="character", default="", help="name of this set analysis"),
+    make_option("--age", type="character", default="", help="enter range of ages separate by _"),
+    make_option("--sex", type="character", default="", help="enter Male|Female|Both"),
+    make_option("--race", type="character", default="", help="enter White|Black|All"),
+    make_option("--include", type="character", default="", help="groups to include")
 )
 parser <- OptionParser(usage="%prog [options] file", option_list=option_list)
 args <- parse_args(parser)
@@ -18,18 +19,34 @@ input_dir = args[['input']]
 filesize<-system(paste("ls -l ", input_dir, " | awk '{ total += $5 }; END { print total }'", sep=""), ignore.stderr = TRUE, intern = TRUE)
 print(paste("Total Filesize: ", round(as.double(filesize) / (1024.0 * 1024.0 * 1024.0), digit=2), " GB", sep=""))
 
-#Deteremine the incoming arugment for which sex to parse out
+#Parse the input race value
+race=tolower(args[['race']])
+includeRace=NA
+if(race == "" | race == "all"){
+    includeRace = NA
+    race = NA
+} else if(race == "white"){
+    includeRace = "C"
+} else if(race == "black"){
+    includeRace = "AA"
+} else {
+    print("ERROR: sex is invalid")
+    stop()
+}
+
+#Parse the input sex value
 sex=tolower(args[['sex']])
 includeSex=NA
-if(sex == "male"){
+if(sex == "" || sex == "both"){
+    includeSex = NA
+    sex = NA
+} else if (sex == "male"){
     includeSex = "M"
 } else if(sex == "female"){
     includeSex = "F"
-} else if(sex == "both"){
-    includeSex = NA
 } else {
     print("ERROR: sex is invalid Male|Female|Both")
-    exit
+    stop()
 }
  
 #Parse the output directory and create if doesn't exists
@@ -39,6 +56,7 @@ if(!dir.exists(output_directory)){
     stop()
 }
 
+#Function for converting months to days
 convert_month_to_days = function(tTime){
     stTime = tTime * floor(tTime / 12) * 365
     addMon = tTime %% 12
@@ -81,16 +99,18 @@ convert_month_to_days = function(tTime){
     return(stTime)
 }
 
-ageBias = NA
-if(is.null(args[["age"]]) || is.null(args[["age"]]) || args[["age"]] == "adult"){
+#Parse out the ageBias
+ageBias = c(NA, NA)
+age = tolower(args[["age"]])
+if(age == "" || age == "adult"){
     #By default get all adults
-    args[["age"]] = "adult"
+    age = "adult"
     ageBias = c(20 * 365, 100 * 365)
-} else if(args[["age"]] == "all"){
+} else if(age == "all"){
     #If specified all then get all
     ageBias = c(0, 100 * 365)
 } else {
-    theSplit = strsplit(args[['age']], "_")[[1]]
+    theSplit = strsplit(age, "_")[[1]]
     if(length(theSplit) == 2){
         startTime = theSplit[[1]]
         endTime = theSplit[[2]]
@@ -98,11 +118,11 @@ if(is.null(args[["age"]]) || is.null(args[["age"]]) || args[["age"]] == "adult")
         sTimeUnit = substr(startTime, nchar(startTime), nchar(startTime))
         startTime = as.numeric(substr(startTime, 1, nchar(startTime)-1))
         sTime = NA
-        if(sTimeUnit == "Y"){
+        if(sTimeUnit == "y"){
             sTime = startTime * 365
-        } else if(sTimeUnit == "M"){
+        } else if(sTimeUnit == "m"){
             sTime = convert_month_to_days(startTime)
-        } else if(sTimeUnit == "D"){
+        } else if(sTimeUnit == "d"){
             sTime = startTime
         } else {
             print("ERROR: Start Time is not Y|M|D")
@@ -112,11 +132,11 @@ if(is.null(args[["age"]]) || is.null(args[["age"]]) || args[["age"]] == "adult")
         eTimeUnit = substr(endTime, nchar(endTime), nchar(endTime))
         endTime = as.numeric(substr(endTime, 1, nchar(endTime) - 1))
         eTime = NA
-        if(eTimeUnit == "Y"){
+        if(eTimeUnit == "y"){
             eTime = endTime * 365
-        } else if(eTimeUnit == "M"){
+        } else if(eTimeUnit == "m"){
             eTime = convert_month_to_days(endTime)
-        } else if(eTimeUnit == "D"){
+        } else if(eTimeUnit == "d"){
             eTime = endTime
         } else {
             print("ERROR: End Time is not Y|M|D")
@@ -132,30 +152,36 @@ if(is.null(args[["age"]]) || is.null(args[["age"]]) || args[["age"]] == "adult")
 }
 
 #Parse the include statement
-toInclude = NA
-if(!is.null(args[["include"]])){
-    toInclude = args[["include"]]
+toInclude = tolower(args[["include"]])
+if(toInclude != ""){
     if(toInclude != "inpatient" &
        toInclude != "outpatient" &
        toInclude != "never_inpatient" &
        toInclude != "outpatient_and_never_inpatient"){
         toInclude == NA
     }
-}    
+} else {
+    toInclude = NA
+}
 
 #Parse the name from input if exists
-if(is.null(args[["name"]])){
+if(args[["name"]] == ""){
     #Build the filename
     theBasename = basename(input_dir)
 
     #Add teh age range if it is in there
-    if(!is.null(args[["age"]])){
-        theBasename = paste(theBasename, args[["age"]], sep="_")
+    if(!is.na(age)){
+        theBasename = paste(theBasename, age, sep="_")
     }
 
     #Add the inclusion sex
     if(!is.na(sex)){
         theBasename = paste(theBasename, "_", sex, sep="")
+    }
+
+    #Add the inclusion race
+    if(!is.na(race)){
+        theBasename = paste(theBasename, "_", race, sep="")
     }
 
     #Add the inclusion groups
@@ -168,6 +194,7 @@ if(is.null(args[["name"]])){
     output_filename = gsub("//", "/", paste(output_directory, args[['name']], sep="/"))
 }
 output_filename = paste(output_filename, '.Rdata', sep="")
+print(output_filename)
 if(file.exists(output_filename)){
     print(paste("The output filename already exists: ", output_filename, sep=""))
     stop()
@@ -191,9 +218,20 @@ if(!is.na(includeSex)){
     patient_bday = patient_bday %>% filter(GenderCode == includeSex)
 }
 
+#Select on Include Race
+if(!is.na(includeRace)){
+    print("Filter Patient Info Based on Race")
+    patient_bday = patient_bday %>% filter(RaceCode == includeRace)
+}
+
+#Error stmt
+if(nrow(patient_bday) == 0){
+    print("Patient Bday is Empty")
+    stop()
+}
+
 #Load up all the encouters for the given pids
-print("Loading Patient Encounter's")
-encountersAll = import_encounter_all(patient_bday$PatientID)
+encountersAll = NA
 
 #Build the lab values dataset
 print("Loading Lab Values")
@@ -208,7 +246,7 @@ labValuesDplyr = labValuesDplyr %>% mutate(
                                     )
 
 #Filter labValues based on age bias
-if(!is.na(ageBias)){
+if(!is.na(ageBias[[1]])){
     labValuesDplyr = labValuesDplyr %>% filter(timeOffset > ageBias[[1]] & timeOffset < ageBias[[2]])
 }
 
@@ -216,10 +254,12 @@ if(!is.na(ageBias)){
 if(!is.na(toInclude)){
     preFilLen = nrow(labValuesDplyr)
     if(toInclude == "inpatient"){
+        encountersAll = import_encounter_all(patient_bday$PatientID)
         print("LV: Extract Inpatients")
         labValuesDplyr = inner_join(labValuesDplyr, 
                                     encountersAll %>% filter(PatientClassCode == "Inpatient"))
     } else if(toInclude == "outpatient"){
+        encountersAll = import_encounter_all(patient_bday$PatientID)
         print("LV: Extract Outpatients")
         labValuesDplyr = inner_join(labValuesDplyr, 
                                     encountersAll %>% filter(PatientClassCode == "Outpatient"))
@@ -241,6 +281,7 @@ if(!is.na(toInclude)){
 
         #Make sure that also the current lab value is not in the ED
         if(toInclude == "outpatient_and_never_inpatient"){
+            encountersAll = import_encounter_all(patient_bday$PatientID)
             labValuesDplyr = inner_join(labValuesDplyr,
                                         encountersAll %>% filter(PatientClassCode == "Outpatient"))
         }
@@ -263,11 +304,9 @@ diagnosis_process = inner_join(diagnoses, patient_bday, by="PatientID")
 remove(diagnoses)
 
 print("DX: Combine with encounters")
-encounter_earliest = encountersAll %>% filter(AdmitDate != "")
+if(is.na(encountersAll)){ encountersAll = import_encounter_all(patient_bday$PatientID) }
+icdValuesDplyr = inner_join(diagnosis_process, encountersAll %>% filter(AdmitDate != ""))
 remove(encountersAll)
-icdValuesDplyr = inner_join(diagnosis_process, encounter_earliest)
-remove(encounter_earliest)
-
 
 #Get the icd code assignment as an offset value
 print("DX: Calculate Time-Offset")

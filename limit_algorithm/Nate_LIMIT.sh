@@ -32,17 +32,14 @@ thecode=''
 if [[ $var == 1 ]]
 then
     thecode="icd"
-fi
-if [[ $var == 2 ]]
+else if [[ $var == 2 ]]
 then
     thecode="med"
+else
+    echo "ERROR: 1|2"
+    exit
 fi
 
 thecmd="qsub Nate_LIMIT.pbs -F \"--input $basedir$preppedfile --code $thecode\""
-echo Run it?: $thecmd
-read -r -p '=====Y|N=====: ' var
-if [[ $var == 'Y' ]]
-then
-    eval $thecmd
-fi
+eval $thecmd
 

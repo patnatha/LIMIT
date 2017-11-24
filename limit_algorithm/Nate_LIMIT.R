@@ -360,7 +360,6 @@ bootresultlower = boot.ci(bootresult, conf = limitConf, type = "basic", index = 
 bootresultupper = boot.ci(bootresult, conf = limitConf, type = "basic", index = 2)
 
 #Get the upper and lower limits for limits for displaying
-print(bootresultlower$basic)
 lowerRefLowLimit = round(bootresultlower$basic[4], digits=3)
 lowerRefUpperLimit = round(bootresultlower$basic[5], digits=3)
 upperRefLowLimit = round(bootresultupper$basic[4], digits=3)
