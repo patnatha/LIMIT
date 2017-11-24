@@ -32,7 +32,7 @@ thecode=''
 if [[ $var == 1 ]]
 then
     thecode="icd"
-else if [[ $var == 2 ]]
+elif [[ $var == 2 ]]
 then
     thecode="med"
 else
@@ -41,5 +41,6 @@ else
 fi
 
 thecmd="qsub Nate_LIMIT.pbs -F \"--input $basedir$preppedfile --code $thecode\""
+echo $thecmd
 eval $thecmd
 

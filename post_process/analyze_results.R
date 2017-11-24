@@ -14,6 +14,10 @@ args <- parse_args(parser)
 inputData = args[['input']]
 load(inputData)
 
+#Build the output file name
+theResultFile = paste(dirname(inputData), "analysis_results.csv", sep="/")
+writeToFile = file.exists(theResultFile)
+
 if(exists("parameters")){
     print("PARAMETERS")
     print(attributes(parameters))
@@ -54,10 +58,16 @@ print(paste("Lab Values Parametric Quartiles: ", paste(round(100 - (refConf*100)
 print(paste("Lab Values Count: ", length(cleanLabValues$l_val)))
 print(paste("Unique Patient Count: ", length(unique(cleanLabValues$pid))))
 
+#Write the results to file if exists
+if(writeToFile){
+    newLine = c(inputData, lowerRefLowLimit, lowerRefUpperLimit, upperRefLowLimit, upperRefUpperLimit, mean(cleanLabValues$l_val, na.rm = TRUE))
+    write(newLine,ncolumns=6,sep=",",file=theResultFile, append=TRUE)
+}
+
 #Create a histogram of the results
-jpeg('hist.jpg')
-minval=round(min(as.numeric(cleanLabValues$l_val))) - 1
-maxval=round(max(as.numeric(cleanLabValues$l_val))) + 1
-hist(as.numeric(cleanLabValues$l_val), breaks=seq(minval, maxval, by=0.5), xlim=c(5,25))
-dev.off()
+#jpeg('hist.jpg')
+#minval=round(min(as.numeric(cleanLabValues$l_val))) - 1
+#maxval=round(max(as.numeric(cleanLabValues$l_val))) + 1
+#hist(as.numeric(cleanLabValues$l_val), breaks=seq(minval, maxval, by=0.5), xlim=c(5,25))
+#dev.off()
 
