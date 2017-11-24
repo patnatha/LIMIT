@@ -1,20 +1,19 @@
 library("parallel")
 library("RSQLite")
 
-connect_sqlite_enc <- function(){
-    con = dbConnect(drv=SQLite(), dbname="/scratch/leeschro_armis/patnatha/EncountersAll/EncountersAll.db")
+connect_sqlite_lab <- function(){
+    con = dbConnect(drv=SQLite(), dbname="/scratch/leeschro_armis/patnatha/LabResults/LabResults.db")
     return(con)
 }
 
-async_query_encs <- function(pids, con){
+async_query_labs <- function(pids, con){
     out <- tryCatch(
         if(length(pids) > 0){
             #Build the query and execute
-            sql = paste('SELECT * FROM EncountersAll WHERE PatientID IN ("', paste(pids, collapse="\",\""), '")', sep="")
-            con = connect_sqlite_enc()
+            sql = paste('SELECT * FROM LabResults WHERE PatientID IN ("', paste(pids, collapse="\",\""), '")', sep="")
+            con = connect_sqlite_lab()
             myQuery = dbGetQuery(con, sql)
             dbDisconnect(con)
-            #print(nrow(myQuery))
             return(myQuery)
         }
     ,error=function(cond) {
@@ -24,7 +23,7 @@ async_query_encs <- function(pids, con){
     )
 }
 
-get_encounters <- function(pids){
+get_labs <- function(pids){
     if(length(pids) > 0){
         # Chunkify
         toChunk = 1000
@@ -47,8 +46,8 @@ get_encounters <- function(pids){
             finalList[[length(finalList) + 1]] = tmpList
         }
 
-        print(paste("Download Encounters: ", as.character(length(pids)),sep=""))
-        allData = mclapply(finalList, async_query_encs, con, mc.cores = 16)
+        print(paste("Downloading Labs: ", as.character(length(pids)),sep=""))
+        allData = mclapply(finalList, async_query_labs, con, mc.cores = 16)
         return(allData)
     }
     else{

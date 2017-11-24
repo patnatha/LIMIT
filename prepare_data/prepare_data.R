@@ -1,3 +1,4 @@
+library("RSQLite")
 source("../import_files.R")
 
 #Parse input from command line
@@ -230,6 +231,10 @@ if(nrow(patient_bday) == 0){
     stop()
 }
 
+
+allLabs = import_labs_all(patient_bday$PatientID)
+stop()
+
 #Load up all the encouters for the given pids
 encountersAll = NA
 
@@ -267,7 +272,6 @@ if(!is.na(toInclude)){
         print("LV: Extract Never Inpatients")
     
         #Get list of PIDs who have been inpatient
-        library("RSQLite")
         con = dbConnect(drv=SQLite(), dbname="/scratch/leeschro_armis/patnatha/EncountersAll/EncountersAll.db")
         p1 = dbGetQuery(con,'SELECT PatientID, FirstInpatient, InpatientCnt FROM ever_inpatient WHERE InpatientCnt > 0')
         dbDisconnect(con)
