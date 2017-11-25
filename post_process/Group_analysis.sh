@@ -18,7 +18,7 @@ fi
 
 outputFile="${tolistpath}analysis_results.csv"
 rm ${outputFile}
-echo "File, Low Low, Low High, High Low, High High, Mean" > ${outputFile}
+echo "File, Count, Low Low, Low High, High Low, High High, Mean" > ${outputFile}
 
 for tfile in $preplist;
 do

@@ -60,8 +60,8 @@ print(paste("Unique Patient Count: ", length(unique(cleanLabValues$pid))))
 
 #Write the results to file if exists
 if(writeToFile){
-    newLine = c(inputData, lowerRefLowLimit, lowerRefUpperLimit, upperRefLowLimit, upperRefUpperLimit, mean(cleanLabValues$l_val, na.rm = TRUE))
-    write(newLine,ncolumns=6,sep=",",file=theResultFile, append=TRUE)
+    newLine = c(inputData, length(cleanLabValues$l_val), lowerRefLowLimit, lowerRefUpperLimit, upperRefLowLimit, upperRefUpperLimit, mean(cleanLabValues$l_val, na.rm = TRUE))
+    write(newLine,ncolumns=7,sep=",",file=theResultFile, append=TRUE)
 }
 
 #Create a histogram of the results

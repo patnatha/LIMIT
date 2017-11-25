@@ -232,8 +232,8 @@ if(nrow(patient_bday) == 0){
 }
 
 
-allLabs = import_labs_all(patient_bday$PatientID)
-stop()
+#allLabs = import_labs_all(patient_bday$PatientID)
+#stop()
 
 #Load up all the encouters for the given pids
 encountersAll = NA
