@@ -102,9 +102,17 @@ if(whichProc == "INSERT"):
         conn.commit()
 elif(whichProc == "INDEX"):
     print("Indexing")
-    #sql = "CREATE INDEX pid_key ON " + tablename + "(PatientID); "
-    #c.execute(sql)
-    #conn.commit()
+    sql = "CREATE INDEX pid_key ON " + tablename + "(PatientID);"
+    c.execute(sql)
+    conn.commit()
+
+    sql = "CREATE INDEX enc_key ON " + tablename + "(EncounterID); "
+    c.execute(sql)
+    conn.commit()
+
+    sql = "CREATE INDEX results_code_key ON " + tablename + "(RESULT_CODE); "
+    c.execute(sql)
+    conn.commit()
 
 conn.close()
 

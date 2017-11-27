@@ -210,7 +210,7 @@ print("Loading Patient Demographics")
 patient_demo = import_demo_info(input_dir)
 
 print("Combine Patient D-Day & Demographics")
-patient_bday = inner_join(patient_bday, patient_demo %>% select(PatientID, GenderCode, GenderName, RaceCode, RaceName))
+patient_bday = inner_join(patient_bday, patient_demo %>% select(PatientID, GenderCode, GenderName, RaceCode, RaceName), by="PatientID")
 remove(patient_demo)
 
 #Select on Male or Female
@@ -231,13 +231,6 @@ if(nrow(patient_bday) == 0){
     stop()
 }
 
-
-#allLabs = import_labs_all(patient_bday$PatientID)
-#stop()
-
-#Load up all the encouters for the given pids
-encountersAll = NA
-
 #Build the lab values dataset
 print("Loading Lab Values")
 lab_values = import_lab_values(input_dir)
@@ -252,31 +245,28 @@ labValuesDplyr = labValuesDplyr %>% mutate(
 
 #Filter labValues based on age bias
 if(!is.na(ageBias[[1]])){
-    labValuesDplyr = labValuesDplyr %>% filter(timeOffset > ageBias[[1]] & timeOffset < ageBias[[2]])
+    labValuesDplyr = labValuesDplyr %>% filter(timeOffset >= ageBias[[1]] & timeOffset < ageBias[[2]])
 }
 
 #Exclude all the lab values that are not consistent with a grouping
+encountersAll = NA
 if(!is.na(toInclude)){
     preFilLen = nrow(labValuesDplyr)
     if(toInclude == "inpatient"){
-        encountersAll = import_encounter_all(patient_bday$PatientID)
+        encountersAll = import_encounter_all(labValuesDplyr$PatientID)
         print("LV: Extract Inpatients")
         labValuesDplyr = inner_join(labValuesDplyr, 
                                     encountersAll %>% filter(PatientClassCode == "Inpatient"))
     } else if(toInclude == "outpatient"){
-        encountersAll = import_encounter_all(patient_bday$PatientID)
+        encountersAll = import_encounter_all(labValuesDplyr$PatientID)
         print("LV: Extract Outpatients")
         labValuesDplyr = inner_join(labValuesDplyr, 
                                     encountersAll %>% filter(PatientClassCode == "Outpatient"))
     } else if(toInclude == "never_inpatient" | toInclude == "outpatient_and_never_inpatient"){
         print("LV: Extract Never Inpatients")
     
-        #Get list of PIDs who have been inpatient
-        con = dbConnect(drv=SQLite(), dbname="/scratch/leeschro_armis/patnatha/EncountersAll/EncountersAll.db")
-        p1 = dbGetQuery(con,'SELECT PatientID, FirstInpatient, InpatientCnt FROM ever_inpatient WHERE InpatientCnt > 0')
-        dbDisconnect(con)
-
         #Join labvalues and list of patients who have been inpatient
+        p1 = get_encounters_never_inpatient()
         labValuesDplyr = left_join(labValuesDplyr, p1, by="PatientID")
         remove(p1)
 
@@ -285,7 +275,7 @@ if(!is.na(toInclude)){
 
         #Make sure that also the current lab value is not in the ED
         if(toInclude == "outpatient_and_never_inpatient"){
-            encountersAll = import_encounter_all(patient_bday$PatientID)
+            encountersAll = import_encounter_all(labValuesDplyr$PatientID)
             labValuesDplyr = inner_join(labValuesDplyr,
                                         encountersAll %>% filter(PatientClassCode == "Outpatient"))
         }
@@ -299,7 +289,28 @@ print("LV: Select columns for output")
 labValuesDplyr = rename(labValuesDplyr, pid = PatientID)
 labValuesDplyr = rename(labValuesDplyr, l_val = VALUE)
 labValues<-labValuesDplyr %>% select(pid, l_val, timeOffset, EncounterID) %>% as.data.frame()
+accessionList = labValuesDplyr %>% select(ACCESSION_NUMBER, RESULT_CODE)
 remove(labValuesDplyr)
+
+#Get all labs values associated with these patients
+print("Loading Other Labs")
+allLabs = import_labs_all(unique(labValues$pid))
+otherLabsDplyr = inner_join(allLabs, patient_bday, by="PatientID")
+
+print("Other Labs: processing table")
+otherLabsDplyr = otherLabsDplyr %>% filter(HILONORMAL_FLAG != "") 
+otherLabsDplyr = otherLabsDplyr %>% filter(HILONORMAL_FLAG != "N")
+otherLabsDplyr = otherLabsDplyr %>%
+                    mutate(timeOffset =
+                        as.numeric(as.Date(COLLECTION_DATE)
+                        -
+                        as.Date(DOB)))
+otherLabsDplyr = rename(otherLabsDplyr, pid = PatientID)
+otherLabsDplyr = otherLabsDplyr %>% mutate(icd = paste(HILONORMAL_FLAG, "_", RESULT_CODE, sep=""))
+otherLabsDplyr = otherLabsDplyr %>% mutate(icd_name = paste(HILONORMAL_COMMENT, "_", RESULT_NAME, sep=""))
+otherLabsDplyr = otherLabsDplyr %>% filter(!ACCESSION_NUMBER %in% pull(accessionList))
+otherLabs<-otherLabsDplyr %>% select(pid, icd, icd_name, timeOffset, ACCESSION_NUMBER)
+remove(otherLabsDplyr)
 
 #Get the diagnosis and pair with PtID to build the timeOffset
 print("Loading Diagnoses")
@@ -308,7 +319,7 @@ diagnosis_process = inner_join(diagnoses, patient_bday, by="PatientID")
 remove(diagnoses)
 
 print("DX: Combine with encounters")
-if(is.na(encountersAll)){ encountersAll = import_encounter_all(patient_bday$PatientID) }
+if(is.na(encountersAll)){ encountersAll = import_encounter_all(diagnosis_process$PatientID) }
 icdValuesDplyr = inner_join(diagnosis_process, encountersAll %>% filter(AdmitDate != ""))
 remove(encountersAll)
 
@@ -351,5 +362,5 @@ remove(medsAdminDyplyr)
 
 #Save the massaged data
 print("SAVING RESULTS")
-save(labValues, icdValues, medValues, file=output_filename)
+save(labValues, icdValues, medValues, otherLabs, file=output_filename)
 

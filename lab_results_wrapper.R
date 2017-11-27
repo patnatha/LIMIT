@@ -46,7 +46,7 @@ get_labs <- function(pids){
             finalList[[length(finalList) + 1]] = tmpList
         }
 
-        print(paste("Downloading Labs: ", as.character(length(pids)),sep=""))
+        print(paste("Downloading Labs: ", as.character(length(pids)), " pids",sep=""))
         allData = mclapply(finalList, async_query_labs, con, mc.cores = 16)
         return(allData)
     }

@@ -14,7 +14,6 @@ async_query_encs <- function(pids, con){
             con = connect_sqlite_enc()
             myQuery = dbGetQuery(con, sql)
             dbDisconnect(con)
-            #print(nrow(myQuery))
             return(myQuery)
         }
     ,error=function(cond) {
@@ -47,12 +46,19 @@ get_encounters <- function(pids){
             finalList[[length(finalList) + 1]] = tmpList
         }
 
-        print(paste("Download Encounters: ", as.character(length(pids)),sep=""))
+        print(paste("Download Encounters: ", as.character(length(pids)), " pids",sep=""))
         allData = mclapply(finalList, async_query_encs, con, mc.cores = 16)
         return(allData)
     }
     else{
         return(NULL)
     }
+}
+
+get_encounters_never_inpatient <- function(){
+    con = connect_sqlite_enc()
+    p1 = dbGetQuery(con,'SELECT PatientID, FirstInpatient, InpatientCnt FROM ever_inpatient WHERE InpatientCnt > 0')
+    dbDisconnect(con)
+    return(p1)
 }
 
