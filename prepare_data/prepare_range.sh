@@ -6,7 +6,7 @@ theCnt=0
 finarr=()
 for tfile in $prepfile;
 do
-    if [ $tfile != 'EncountersAll' ] && [ $tfile != 'RESULT_CODES.txt' ] && [ $tfile != 'limit_results' ]; then
+    if [ $tfile != 'EncountersAll' ] && [ $tfile != 'RESULT_CODES.txt' ] && [ $tfile != 'limit_results' ] && [ $tfile != 'LabResults' ]; then
         finarr+="${tfile}|"
         theCnt=$((theCnt+1))
         echo "${theCnt}) $tfile"
@@ -32,17 +32,16 @@ echo "2) MONTHS = M"
 echo "3) DAYS = D"
 read -r -p '=====Choose a number=====: ' var
 
-if [ "$var" = "Y" ]; then
+if [ "$var" = "1" ]; then
     ageInc="Y"
-elif [ "$var" = "M" ]; then
+elif [ "$var" = "2" ]; then
     ageInc="M"
-elif [ "$var" == "D" ]; then
+elif [ "$var" = "3" ]; then
     ageInc="D"
 else
     echo ERROR: $var
     exit
 fi
-echo $ageInc
 
 echo "=====AGE RANGE====="
 echo "ex. 1-100 [If using MONTHS it will go by one month at a time]"
@@ -51,9 +50,8 @@ read -r -p 'Choose a start number: ' var
 startInc=$var
 read -r -p 'Choose an end number: ' var
 endInc=$var
-
-outdir="/scratch/leeschro_armis/patnatha/prepared_data/${rawfile}_${ageInc}_${startInc}_${endInc}"
-mkdir $outdir
+read -r -p 'Choose an increment: ' var
+theInc=$var
 
 echo "=====INCLUDE====="
 includArr=( "inpatient" "outpatient" "never_inpatient" "outpatient_and_never_inpatient" "all")
@@ -74,11 +72,54 @@ do
     theCnt=$((theCnt+1))
 done
 
+echo "=====SEX====="
+echo "1) Both"
+echo "2) Male"
+echo "3) Female"
+read -r -p '=====Choose a number=====: ' var
+thesex=""
+if [ $var == "1" ]
+then
+    thesex="both"
+elif [ $var == "2" ]
+then
+    thesex="male"
+elif [ $var == "3" ]
+then
+    thesex="female"
+else
+    echo "ERROR: 1|2|3 only"
+    exit
+fi
+
+echo "=====RACE====="
+echo "1) All"
+echo "2) White"
+echo "3) Black"
+read -r -p '=====Choose a number=====: ' var
+therace=""
+if [ $var == "1" ]
+then
+    therace="all"
+elif [ $var == "2" ]
+then
+    therace="white"
+elif [ $var == "3" ]
+then
+    therace="black"
+else
+    echo "ERROR: 1|2|3 only"
+    exit
+fi
+
+outdir="/scratch/leeschro_armis/patnatha/prepared_data/${rawfile}_${ageInc}_${startInc}_${endInc}_${thesex}_${therace}"
+mkdir $outdir
+
 lastI=''
-for i in $(seq $startInc $endInc); 
+for i in $(seq $startInc $theInc $endInc); 
 do 
     if [ "$lastI" != '' ]; then
-        fincmd="qsub prepare_data.pbs -F \"--input $finfile --age ${lastI}${ageInc}_${i}${ageInc} --include $incGrp --output $outdir\""
+        fincmd="qsub prepare_data.pbs -F \"--input $finfile --include $incGrp --output $outdir --sex $thesex --race $therace --age ${lastI}${ageInc}_${i}${ageInc}\""
         echo $fincmd
         eval $fincmd
     fi

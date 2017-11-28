@@ -37,7 +37,8 @@ fi
 echo "=====Which method to run?====="
 echo "1) icd"
 echo "2) med"
-echo "3) both"
+echo "3) lab"
+echo "4) both"
 read -r -p '=====Choose a number=====: ' var
 thecode=''
 if [[ $var == 1 ]]
@@ -48,9 +49,12 @@ then
     thecode="med"
 elif [[ $var == 3 ]]
 then
+    thecode="lab"
+elif [[ $var == 4 ]]
+then
     thecode="both"
 else
-    echo "ERROR: 1|2"
+    echo "ERROR: 1|2|3|4"
     exit
 fi
 
@@ -59,10 +63,13 @@ do
     echo $prepfile
     if [[ $thecode == "both" ]]
     then
-        thecmd="qsub Nate_LIMIT.pbs -F \"--input $basedir$preppedfile --code med\""
+        thecmd="qsub Nate_LIMIT.pbs -F \"--input $basedir$prepfile --code med\""
         echo $thecmd
         eval $thecmd
-        thecmd="qsub Nate_LIMIT.pbs -F \"--input $basedir$preppedfile --code icd\""
+        thecmd="qsub Nate_LIMIT.pbs -F \"--input $basedir$prepfile --code icd\""
+        echo $thecmd
+        eval $thecmd
+        thecmd="qsub Nate_LIMIT.pbs -F \"--input $basedir$prepfile --code lab\""
         echo $thecmd
         eval $thecmd
     else

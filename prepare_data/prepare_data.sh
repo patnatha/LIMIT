@@ -103,7 +103,7 @@ else
     exit
 fi
 
-fincmd="qsub prepare_data.pbs -F \"--input $finfile --age $theage --sex $thesex --race $therace --include $incGrp\""
+fincmd="qsub prepare_data.pbs -F \"--input $finfile --sex $thesex --race $therace --include $incGrp\" --age $theage"
 echo $fincmd
 eval $fincmd
 

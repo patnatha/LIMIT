@@ -27,6 +27,11 @@ get_labs <- function(pids){
     if(length(pids) > 0){
         # Chunkify
         toChunk = 1000
+        corecnt = 16
+        if(length(pids) / corecnt < toChunk){
+            toChunk = round(length(pids) / corecnt, digits=0)
+        }
+
         cnt = 0
         tmpList = list()
         finalList = list()
@@ -47,7 +52,7 @@ get_labs <- function(pids){
         }
 
         print(paste("Downloading Labs: ", as.character(length(pids)), " pids",sep=""))
-        allData = mclapply(finalList, async_query_labs, con, mc.cores = 16)
+        allData = mclapply(finalList, async_query_labs, con, mc.cores = corecnt)
         return(allData)
     }
     else{

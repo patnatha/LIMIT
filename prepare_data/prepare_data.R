@@ -284,22 +284,25 @@ if(!is.na(toInclude)){
     print(paste("Extracted:", preFilLen, '=>', nrow(labValuesDplyr), sep=" "))
 }
 
-#Get only the columns we want
 print("LV: Select columns for output")
 labValuesDplyr = rename(labValuesDplyr, pid = PatientID)
 labValuesDplyr = rename(labValuesDplyr, l_val = VALUE)
 labValues<-labValuesDplyr %>% select(pid, l_val, timeOffset, EncounterID) %>% as.data.frame()
-accessionList = labValuesDplyr %>% select(ACCESSION_NUMBER, RESULT_CODE)
+accessionList = labValuesDplyr %>% select(ACCESSION_NUMBER)
+resultCode = unique(labValuesDplyr$RESULT_CODE)
 remove(labValuesDplyr)
 
-#Get all labs values associated with these patients
 print("Loading Other Labs")
 allLabs = import_labs_all(unique(labValues$pid))
 otherLabsDplyr = inner_join(allLabs, patient_bday, by="PatientID")
 
-print("Other Labs: processing table")
+print("Other Labs: Filter results on not similar to analyte")
 otherLabsDplyr = otherLabsDplyr %>% filter(HILONORMAL_FLAG != "") 
 otherLabsDplyr = otherLabsDplyr %>% filter(HILONORMAL_FLAG != "N")
+otherLabsDplyr = otherLabsDplyr %>% filter(!ACCESSION_NUMBER %in% pull(accessionList))
+otherLabsDplyr = otherLabsDplyr %>% filter(!RESULT_CODE %in% resultCode)
+
+print("Other Labs: Build columns necessary for algorithm")
 otherLabsDplyr = otherLabsDplyr %>%
                     mutate(timeOffset =
                         as.numeric(as.Date(COLLECTION_DATE)
@@ -308,11 +311,11 @@ otherLabsDplyr = otherLabsDplyr %>%
 otherLabsDplyr = rename(otherLabsDplyr, pid = PatientID)
 otherLabsDplyr = otherLabsDplyr %>% mutate(icd = paste(HILONORMAL_FLAG, "_", RESULT_CODE, sep=""))
 otherLabsDplyr = otherLabsDplyr %>% mutate(icd_name = paste(HILONORMAL_COMMENT, "_", RESULT_NAME, sep=""))
-otherLabsDplyr = otherLabsDplyr %>% filter(!ACCESSION_NUMBER %in% pull(accessionList))
+
+print("Other Labs: Select columns for output")
 otherLabs<-otherLabsDplyr %>% select(pid, icd, icd_name, timeOffset, ACCESSION_NUMBER)
 remove(otherLabsDplyr)
 
-#Get the diagnosis and pair with PtID to build the timeOffset
 print("Loading Diagnoses")
 diagnoses = import_diagnoses(input_dir)
 diagnosis_process = inner_join(diagnoses, patient_bday, by="PatientID")
@@ -323,7 +326,6 @@ if(is.na(encountersAll)){ encountersAll = import_encounter_all(diagnosis_process
 icdValuesDplyr = inner_join(diagnosis_process, encountersAll %>% filter(AdmitDate != ""))
 remove(encountersAll)
 
-#Get the icd code assignment as an offset value
 print("DX: Calculate Time-Offset")
 icdValuesDplyr = rename(icdValuesDplyr, pid = PatientID)
 icdValuesDplyr = rename(icdValuesDplyr, icd = TermCodeMapped)
@@ -338,13 +340,11 @@ print("Dx: Select columns for output")
 icdValues<-icdValuesDplyr %>% select(pid, icd, icd_name, timeOffset, EncounterID, Lexicon) %>% as.data.frame()
 remove(icdValuesDplyr)
 
-#Get Medications that were administered
 print("Loading Medications")
 med_admin = import_med_admin(input_dir)
 medsAdminDyplyr = med_admin %>% filter(MedicationStatus == "Given")
 remove(med_admin)
 
-#Get the administration date as an offset value
 print("MED: Calculate Time-Offset")
 medsAdminDyplyr = inner_join(medsAdminDyplyr, patient_bday, by="PatientID")
 medsAdminDyplyr = rename(medsAdminDyplyr, pid = PatientID)
@@ -360,7 +360,6 @@ print("MED: Select columns for output")
 medValues<-medsAdminDyplyr %>% select(pid, icd, icd_name, timeOffset, EncounterID) %>% as.data.frame()
 remove(medsAdminDyplyr)
 
-#Save the massaged data
 print("SAVING RESULTS")
 save(labValues, icdValues, medValues, otherLabs, file=output_filename)
 
