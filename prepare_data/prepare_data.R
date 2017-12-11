@@ -288,8 +288,9 @@ print("LV: Select columns for output")
 labValuesDplyr = rename(labValuesDplyr, pid = PatientID)
 labValuesDplyr = rename(labValuesDplyr, l_val = VALUE)
 labValues<-labValuesDplyr %>% select(pid, l_val, timeOffset, EncounterID) %>% as.data.frame()
-accessionList = labValuesDplyr %>% select(ACCESSION_NUMBER)
 resultCode = unique(labValuesDplyr$RESULT_CODE)
+orderCode = unique(labValuesDplyr$ORDER_CODE)
+
 remove(labValuesDplyr)
 
 print("Loading Other Labs")
@@ -299,8 +300,9 @@ otherLabsDplyr = inner_join(allLabs, patient_bday, by="PatientID")
 print("Other Labs: Filter results on not similar to analyte")
 otherLabsDplyr = otherLabsDplyr %>% filter(HILONORMAL_FLAG != "") 
 otherLabsDplyr = otherLabsDplyr %>% filter(HILONORMAL_FLAG != "N")
-otherLabsDplyr = otherLabsDplyr %>% filter(!ACCESSION_NUMBER %in% pull(accessionList))
+otherLabsDplyr = otherLabsDplyr %>% filter(!ORDER_CODE %in% orderCode)
 otherLabsDplyr = otherLabsDplyr %>% filter(!RESULT_CODE %in% resultCode)
+
 
 print("Other Labs: Build columns necessary for algorithm")
 otherLabsDplyr = otherLabsDplyr %>%
