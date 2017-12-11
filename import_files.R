@@ -2,6 +2,7 @@ library(readr)
 library(plyr)
 library(dplyr)
 library(data.table)
+source('../lab_results_wrapper.R')
 source('../encounters_wrapper.R')
 
 import_csv <- function(path_to_file){
@@ -39,7 +40,29 @@ import_demo_info <- function(input_dir){ return(import_files_fxn(file.path(input
 
 import_patient_bday <- function(input_dir){ return(import_files_fxn(file.path(input_dir, "PatientInfo"))) }
 
+import_labs_all <- function(pids){
+    print("Loading All Labs from DB")
+    labsAll = get_labs(unique(pids))
+
+    #Get a count of the rows and columns
+    rowCnt = 0
+    colCnt = 0
+    for(x in labsAll){
+        rowCnt = rowCnt + nrow(x)
+        if(colCnt == 0){
+            colCnt = ncol(x)
+        }
+    }
+
+    print(paste("ROWS: ", as.character(rowCnt), sep=""))
+
+    outLabAll = rbindlist(labsAll, use.names=TRUE, fill=TRUE, idcol=FALSE)
+    remove(labsAll)
+    return(outLabAll) 
+}
+
 import_encounter_all <- function(pids){
+    print("Loading Encounters from DB")
     encountersAll = get_encounters(unique(pids)) 
     
     #Get a count of the rows and columns
@@ -57,16 +80,6 @@ import_encounter_all <- function(pids){
     #Copy all the results into one table
     outEncAll = rbindlist(encountersAll, use.names=TRUE, fill=TRUE, idcol=FALSE)
     remove(encountersAll)
-
-    #curRInd = 1
-    #outEncAll=data.frame(matrix(NA, ncol = colCnt, nrow = rowCnt))
-    #for(x in encountersAll){
-    #    outEncAll[seq(curRInd, curRInd + nrow(x) - 1), ] = x[seq(1, nrow(x)), ]
-    #    curRInd = curRInd + nrow(x)
-    #    remove(x)
-    #    print(paste(as.character(curRInd), ' / ', as.character(rowCnt), sep=""))
-    #}
-
     return(outEncAll)
 }
 

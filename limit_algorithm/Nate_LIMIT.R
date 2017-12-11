@@ -20,7 +20,7 @@ option_list <- list(
   make_option("--output", type="character", default="/scratch/leeschro_armis/patnatha/limit_results/", help="directory to put results"),
   make_option("--input", type="character", default=NA, help="file to load Rdata"),
   make_option("--name", type="character", default=NA, help="name of file to output"),
-  make_option("--codes", type="character", default="icd", help="which codes to run against [med|icd]"),
+  make_option("--codes", type="character", default="icd", help="which codes to run against [med|icd|lab]"),
   make_option("--critical-proportion", type="double", default=0.005, help="critical proportion of icd values to perform fishers"),
   make_option("--critical-p-value", type="double", default=0.05, help="critical p-value for fisher's test cutoff"),
   make_option("--critical-hampel", type="integer", default=3, help="hampel algorithm cutoff"),
@@ -62,8 +62,18 @@ if(!is.na(codeType)){
     if(codeType == 'med'){
         icdValues = medValues
     }
+    else if(codeType == 'lab'){
+        icdValues = otherLabs
+    }
+    else if(codeType == 'icd'){
+        icdValues = icdValues
+    }
+    else{
+        print("Input code type is not valid")
+        stop()
+    }
 }else{
-    print("A code type has not been selected [icd|med]")
+    print("A code type has not been selected [icd|med|lab]")
     stop()
 }
 
@@ -259,10 +269,18 @@ while (!converged) {
             }
 
             # Process the results
-            if (length(ICDs) != 0) {
-                #Flatten the list of ICDs with counts
+            ICDtable = NA
+            if (length(ICDs) != 0 ) {
+                # Flatten the list of ICDs with frequencies
                 ICDtable = as.data.frame(table(unlist(ICDs, recursive=FALSE)), useNA = 'no')
-                
+            }
+            
+            if(!is.na(ICDtable) && ncol(ICDtable) == 2 && nrow(ICDtable) > 0){
+                if(iteration == 5){
+                    print(unlist(ICDs, recursive=FALSE) != character(0))
+                    print(ICDtable)
+                }
+
                 #Rename the columns
                 ICDtable$icd = ICDtable$Var1
                 ICDtable$freq = ICDtable$Freq
@@ -318,6 +336,7 @@ while (!converged) {
                 }
             } else {
                 excludePID = numeric()
+                converged = TRUE
             }
           
             # Remove excluded patients from data base
@@ -330,8 +349,6 @@ while (!converged) {
         converged = TRUE
     }
 }
-
-save(labValues, file="temp.Rdata")
 
 #Run the Horn.outliers algorithm
 descriptives = summary(labValues$l_val)
@@ -360,7 +377,6 @@ bootresultlower = boot.ci(bootresult, conf = limitConf, type = "basic", index = 
 bootresultupper = boot.ci(bootresult, conf = limitConf, type = "basic", index = 2)
 
 #Get the upper and lower limits for limits for displaying
-print(bootresultlower$basic)
 lowerRefLowLimit = round(bootresultlower$basic[4], digits=3)
 lowerRefUpperLimit = round(bootresultlower$basic[5], digits=3)
 upperRefLowLimit = round(bootresultupper$basic[4], digits=3)

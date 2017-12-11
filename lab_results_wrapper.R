@@ -1,17 +1,17 @@
 library("parallel")
 library("RSQLite")
 
-connect_sqlite_enc <- function(){
-    con = dbConnect(drv=SQLite(), dbname="/scratch/leeschro_armis/patnatha/EncountersAll/EncountersAll.db")
+connect_sqlite_lab <- function(){
+    con = dbConnect(drv=SQLite(), dbname="/scratch/leeschro_armis/patnatha/LabResults/LabResults.db")
     return(con)
 }
 
-async_query_encs <- function(pids, con){
+async_query_labs <- function(pids, con){
     out <- tryCatch(
         if(length(pids) > 0){
             #Build the query and execute
-            sql = paste('SELECT * FROM EncountersAll WHERE PatientID IN ("', paste(pids, collapse="\",\""), '")', sep="")
-            con = connect_sqlite_enc()
+            sql = paste('SELECT * FROM LabResults WHERE PatientID IN ("', paste(pids, collapse="\",\""), '")', sep="")
+            con = connect_sqlite_lab()
             myQuery = dbGetQuery(con, sql)
             dbDisconnect(con)
             return(myQuery)
@@ -23,10 +23,15 @@ async_query_encs <- function(pids, con){
     )
 }
 
-get_encounters <- function(pids){
+get_labs <- function(pids){
     if(length(pids) > 0){
         # Chunkify
         toChunk = 1000
+        corecnt = 16
+        if(length(pids) / corecnt < toChunk){
+            toChunk = round(length(pids) / corecnt, digits=0)
+        }
+
         cnt = 0
         tmpList = list()
         finalList = list()
@@ -46,19 +51,12 @@ get_encounters <- function(pids){
             finalList[[length(finalList) + 1]] = tmpList
         }
 
-        print(paste("Download Encounters: ", as.character(length(pids)), " pids",sep=""))
-        allData = mclapply(finalList, async_query_encs, con, mc.cores = 16)
+        print(paste("Downloading Labs: ", as.character(length(pids)), " pids",sep=""))
+        allData = mclapply(finalList, async_query_labs, con, mc.cores = corecnt)
         return(allData)
     }
     else{
         return(NULL)
     }
-}
-
-get_encounters_never_inpatient <- function(){
-    con = connect_sqlite_enc()
-    p1 = dbGetQuery(con,'SELECT PatientID, FirstInpatient, InpatientCnt FROM ever_inpatient WHERE InpatientCnt > 0')
-    dbDisconnect(con)
-    return(p1)
 }
 

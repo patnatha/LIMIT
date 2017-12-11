@@ -19,6 +19,8 @@ fi
 echo "=====Which method to run?====="
 echo "1) icd"
 echo "2) med"
+echo "3) lab"
+echo "4) all"
 read -r -p '=====Choose a number=====: ' var
 thecode=''
 if [[ $var == 1 ]]
@@ -27,8 +29,14 @@ then
 elif [[ $var == 2 ]]
 then
     thecode="med"
+elif [[ $var == 3 ]]
+then
+    thecode="lab"
+elif [[ $var == 4 ]]
+then
+    thecode="both"
 else
-    echo "ERROR: incorrect code 1|2" 
+    echo "ERROR: 1|2|3|4"
     exit
 fi
 
@@ -37,8 +45,19 @@ mkdir $outpath
 for tfile in $preplist;
 do
     finfile="$tolistpath$tfile"
-    thecmd="qsub Nate_LIMIT.pbs -F \"--input $finfile --code $thecode --output $outpath\""
-    #echo $thecmd
-    eval $thecmd
+    if [[ $thecode == "both" ]]
+    then
+        thecmd="qsub Nate_LIMIT.pbs -F \"--input $finfile --code icd --output $outpath\""
+        eval $thecmd
+
+        thecmd="qsub Nate_LIMIT.pbs -F \"--input $finfile --code med --output $outpath\""
+        eval $thecmd
+
+        thecmd="qsub Nate_LIMIT.pbs -F \"--input $finfile --code lab --output $outpath\""
+        eval $thecmd
+    else
+        thecmd="qsub Nate_LIMIT.pbs -F \"--input $finfile --code $thecode --output $outpath\""
+        eval $thecmd
+    fi
 done
 

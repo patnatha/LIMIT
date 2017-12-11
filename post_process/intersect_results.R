@@ -4,7 +4,9 @@ library(dplyr)
 #Create the options list
 option_list <- list(
   make_option("--med", type="character", default=NA, help="file to load Rdata"),
-  make_option("--icd", type="character", default=NA, help="file to load Rdata")
+  make_option("--icd", type="character", default=NA, help="file to load Rdata"),
+  make_option("--lab", type="character", default=NA, help="file to load Rdata")
+
 )
 
 #Parse the incoming options
@@ -13,6 +15,7 @@ parser <- OptionParser(usage="%prog [options] file", option_list=option_list)
 args <- parse_args(parser)
 med_file = args[['med']]
 icd_file = args[['icd']]
+lab_file = args[['lab']]
 
 #Load up the results from limit algorithm using Meds
 load(med_file)
@@ -22,8 +25,15 @@ medLabValues = cleanLabValues
 icd_results = load(icd_file)
 icdLabValues = cleanLabValues
 
+#Load up the results from limit algorithm using Other Labs
+lab_results = load(lab_file)
+labLabValues = cleanLabValues
+
 #Join the results
 cleanLabValues=inner_join(icdLabValues, medLabValues, by=c("pid", "l_val", "timeOffset", "EncounterID"))
+
+#Join the results
+cleanLabValues=inner_join(cleanLabValues, labLabValues, by=c("pid", "l_val", "timeOffset", "EncounterID"))
 
 #Create the output directory name
 saving=dirname(med_file)
@@ -35,5 +45,6 @@ saving=paste(saving, "/", finName, sep="")
 parameters<-1:2
 attr(parameters, "med_file") <- med_file
 attr(parameters, "icd_file") <- icd_file
+attr(parameters, "lab_file") <- lab_file
 save(cleanLabValues, parameters, file=saving)
 

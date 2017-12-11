@@ -14,3 +14,4 @@
 *.txt
 QueryMsSql/QuerySql.class
 *.jpg
+.nfs*
