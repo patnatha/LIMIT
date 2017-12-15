@@ -58,22 +58,42 @@ else
     exit
 fi
 
+echo "=====Which PID grouping to run?====="
+echo "1) most_recent"
+echo "2) random"
+echo "3) all"
+read -r -p '=====Choose a number=====: ' var
+singularValue=''
+if [[ $var == 1 ]]
+then
+    singularValue="most_recent"
+elif [[ $var == 2 ]]
+then
+    singularValue="random"
+elif [[ $var == 3 ]]
+then
+    singularValue="all"
+else
+    echo "ERROR: 1|2|3"
+    exit
+fi
+
 for prepfile in $(echo $preppedfile| tr "|" "\n") ;
 do
     echo $prepfile
     if [[ $thecode == "both" ]]
     then
-        thecmd="qsub Nate_LIMIT.pbs -F \"--input $basedir$prepfile --code med\""
+        thecmd="qsub Nate_LIMIT.pbs -F \"--input $basedir$prepfile --code med --singular-value $singularValue\""
         echo $thecmd
         eval $thecmd
-        thecmd="qsub Nate_LIMIT.pbs -F \"--input $basedir$prepfile --code icd\""
+        thecmd="qsub Nate_LIMIT.pbs -F \"--input $basedir$prepfile --code icd --singular-value $singularValue\""
         echo $thecmd
         eval $thecmd
-        thecmd="qsub Nate_LIMIT.pbs -F \"--input $basedir$prepfile --code lab\""
+        thecmd="qsub Nate_LIMIT.pbs -F \"--input $basedir$prepfile --code lab --singular-value $singularValue\""
         echo $thecmd
         eval $thecmd
     else
-        thecmd="qsub Nate_LIMIT.pbs -F \"--input $basedir$prepfile --code $thecode\""
+        thecmd="qsub Nate_LIMIT.pbs -F \"--input $basedir$prepfile --code $thecode --singular-value $singularValue\""
         echo $thecmd
         eval $thecmd
     fi

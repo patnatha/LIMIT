@@ -287,10 +287,9 @@ if(!is.na(toInclude)){
 print("LV: Select columns for output")
 labValuesDplyr = rename(labValuesDplyr, pid = PatientID)
 labValuesDplyr = rename(labValuesDplyr, l_val = VALUE)
-labValues<-labValuesDplyr %>% select(pid, l_val, timeOffset, EncounterID) %>% as.data.frame()
 resultCode = unique(labValuesDplyr$RESULT_CODE)
 orderCode = unique(labValuesDplyr$ORDER_CODE)
-
+labValues<-labValuesDplyr %>% select(pid, l_val, timeOffset, EncounterID) %>% as.data.frame()
 remove(labValuesDplyr)
 
 print("Loading Other Labs")

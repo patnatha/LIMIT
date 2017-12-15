@@ -40,6 +40,27 @@ else
     exit
 fi
 
+
+echo "=====Which PID grouping to run?====="
+echo "1) most_recent"
+echo "2) random"
+echo "3) all"
+read -r -p '=====Choose a number=====: ' var
+singularValue=''
+if [[ $var == 1 ]]
+then    
+    singularValue="most_recent"
+elif [[ $var == 2 ]]
+then    
+    singularValue="random"
+elif [[ $var == 3 ]]
+then    
+    singularValue="all"
+else
+    echo "ERROR: 1|2|3"
+    exit
+fi
+
 outpath=${tolistpath/"prepared_data"/"limit_results"}
 mkdir $outpath
 for tfile in $preplist;
@@ -47,16 +68,16 @@ do
     finfile="$tolistpath$tfile"
     if [[ $thecode == "both" ]]
     then
-        thecmd="qsub Nate_LIMIT.pbs -F \"--input $finfile --code icd --output $outpath\""
+        thecmd="qsub Nate_LIMIT.pbs -F \"--input $finfile --code icd --output $outpath --singular-value $singularValue\""
         eval $thecmd
 
-        thecmd="qsub Nate_LIMIT.pbs -F \"--input $finfile --code med --output $outpath\""
+        thecmd="qsub Nate_LIMIT.pbs -F \"--input $finfile --code med --output $outpath --singular-value $singularValue\""
         eval $thecmd
 
-        thecmd="qsub Nate_LIMIT.pbs -F \"--input $finfile --code lab --output $outpath\""
+        thecmd="qsub Nate_LIMIT.pbs -F \"--input $finfile --code lab --output $outpath --singular-value $singularValue\""
         eval $thecmd
     else
-        thecmd="qsub Nate_LIMIT.pbs -F \"--input $finfile --code $thecode --output $outpath\""
+        thecmd="qsub Nate_LIMIT.pbs -F \"--input $finfile --code $thecode --output $outpath --singular-value $singularValue\""
         eval $thecmd
     fi
 done

@@ -30,6 +30,35 @@ if(exists("origLabValuesLength")){
 print(paste("Lab Values Quartiles: ", paste(round(as.numeric(quantile(cleanLabValues$l_val, c(0.025, 0.05, 0.50, 0.95, 0.975), na.rm = TRUE)), digits=2),collapse=" "), sep=""))
 print(paste("Lab Values Median: ", median(cleanLabValues$l_val, na.rm = FALSE)))
 
+#Run the Horn.outliers algorithm
+horn.outliers = function(data){
+    boxcox = car::powerTransform(data$l_val)
+    lambda = boxcox$lambda
+    transData = data$l_val^lambda
+    descriptives = summary(transData)
+    Q1 = descriptives[[2]]
+    Q3 = descriptives[[5]]
+    IQR = Q3 - Q1
+    out = transData[transData <= (Q1 - 1.5 * IQR) | transData >= (Q3 + 1.5 * IQR)]
+    sub = transData[transData > (Q1 - 1.5 * IQR) & transData < (Q3 + 1.5 * IQR)]
+    lineInSand=(list(outliers = out^(1/lambda), subset = sub^(1/lambda)))
+    return(data %>% filter(l_val %in% lineInSand$subset))
+}
+
+#Iterated the horn outliers algorithm
+runs=1
+outliered = horn.outliers(cleanLabValues)
+print(paste("Horn Outliers: ", runs, " (", nrow(cleanLabValues), " - ", nrow(outliered), ")", sep=""))
+while(nrow(outliered) != nrow(cleanLabValues)){
+    cleanLabValues = outliered
+    outliered = horn.outliers(cleanLabValues)
+    runs=runs+1
+    print(paste("Horn Outliers: ", runs, " (", nrow(cleanLabValues), " - ", nrow(outliered), ")", sep=""))
+}
+
+print(paste("Lab Values Quartiles: ", paste(round(as.numeric(quantile(cleanLabValues$l_val, c(0.025, 0.05, 0.50, 0.95, 0.975), na.rm = TRUE)), digits=2),collapse=" "), sep=""))
+print(paste("Lab Values Median: ", median(cleanLabValues$l_val, na.rm = FALSE)))
+
 #Run the boot parametric confidence interval
 nonparRI = function (data, indices = 1:length(data), refConf = 0.95)
 {
