@@ -301,7 +301,6 @@ while (!converged) {
             if(!is.na(ICDtable) && ncol(ICDtable) == 2 && nrow(ICDtable) > 0){
                 if(iteration == 5){
                     print(unlist(ICDs, recursive=FALSE) != character(0))
-                    print(ICDtable)
                 }
 
                 #Rename the columns
