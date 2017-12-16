@@ -82,7 +82,7 @@ lowerRefUpperLimit = bootresultlower$basic[5]
 upperRefLowLimit = bootresultupper$basic[4]
 upperRefUpperLimit = bootresultupper$basic[5]
 
-print(paste("Lab Values Parametric Quartiles: ", paste(round((1 - (refConf/2.0))*100, digits=1), "% <=CI=> ", round(refConf*100, digits=1),"%: (", lowerRefLowLimit, "-", lowerRefUpperLimit, ") <=> (", upperRefLowLimit, "-", upperRefUpperLimit, ")", sep="")), sep="")
+print(paste("Lab Values Parametric Quartiles: ", paste(round(((1 - refConf)/2.0)*100, digits=1), "% <=CI=> ", round(refConf*100, digits=1),"%: (", lowerRefLowLimit, "-", lowerRefUpperLimit, ") <=> (", upperRefLowLimit, "-", upperRefUpperLimit, ")", sep="")), sep="")
 
 
 print(paste("Lab Values Count: ", length(cleanLabValues$l_val)))
