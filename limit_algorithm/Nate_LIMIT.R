@@ -3,7 +3,7 @@ criticalProp = 0.005
 criticalP = 0.05
 criticalHampel = 3
 saving = 'tmp'
-day_time_offset = 30
+day_time_offset = 90
 
 #Count the number of CPUs available
 cpuCnt<-system("nproc", ignore.stderr = TRUE, intern = TRUE)
@@ -24,7 +24,8 @@ option_list <- list(
   make_option("--critical-proportion", type="double", default=0.005, help="critical proportion of icd values to perform fishers"),
   make_option("--critical-p-value", type="double", default=0.05, help="critical p-value for fisher's test cutoff"),
   make_option("--critical-hampel", type="integer", default=3, help="hampel algorithm cutoff"),
-  make_option("--day-time-offset", type="integer", default=5, help="Offset in days from lab values to include values")
+  make_option("--day-time-offset", type="integer", default=5, help="Offset in days from lab values to include values"),
+  make_option("--singular-value", type="character", default=NA, help="How to choose the patients value")
 )
 
 #Parse the incoming options
@@ -40,6 +41,7 @@ outputName = args[['name']]
 inputData = args[['input']]
 day_time_offset = args[['day-time-offset']]
 codeType = args[['codes']]
+singular_value = args[['singular-value']]
 versioning = '1.1'
 
 #Check the output directory exists
@@ -109,8 +111,18 @@ if(file.exists(saving)){
     }
 }
 
+# Parse the singular_value parameter
+if(is.na(singular_value)){
+    singular_value = "all"
+} else if(singular_value != "random" && singular_value != "most_recent"){
+    print("ERROR: incorrect singular_value")
+    stop()
+} else {
+    singular_value = singular_value
+}
+
 #Save all the parameters to a structure
-parameters<-1:9
+parameters<-1:10
 attr(parameters, "criticalProp") <- criticalProp
 attr(parameters, "criticalP") <- criticalP
 attr(parameters, "criticalHampel") <- criticalHampel
@@ -120,6 +132,7 @@ attr(parameters, "day_time_offset") <- day_time_offset
 attr(parameters, "codeType") <- codeType
 attr(parameters, "versioning") <- versioning
 attr(parameters, "inputData") <- inputData
+attr(parameters, "singular_value") <- singular_value
 
 #Run the hampel outlier detection
 hampel = function(x, t = 3, RemoveNAs = TRUE) {
@@ -192,12 +205,22 @@ labValues = labValues %>% filter(!is.na(pid) & !is.null(pid) & !pid == "")
 labValues = labValues %>% filter(!is.na(l_val))
 labValues$l_val = as.numeric(labValues$l_val)
 labValues = labValues  %>% filter(!is.na(l_val))
+
+# Obtain only one value for each PID
+if(singular_value == "most_recent"){
+    mostRecentLabValues = labValues %>% group_by(pid) %>% summarise(timeOffset=max(timeOffset))
+    labValues = labValues %>% inner_join(mostRecentLabValues, by=c("pid", "timeOffset"))
+} else if(singular_value == "random"){
+    randomLabValues = labValues %>% group_by(pid) %>% sample_n(1)
+    labValues = labValues %>% inner_join(mostRecentLabValues, by=c("pid", "timeOffset"))
+}
+
+# Write down the pre-limit length algorithm
 origLabValuesLength = nrow(labValues)
 
 #Print the original results
-print("Lab Values Quartiles")
-print(as.numeric(quantile(labValues$l_val, c(0.025, 0.05, 0.95, 0.975), na.rm = TRUE)))
-print(paste("Lab Values Count: ", length(labValues$l_val)))
+print(paste("Lab Values Quartiles: ", paste(as.numeric(quantile(labValues$l_val, c(0.025, 0.05, 0.95, 0.975), na.rm = TRUE)), collapse=" ")))
+print(paste("Lab Values Count: ", origLabValuesLength))
 print(paste("Patient Count: ", length(unique(labValues$pid))))
 
 # Create data set
@@ -278,7 +301,6 @@ while (!converged) {
             if(!is.na(ICDtable) && ncol(ICDtable) == 2 && nrow(ICDtable) > 0){
                 if(iteration == 5){
                     print(unlist(ICDs, recursive=FALSE) != character(0))
-                    print(ICDtable)
                 }
 
                 #Rename the columns
@@ -350,44 +372,12 @@ while (!converged) {
     }
 }
 
-#Run the Horn.outliers algorithm
-descriptives = summary(labValues$l_val)
-Q1 = descriptives[[2]]
-Q3 = descriptives[[5]]
-IQR = Q3 - Q1
-horn.outliers = subset(labValues, labValues$l_val <= (Q1 - 1.5 * IQR) | labValues$l_val >= (Q3 + 1.5 * IQR))
-sub = subset(labValues, labValues$l_val > (Q1 - 1.5 * IQR) & labValues$l_val < (Q3 +1.5 * IQR))
-labValues = sub
-remove(sub)
-
-#Run the boot parametric confidence interval
-nonparRI = function (data, indices = 1:length(data), refConf = 0.95)
-{
-    d = data[indices]
-    results = c(quantile(d, (1 - refConf)/2, type = 6), quantile(d,
-    1 - ((1 - refConf)/2), type = 6))
-    return(results)
-}
-refConf = 0.975
-limitConf = 0.95
-bootresult = boot(data = labValues$l_val, statistic = nonparRI, refConf = refConf, R = 5000)
-
-#get the confidence intervals from the boot result
-bootresultlower = boot.ci(bootresult, conf = limitConf, type = "basic", index = 1)
-bootresultupper = boot.ci(bootresult, conf = limitConf, type = "basic", index = 2)
-
-#Get the upper and lower limits for limits for displaying
-lowerRefLowLimit = round(bootresultlower$basic[4], digits=3)
-lowerRefUpperLimit = round(bootresultlower$basic[5], digits=3)
-upperRefLowLimit = round(bootresultupper$basic[4], digits=3)
-upperRefUpperLimit = round(bootresultupper$basic[5], digits=3)
-
-print("Lab Values Quartiles")
-print(paste(round(100 - (refConf*100), digits=1), "% <=CI=> ", round(refConf*100, digits=1),"%: (", lowerRefLowLimit, "-", lowerRefUpperLimit, ") <=> (", upperRefLowLimit, "-", upperRefUpperLimit, ")", sep=""))
-print(paste("Lab Values Count: ", length(labValues$l_val)))
+labValuesLength = nrow(labValues)
+print(paste("Lab Values Quartiles: ", paste(as.numeric(quantile(labValues$l_val, c(0.025, 0.05, 0.95, 0.975), na.rm = TRUE)), collapse=" ")))
+print(paste("Lab Values Count: ", labValuesLength))
 print(paste("Patient Count: ", length(unique(labValues$pid))))
 
 #Save the updated labValues and excluded ICD values
 cleanLabValues = labValues
-save(parameters, cleanLabValues, excludedPatients, excludedICDs, excludedICDNames, excludedCounts, excludedPval, origLabValuesLength, file=saving)
+save(parameters, cleanLabValues, excludedPatients, excludedICDs, excludedICDNames, excludedCounts, excludedPval, origLabValuesLength, labValuesLength, file=saving)
 

@@ -112,7 +112,7 @@ else
     exit
 fi
 
-outdir="/scratch/leeschro_armis/patnatha/prepared_data/${rawfile}_${ageInc}_${startInc}_${endInc}_${thesex}_${therace}"
+outdir="/scratch/leeschro_armis/patnatha/prepared_data/${rawfile}_${theInc}${ageInc}_${startInc}_${endInc}_${thesex}_${therace}"
 mkdir $outdir
 
 lastI=''
