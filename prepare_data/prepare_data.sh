@@ -6,7 +6,7 @@ theCnt=0
 finarr=()
 for tfile in $prepfile;
 do
-    if [ $tfile != 'EncountersAll' ] && [ $tfile != 'RESULT_CODES.txt' ] && [ $tfile != 'limit_results' ] && [ $tfile != 'prepared_data' ] && [ $tfile != 'LabResults' ]; then
+    if [ $tfile != 'EncountersAll' ] && [ $tfile != 'RESULT_CODES.txt' ] && [ $tfile != 'limit_results' ] && [ $tfile != 'prepared_data' ] && [ $tfile != 'LabResults' ] && [ $tfile != 'MedAdmin' ] && [ $tfile != 'DiagComp' ]; then
         finarr+="${tfile}|"
         theCnt=$((theCnt+1))
         echo "${theCnt}) $tfile"

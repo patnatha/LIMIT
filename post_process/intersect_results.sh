@@ -24,14 +24,6 @@ do
         finarrlab+="${tfile}|"
     fi
 done
-read -r -p '=====Y|N=====: ' var
-if [[ $var == "Y" || $var == "y" ]]
-then   
-    echo "AWESOME...HERE WE GO" 
-else
-    echo "ERROR: incorrect input Y|N"
-    exit
-fi
 
 for tfile in $(echo $finarricd | tr "|" "\n");
 do
@@ -55,12 +47,12 @@ do
     done
 done
 
-eval "mkdir ${tolistpath}med"
+eval "mkdir -p ${tolistpath}med"
 eval "mv ${tolistpath}*med.Rdata" "${tolistpath}med/." 
 
-eval "mkdir ${tolistpath}icd"
+eval "mkdir -p ${tolistpath}icd"
 eval "mv ${tolistpath}*icd.Rdata" "${tolistpath}icd/."
 
-eval "mkdir ${tolistpath}lab"
+eval "mkdir -p ${tolistpath}lab"
 eval "mv ${tolistpath}*lab.Rdata" "${tolistpath}lab/."
 

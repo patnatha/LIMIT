@@ -1,9 +1,9 @@
-## Arguments
-criticalProp = 0.005
-criticalP = 0.05
-criticalHampel = 3
-saving = 'tmp'
-day_time_offset = 90
+## Default Arguments
+criticalProp = 0.005 # beta
+criticalP = 0.1 # alpha
+criticalHampel = 2 # t
+day_time_offset_post = 120 # n
+day_time_offset_pre = 120 # n2, an addition to the Poole method
 
 #Count the number of CPUs available
 cpuCnt<-system("nproc", ignore.stderr = TRUE, intern = TRUE)
@@ -21,10 +21,11 @@ option_list <- list(
   make_option("--input", type="character", default=NA, help="file to load Rdata"),
   make_option("--name", type="character", default=NA, help="name of file to output"),
   make_option("--codes", type="character", default="icd", help="which codes to run against [med|icd|lab]"),
-  make_option("--critical-proportion", type="double", default=0.005, help="critical proportion of icd values to perform fishers"),
-  make_option("--critical-p-value", type="double", default=0.05, help="critical p-value for fisher's test cutoff"),
-  make_option("--critical-hampel", type="integer", default=3, help="hampel algorithm cutoff"),
-  make_option("--day-time-offset", type="integer", default=5, help="Offset in days from lab values to include values"),
+  make_option("--critical-proportion", type="double", default=NA, help="critical proportion of icd values to perform fishers"),
+  make_option("--critical-p-value", type="double", default=NA, help="critical p-value for fisher's test cutoff"),
+  make_option("--critical-hampel", type="integer", default=NA, help="hampel algorithm cutoff"),
+  make_option("--day-time-offset-post", type="integer", default=NA, help="Offset in days from lab values to include values"),
+  make_option("--day-time-offset-pre", type="integer", default=NA, help="Offset in days from lab values to include values"),
   make_option("--singular-value", type="character", default=NA, help="How to choose the patients value")
 )
 
@@ -33,16 +34,37 @@ parser <- OptionParser(usage="%prog [options] file", option_list=option_list)
 args <- parse_args(parser)
 
 #Assign the parsed options to their variable
-criticalProp = args[['critical-proportion']]
-criticalP = args[['critical-p-value']]
-criticalHampel = args[['critical-hampel']]
 outputDir = args[['output']]
 outputName = args[['name']]
 inputData = args[['input']]
-day_time_offset = args[['day-time-offset']]
 codeType = args[['codes']]
 singular_value = args[['singular-value']]
-versioning = '1.1'
+versioning = '1.3'
+
+# Parse the incoming critical proportion
+if(!is.na(args[['critical-proportion']])){
+    criticalProp = as.numeric(args[['critical-proportion']])
+}
+
+# Parse the incoming critical p-value
+if(!is.na(args[['critical-p-value']])){
+    criticalP = as.numeric(args[['critical-p-value']])
+}
+
+# Parse the incoming critical hampel value
+if(!is.na(args[['critical-hampel']])){
+    criticalHampel = as.numeric(args[['critical-hampel']])
+}
+
+# parse the incoming day offset post
+if(!is.na(args[['day-time-offset-post']])){
+    day_time_offset_post = as.numeric(args[['day-time-offset-post']])
+}
+
+# Parse the incoming day offset pre
+if(!is.na(args[['day-time-offset-pre']])){
+    day_time_offset_pre = as.numeric(args[['day-time-offset-pre']])
+}
 
 #Check the output directory exists
 if(!dir.exists(outputDir)){
@@ -122,13 +144,14 @@ if(is.na(singular_value)){
 }
 
 #Save all the parameters to a structure
-parameters<-1:10
+parameters<-1:1
 attr(parameters, "criticalProp") <- criticalProp
 attr(parameters, "criticalP") <- criticalP
 attr(parameters, "criticalHampel") <- criticalHampel
 attr(parameters, "outputDir") <- outputDir
 attr(parameters, "outputName") <- outputName
-attr(parameters, "day_time_offset") <- day_time_offset
+attr(parameters, "day_time_offset_pre") <- day_time_offset_pre
+attr(parameters, "day_time_offset_post") <- day_time_offset_post
 attr(parameters, "codeType") <- codeType
 attr(parameters, "versioning") <- versioning
 attr(parameters, "inputData") <- inputData
@@ -142,12 +165,12 @@ hampel = function(x, t = 3, RemoveNAs = TRUE) {
   #
   mu = median(x, na.rm = RemoveNAs)
   sig = mad(x, na.rm = RemoveNAs)
-  indx = which(abs(x - mu) > t *sig)
+  indx = which(abs(x - mu) > t * sig)
   
   return(indx)
 }
 
-FindICDs = function(pid, data, icdValues, day_time_offset) {
+FindICDs = function(pid, data, icdValues, day_time_offset_post, day_time_offset_pre) {
     if(is.na(pid) | is.null(pid) | pid == ""){
         return(list())
     }
@@ -155,20 +178,20 @@ FindICDs = function(pid, data, icdValues, day_time_offset) {
     # Get the first timestamp of labValue for the input pid
     theTime = min(data$timeOffset[which(data$pid == pid)])
 
-    #Return NA for errors
+    # Return NA for errors
     if(is.na(theTime) | is.null(theTime)){
         return(list())
     }
 
-    #Get ICD values assigned before the time of the lab value
-    #ind = intersect(which(icdValues$pid == pid), 
-    #                which(icdValues$timeOffset <= (as.numeric(theTime) + day_time_offset)))
-    ind = which(icdValues$pid == pid & icdValues$timeOffset <= (as.numeric(theTime) + day_time_offset))
+    # Get ICD values assigned before the time of the lab value
+    ind = which(icdValues$pid == pid & 
+                icdValues$timeOffset <= (as.numeric(theTime) + day_time_offset_post) & 
+                icdValues$timeOffset >= (as.numeric(theTime) - day_time_offset_pre))
 
-    #Get the unique list of ICD values
+    # Get the unique list of ICD values
     codes = unique(icdValues$icd[ind])
 
-    #Return the list of codes 
+    # Return the list of codes 
     return(codes) 
 }
 
@@ -208,11 +231,15 @@ labValues = labValues  %>% filter(!is.na(l_val))
 
 # Obtain only one value for each PID
 if(singular_value == "most_recent"){
+    # Find the most recent value for a grouping of PIDs
     mostRecentLabValues = labValues %>% group_by(pid) %>% summarise(timeOffset=max(timeOffset))
-    labValues = labValues %>% inner_join(mostRecentLabValues, by=c("pid", "timeOffset"))
+
+    # Get the lab values for the first day for each PID, pick a random value on the first day
+    labValues = labValues %>% inner_join(mostRecentLabValues, by=c("pid", "timeOffset") %>% group_by(pid) %>% sample_n(1))
+    remove(mostRecentLabValues)
 } else if(singular_value == "random"){
-    randomLabValues = labValues %>% group_by(pid) %>% sample_n(1)
-    labValues = labValues %>% inner_join(mostRecentLabValues, by=c("pid", "timeOffset"))
+    # Get a list of random values for each PID
+    labValues = labValues %>% group_by(pid) %>% sample_n(1) %>% select(pid, l_val, EncounterID, timeOffset)
 }
 
 # Write down the pre-limit length algorithm
@@ -252,7 +279,6 @@ while (!converged) {
     iteration = iteration + 1
     print(paste("Outliers ","(", as.character(iteration), "): ", length(which(labValues$outlier == TRUE)), sep=""))
 
-
     # Only run algorith if there are some non-outliers
     if (length(which(labValues$outlier == FALSE)) > 100) {
         # Create lists of patients with flagged tests
@@ -282,9 +308,9 @@ while (!converged) {
         if (length(flaggedResults$pid) > 4) {
             # Find all ICD codes for patients with flagged test results, before the first test
             start.time <- Sys.time()
-            #ICDs = sapply(flaggedPatients, FindICDs, flaggedResults, icdValues, day_time_offset)
+            #ICDs = sapply(flaggedPatients, FindICDs, flaggedResults, icdValues, day_time_offset_post, day_time_offset_pre)
             cl = makeCluster(parallelCores, outfile='~/parSapply.out')
-            ICDs = parSapply(cl=cl, flaggedPatients, FindICDs, flaggedResults, icdValues, day_time_offset)
+            ICDs = parSapply(cl=cl, flaggedPatients, FindICDs, flaggedResults, icdValues, day_time_offset_post, day_time_offset_pre)
             stopCluster(cl)
             if(debug){
                 time.taken <- as.numeric(Sys.time() - start.time, units="secs")
