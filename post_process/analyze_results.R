@@ -4,7 +4,8 @@ library(boot)
 
 #Create the options list
 option_list <- list(
-  make_option("--input", type="character", default=NA, help="file to load Rdata")
+  make_option("--input", type="character", default=NA, help="file to load Rdata"),
+  make_option("--graph", action="store_true", default=FALSE)
 )
 
 #Parse the incoming options
@@ -13,6 +14,8 @@ parser <- OptionParser(usage="%prog [options] file", option_list=option_list)
 args <- parse_args(parser)
 inputData = args[['input']]
 load(inputData)
+
+toGraph = args[['graph']]
 
 #Build the output file name
 theResultFile = paste(dirname(inputData), "analysis_results.csv", sep="/")
@@ -24,11 +27,20 @@ if(exists("parameters")){
 }
 
 if(exists("origLabValuesLength")){
-    print(paste("Original LabValues Length:", toString(origLabValuesLength), sep=""))
+    print(paste("Original LabValues Length: ", toString(origLabValuesLength), sep=""))
 }
 
 print(paste("Lab Values Quartiles: ", paste(round(as.numeric(quantile(cleanLabValues$l_val, c(0.025, 0.05, 0.50, 0.95, 0.975), na.rm = TRUE)), digits=2),collapse=" "), sep=""))
 print(paste("Lab Values Median: ", median(cleanLabValues$l_val, na.rm = FALSE)))
+
+if(toGraph){
+    #Create a histogram of the results
+    jpeg('pre_process_hist.jpg')
+    minval=round(min(as.numeric(cleanLabValues$l_val))) - 1
+    maxval=round(max(as.numeric(cleanLabValues$l_val))) + 1
+    hist(as.numeric(cleanLabValues$l_val), breaks=seq(minval, maxval, by=0.5), xlim=c(5,25))
+    dev.off()
+}
 
 #Run the Horn.outliers algorithm
 horn.outliers = function(data){
@@ -68,7 +80,7 @@ nonparRI = function (data, indices = 1:length(data), refConf = 0.95)
     1 - ((1 - refConf)/2), type = 6))
     return(results)
 }
-refConf = 0.95
+refConf = 0.90
 bootresult = boot(data = cleanLabValues$l_val, statistic = nonparRI, refConf = refConf, R = 5000)
 
 #get the confidence intervals from the boot result
@@ -90,14 +102,15 @@ print(paste("Unique Patient Count: ", length(unique(cleanLabValues$pid))))
 
 #Write the results to file if exists
 if(writeToFile){
-    newLine = c(inputData, length(cleanLabValues$l_val), lowerRefLowLimit, lowerRefUpperLimit, upperRefLowLimit, upperRefUpperLimit, mean(cleanLabValues$l_val, na.rm = TRUE))
-    write(newLine,ncolumns=7,sep=",",file=theResultFile, append=TRUE)
+    newLine = c(inputData, attributes(parameters)$icd_pre_limit, length(cleanLabValues$l_val), lowerRefLowLimit, lowerRefUpperLimit, upperRefLowLimit, upperRefUpperLimit, mean(cleanLabValues$l_val, na.rm = TRUE))
+    write(newLine,ncolumns=8,sep=",",file=theResultFile, append=TRUE)
 }
 
-#Create a histogram of the results
-#jpeg('hist.jpg')
-#minval=round(min(as.numeric(cleanLabValues$l_val))) - 1
-#maxval=round(max(as.numeric(cleanLabValues$l_val))) + 1
-#hist(as.numeric(cleanLabValues$l_val), breaks=seq(minval, maxval, by=0.5), xlim=c(5,25))
-#dev.off()
-
+if(toGraph){
+    #Create a histogram of the results
+    jpeg('post_process_hist.jpg')
+    minval=round(min(as.numeric(cleanLabValues$l_val))) - 1
+    maxval=round(max(as.numeric(cleanLabValues$l_val))) + 1
+    hist(as.numeric(cleanLabValues$l_val), breaks=seq(minval, maxval, by=0.5), xlim=c(5,25))
+    dev.off()
+}

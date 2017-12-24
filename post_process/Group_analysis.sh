@@ -7,18 +7,10 @@ for tfile in $preplist;
 do
     echo $tfile
 done
-read -r -p '=====Y|N=====: ' var
-if [[ $var == "Y" || $var == "y" ]]
-then   
-    echo "AWESOME...HERE WE GO" 
-else
-    echo "ERROR: incorrect input Y|N"
-    exit
-fi
 
 outputFile="${tolistpath}analysis_results.csv"
 rm ${outputFile}
-echo "File, Count, Low Low, Low High, High Low, High High, Mean" > ${outputFile}
+echo "File, Pre-LIMIT Count, Post-LIMIT Count, Low Low, Low High, High Low, High High, Mean" > ${outputFile}
 
 for tfile in $preplist;
 do
