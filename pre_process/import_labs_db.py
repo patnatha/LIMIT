@@ -114,5 +114,8 @@ elif(whichProc == "INDEX"):
     c.execute(sql)
     conn.commit()
 
+    sql = "CREATE INDEX hilownormal_flag ON " + tablename + "(HILONORMAL_FLAG); "
+    c.execute(sql)
+    conn.commit()
 conn.close()
 

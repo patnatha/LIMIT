@@ -13,7 +13,13 @@ DownloadAllEncounters.class: DownloadAllEncounters.java
 	
 DownloadAllLabs.class: DownloadAllLabs.java
 	javac -classpath $(cpFlags) DownloadAllLabs.java
+	
+DownloadAllDiagnosis.class: DownloadAllDiagnosis.java
+	javac -classpath $(cpFlags) DownloadAllDiagnosis.java
 
+DownloadAllMeds.class: DownloadAllMeds.java
+	javac -classpath $(cpFlags) DownloadAllMeds.java
+	
 downAnalyte: QuerySql.class
 	java -cp $(cpFlags) -Xmx1024m QuerySql
 
@@ -23,8 +29,17 @@ downEnc: DownloadAllEncounters.class
 downLab: DownloadAllLabs.class
 	java -cp $(cpFlags) -Xmx1024m DownloadAllLabs
 
+downDiag: DownloadAllDiagnosis.class
+	java -cp $(cpFlags) -Xmx1024m DownloadAllDiagnosis
+
+downMed: DownloadAllMeds.class
+	java -cp $(cpFlags) -Xmx1024m DownloadAllMeds
+	
 clean: 
 	rm ./QuerySql.class
 	rm ./DownloadAllEncounters.class
 	rm ./DownloadAllLabs.class
+	rm ./DownloadAllMeds.class
+	rm ./DownloadAllDiagnosis.class
+	rm -rf downloads
 	
