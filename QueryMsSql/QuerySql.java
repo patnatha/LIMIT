@@ -51,6 +51,8 @@ public class QuerySql {
 		analytess.add(temp);
 		temp = new ArrayList<String>(Arrays.asList("CREAT"));
 		analytess.add(temp);
+		temp = new ArrayList<String>(Arrays.asList("ALK"));
+		analytess.add(temp);
 		
 		//Add the CBC values
 		temp = new ArrayList<String>(Arrays.asList("HGBN","HGB"));
@@ -104,7 +106,7 @@ public class QuerySql {
 		Date end = null;
 		try{
 			start = sdf.parse("2013/01/01");
-			end = sdf.parse("2017/01/01");
+			end = sdf.parse("2018/01/01");
 		}
 		catch(Exception e){
 			return;
@@ -501,13 +503,13 @@ public class QuerySql {
 
     public static String findDirPath(String[] analytes){
         //Create the download directory
-        File theDir = new File("downloads");
+        File theDir = new File("Z:\\downloads");
         if(!theDir.exists()) {
             theDir.mkdir();
         }
     
         //Create the analyte directory
-        theDir = new File("downloads/" + String.join("_", analytes));
+        theDir = new File("Z:\\downloads\\" + String.join("_", analytes));
         if(!theDir.exists()){
             theDir.mkdir();
         }
