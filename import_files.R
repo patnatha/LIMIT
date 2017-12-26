@@ -103,5 +103,25 @@ import_encounter_all <- function(pids){
 # Depreciated function
 #import_encounter_location <- function(input_dir){ return(import_files_fxn(file.path(input_dir, "EncounterLocations"))) }
 
-import_med_admin <- function(input_dir){ return(import_files_fxn(file.path(input_dir, "MedicationAdministrationsComprehensive"))) }
+import_med_admin <- function(pids){
+    medsAll = get_meds(unique(pids))
+
+    #Get a count of the rows and columns
+    rowCnt = 0
+    colCnt = 0
+    for(x in medsAll){
+        rowCnt = rowCnt + nrow(x)
+        if(colCnt == 0){
+            colCnt = ncol(x)
+        }
+    }
+
+    print(paste("Download Meds: ", as.character(rowCnt), " medications", sep=""))
+
+    medsAll = rbindlist(medsAll, use.names=TRUE, fill=TRUE, idcol=FALSE)
+    return(medsAll)
+}
+
+# Depreciated function
+#import_med_admin <- function(input_dir){ return(import_files_fxn(file.path(input_dir, "MedicationAdministrationsComprehensive"))) }
 
