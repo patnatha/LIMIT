@@ -277,13 +277,16 @@ while (!converged) {
 
     #Print some interation output for notification
     iteration = iteration + 1
-    print(paste("Outliers ","(", as.character(iteration), "): ", length(which(labValues$outlier == TRUE)), sep=""))
 
     # Only run algorith if there are some non-outliers
     if (length(which(labValues$outlier == FALSE)) > 100) {
         # Create lists of patients with flagged tests
         flaggedPatients = unique(labValues$pid[which(labValues$outlier == TRUE)])
         totalFlaggedPatients = length(flaggedPatients)
+
+        if(debug){
+            print(paste("Flagged Patients (", as.character(iteration), "): ", totalflggedPatients, sep=""))
+        }
 
         #Create  lists of patients with unflagged test
         unflaggedPatients = setdiff(unique(labValues$pid), flaggedPatients)

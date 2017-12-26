@@ -335,7 +335,7 @@ print("Other Labs: Select columns for output")
 otherLabs<-otherLabs %>% select(pid, icd, icd_name, timeOffset, ACCESSION_NUMBER)
 
 print("Loading Medications")
-medValues = import_med_admin(input_dir)
+medValues = import_med_admin(unique(labValues$pid))
 medValues = medValues %>% filter(MedicationStatus == "Given")
 
 print("MED: Calculate Time-Offset")

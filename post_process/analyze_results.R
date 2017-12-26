@@ -102,7 +102,7 @@ print(paste("Unique Patient Count: ", length(unique(cleanLabValues$pid))))
 
 #Write the results to file if exists
 if(writeToFile){
-    newLine = c(inputData, attributes(parameters)$icd_pre_limit, length(cleanLabValues$l_val), lowerRefLowLimit, lowerRefUpperLimit, upperRefLowLimit, upperRefUpperLimit, mean(cleanLabValues$l_val, na.rm = TRUE))
+    newLine = c(basename(inputData), attributes(parameters)$icd_pre_limit, length(cleanLabValues$l_val), lowerRefLowLimit, lowerRefUpperLimit, upperRefLowLimit, upperRefUpperLimit, mean(cleanLabValues$l_val, na.rm = TRUE))
     write(newLine,ncolumns=8,sep=",",file=theResultFile, append=TRUE)
 }
 

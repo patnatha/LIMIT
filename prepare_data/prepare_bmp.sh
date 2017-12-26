@@ -12,7 +12,7 @@ run_grp(){
     tempdir=$outdir
     mkdir -p $tempdir
     eval "rm -rf $tempdir/*"
-    eval "qsub prepare_data.pbs -F \"--input $basedir$indir --sex $thesex --race $therace --include $incGrp --age $theage --output ${tempdir}\""
+    echo "qsub prepare_data.pbs -F \"--input $basedir$indir --sex $thesex --race $therace --include $incGrp --age $theage --output ${tempdir}\""
 }
 
 #Set the include grp

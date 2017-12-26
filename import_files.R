@@ -5,6 +5,7 @@ library(data.table)
 source('../lab_results_wrapper.R')
 source('../encounters_wrapper.R')
 source('../diagnoses_wrapper.R')
+source('../medadmin_wrapper.R')
 
 import_csv <- function(path_to_file){
     #dat <- read.delim(path_to_file, sep='|')
