@@ -62,7 +62,7 @@ else
 fi
 
 outpath=${tolistpath/"prepared_data"/"limit_results"}
-mkdir $outpath
+mkdir -p $outpath
 for tfile in $preplist;
 do
     finfile="$tolistpath$tfile"

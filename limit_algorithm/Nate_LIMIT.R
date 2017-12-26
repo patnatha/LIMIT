@@ -284,9 +284,6 @@ while (!converged) {
         # Create lists of patients with flagged tests
         flaggedPatients = unique(labValues$pid[which(labValues$outlier == TRUE)])
         totalFlaggedPatients = length(flaggedPatients)
-        if(debug){
-            print(paste("Flagged Unique Patients: ", unique(totalFlaggedPatients), sep=""))
-        }
 
         #Create  lists of patients with unflagged test
         unflaggedPatients = setdiff(unique(labValues$pid), flaggedPatients)
@@ -302,7 +299,7 @@ while (!converged) {
         flaggedResults = flaggedResults[!(duplicated(flaggedResults$pid)), ]
 
         if(debug){
-            print(paste("Flagged Results: ", length(flaggedResults$pid), sep=""))   
+            print(paste("Flagged Results (", as.character(iteration), "): ", length(flaggedResults$pid), sep=""))   
         }
 
         if (length(flaggedResults$pid) > 4) {
