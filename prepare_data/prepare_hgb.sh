@@ -5,7 +5,6 @@ rawfile=`basename ${basedir}`
 #Set the output directory
 outdir="/scratch/leeschro_armis/patnatha/prepared_data/hgb_5_years/"
 mkdir -p $outdir
-eval "rm -rf $outdir/*"
 
 #Set the function
 run_grp(){

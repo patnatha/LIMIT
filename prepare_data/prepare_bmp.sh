@@ -5,12 +5,10 @@ rawfile=`basename ${basedir}`
 #Set the output directory
 outdir="/scratch/leeschro_armis/patnatha/prepared_data/basic_metabolic_panel/"
 mkdir -p $outdir
-eval "rm -rf $outdir/*"
 
 #Set the function
 run_grp(){
-    tempdir=$outdir
-    eval "qsub prepare_data.pbs -F \"--input $basedir$indir --sex $thesex --race $therace --include $incGrp --age $theage --output ${tempdir}\""
+    eval "qsub prepare_data.pbs -F \"--input $basedir$indir --sex $thesex --race $therace --include $incGrp --age $theage --output ${outdir}\""
 }
 
 #Set the include grp

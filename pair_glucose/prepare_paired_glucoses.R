@@ -27,9 +27,8 @@ labValuesDplyr = labValuesDplyr %>%
 labValues<-labValuesDplyr %>% select(pid, l_val, timeOffset, COLLECTION_DATE) %>% as.data.frame()
 
 # Get ICD codes
-diagnoses = import_diagnoses(input_dir)
-diagnosis_process=inner_join(diagnoses, patient_bday, by="PatientID")
-remove(diagnoses)
+diagnoses_process = import_diagnoses(labValuesDplyr$pid)
+diagnosis_process=inner_join(diagnoses_process, patient_bday, by="PatientID")
 encounter_location=import_encounter_location(input_dir)
 encounter_earliest = encounter_location %>% 
                         group_by(EncounterID) %>% 
@@ -47,7 +46,7 @@ icdValuesDplyr = icdValuesDplyr %>%
 icdValues<-icdValuesDplyr %>% select(pid, icd, timeOffset, EncounterID) %>% as.data.frame()
 
 #Get Medications that were administered
-med_admin = import_med_admin(input_dir)
+med_admin = import_med_admin(labValuesDplyr$pid)
 medsAdminDyplyr = med_admin %>% filter(MedicationStatus == "Given")
 remove(med_admin)
 medsAdminDyplyr = inner_join(medsAdminDyplyr, patient_bday, by="PatientID")

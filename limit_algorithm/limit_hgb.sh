@@ -22,8 +22,9 @@ run_dir(){
 }
 
 singularValue="random"
-tolistpath="/scratch/leeschro_armis/patnatha/prepared_data/hgb_5_years/hgb_5_years_10_y_range/"
 run_dir
 tolistpath="/scratch/leeschro_armis/patnatha/prepared_data/hgb_5_years/hgb_5_years_2_groups/"
+run_dir
+tolistpath="/scratch/leeschro_armis/patnatha/prepared_data/hgb_5_years/hgb_5_years_10_y_range/"
 run_dir
 
