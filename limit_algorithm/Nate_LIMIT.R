@@ -285,7 +285,7 @@ while (!converged) {
         totalFlaggedPatients = length(flaggedPatients)
 
         if(debug){
-            print(paste("Flagged Patients (", as.character(iteration), "): ", totalflggedPatients, sep=""))
+            print(paste("Flagged Patients (", as.character(iteration), "): ", totalFlaggedPatients, sep=""))
         }
 
         #Create  lists of patients with unflagged test
@@ -325,10 +325,6 @@ while (!converged) {
             }
             
             if(!is.na(ICDtable) && ncol(ICDtable) == 2 && nrow(ICDtable) > 0){
-                if(iteration == 5){
-                    print(unlist(ICDs, recursive=FALSE) != character(0))
-                }
-
                 #Rename the columns
                 ICDtable$icd = ICDtable$Var1
                 ICDtable$freq = ICDtable$Freq
