@@ -277,15 +277,15 @@ while (!converged) {
 
     #Print some interation output for notification
     iteration = iteration + 1
-    print(paste("Outliers ","(", as.character(iteration), "): ", length(which(labValues$outlier == TRUE)), sep=""))
 
     # Only run algorith if there are some non-outliers
     if (length(which(labValues$outlier == FALSE)) > 100) {
         # Create lists of patients with flagged tests
         flaggedPatients = unique(labValues$pid[which(labValues$outlier == TRUE)])
         totalFlaggedPatients = length(flaggedPatients)
+
         if(debug){
-            print(paste("Flagged Unique Patients: ", unique(totalFlaggedPatients), sep=""))
+            print(paste("Flagged Patients (", as.character(iteration), "): ", totalFlaggedPatients, sep=""))
         }
 
         #Create  lists of patients with unflagged test
@@ -302,7 +302,7 @@ while (!converged) {
         flaggedResults = flaggedResults[!(duplicated(flaggedResults$pid)), ]
 
         if(debug){
-            print(paste("Flagged Results: ", length(flaggedResults$pid), sep=""))   
+            print(paste("Flagged Results (", as.character(iteration), "): ", length(flaggedResults$pid), sep=""))   
         }
 
         if (length(flaggedResults$pid) > 4) {
@@ -325,10 +325,6 @@ while (!converged) {
             }
             
             if(!is.na(ICDtable) && ncol(ICDtable) == 2 && nrow(ICDtable) > 0){
-                if(iteration == 5){
-                    print(unlist(ICDs, recursive=FALSE) != character(0))
-                }
-
                 #Rename the columns
                 ICDtable$icd = ICDtable$Var1
                 ICDtable$freq = ICDtable$Freq

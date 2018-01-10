@@ -1,17 +1,17 @@
 library("parallel")
 library("RSQLite")
 
-connect_sqlite_lab <- function(){
-    con = dbConnect(drv=SQLite(), dbname="/scratch/leeschro_armis/patnatha/LabResults/LabResults.db")
+connect_sqlite_diagnoses <- function(){
+    con = dbConnect(drv=SQLite(), dbname="/scratch/leeschro_armis/patnatha/DiagComp/DiagComp.db")
     return(con)
 }
 
-async_query_labs <- function(pids, con){
+async_query_diagnoses <- function(pids, con){
     out <- tryCatch(
         if(length(pids) > 0){
             #Build the query and execute
-            sql = paste('SELECT * FROM LabResults WHERE PatientID IN ("', paste(pids, collapse="\",\""), '") AND HILONORMAL_FLAG != "N" AND HILONORMAL_FLAG != ""', sep="")
-            con = connect_sqlite_lab()
+            sql = paste('SELECT * FROM DiagComp WHERE PatientID IN ("', paste(pids, collapse="\",\""), '")', sep="")
+            con = connect_sqlite_diagnoses()
             myQuery = dbGetQuery(con, sql)
             dbDisconnect(con)
             return(myQuery)
@@ -23,7 +23,7 @@ async_query_labs <- function(pids, con){
     )
 }
 
-get_abnormal_labs <- function(pids){
+get_diagnoses <- function(pids){
     if(length(pids) > 0){
         # Chunkify
         toChunk = 1000
@@ -51,8 +51,8 @@ get_abnormal_labs <- function(pids){
             finalList[[length(finalList) + 1]] = tmpList
         }
 
-        print(paste("Downloading Labs: ", as.character(length(pids)), " pids",sep=""))
-        allData = mclapply(finalList, async_query_labs, con, mc.cores = corecnt)
+        print(paste("Downloading Diagnoses: ", as.character(length(pids)), " pids",sep=""))
+        allData = mclapply(finalList, async_query_diagnoses, con, mc.cores = corecnt)
         return(allData)
     }
     else{

@@ -113,7 +113,7 @@ else
 fi
 
 outdir="/scratch/leeschro_armis/patnatha/prepared_data/${rawfile}_${theInc}${ageInc}_${startInc}_${endInc}_${thesex}_${therace}"
-mkdir $outdir
+mkdir -p $outdir
 
 lastI=''
 for i in $(seq $startInc $theInc $endInc); 

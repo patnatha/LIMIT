@@ -289,11 +289,7 @@ public class QuerySql {
 
 				//Update the startDate with new endDate
 				startDate = endDate;
-			}
-			
-            
-
-            
+			}   
         } catch (Exception e) {
             e.printStackTrace();
         } finally {

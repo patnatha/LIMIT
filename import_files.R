@@ -4,6 +4,8 @@ library(dplyr)
 library(data.table)
 source('../lab_results_wrapper.R')
 source('../encounters_wrapper.R')
+source('../diagnoses_wrapper.R')
+source('../medadmin_wrapper.R')
 
 import_csv <- function(path_to_file){
     #dat <- read.delim(path_to_file, sep='|')
@@ -40,9 +42,29 @@ import_demo_info <- function(input_dir){ return(import_files_fxn(file.path(input
 
 import_patient_bday <- function(input_dir){ return(import_files_fxn(file.path(input_dir, "PatientInfo"))) }
 
-import_labs_all <- function(pids){
-    print("Loading All Labs from DB")
-    labsAll = get_labs(unique(pids))
+#import_diagnoses <- function(input_dir){ return(import_files_fxn(file.path(input_dir, "DiagnosesComprehensive"))) }
+
+import_diagnoses <- function(pids){
+    diagAll = get_diagnoses(unique(pids))
+
+    #Get a count of the rows and columns
+    rowCnt = 0
+    colCnt = 0
+    for(x in diagAll){
+        rowCnt = rowCnt + nrow(x)
+        if(colCnt == 0){
+            colCnt = ncol(x)
+        }
+    }
+
+    print(paste("Downloading Diagnoses: ", as.character(rowCnt), " codes", sep=""))
+
+    diagAll = rbindlist(diagAll, use.names=TRUE, fill=TRUE, idcol=FALSE)
+    return(diagAll)
+}
+
+import_other_abnormal_labs <- function(pids){
+    labsAll = get_abnormal_labs(unique(pids))
 
     #Get a count of the rows and columns
     rowCnt = 0
@@ -54,15 +76,13 @@ import_labs_all <- function(pids){
         }
     }
 
-    print(paste("ROWS: ", as.character(rowCnt), sep=""))
+    print(paste("Downloading Labs: ", as.character(rowCnt), " labs", sep=""))
 
-    outLabAll = rbindlist(labsAll, use.names=TRUE, fill=TRUE, idcol=FALSE)
-    remove(labsAll)
-    return(outLabAll) 
+    labsAll = rbindlist(labsAll, use.names=TRUE, fill=TRUE, idcol=FALSE)
+    return(labsAll) 
 }
 
 import_encounter_all <- function(pids){
-    print("Loading Encounters from DB")
     encountersAll = get_encounters(unique(pids)) 
     
     #Get a count of the rows and columns
@@ -75,17 +95,34 @@ import_encounter_all <- function(pids){
         }
     }
 
-    print(paste("ROWS: ", as.character(rowCnt), sep=""))
+    print(paste("Download Encounters: ", as.character(rowCnt), " encounters", sep=""))
 
-    #Copy all the results into one table
-    outEncAll = rbindlist(encountersAll, use.names=TRUE, fill=TRUE, idcol=FALSE)
-    remove(encountersAll)
-    return(outEncAll)
+    encountersAll = rbindlist(encountersAll, use.names=TRUE, fill=TRUE, idcol=FALSE)
+    return(encountersAll)
 }
 
-import_encounter_location <- function(input_dir){ return(import_files_fxn(file.path(input_dir, "EncounterLocations"))) }
+# Depreciated function
+#import_encounter_location <- function(input_dir){ return(import_files_fxn(file.path(input_dir, "EncounterLocations"))) }
 
-import_diagnoses <- function(input_dir){ return(import_files_fxn(file.path(input_dir, "DiagnosesComprehensive"))) }
+import_med_admin <- function(pids){
+    medsAll = get_meds(unique(pids))
 
-import_med_admin <- function(input_dir){ return(import_files_fxn(file.path(input_dir, "MedicationAdministrationsComprehensive"))) }
+    #Get a count of the rows and columns
+    rowCnt = 0
+    colCnt = 0
+    for(x in medsAll){
+        rowCnt = rowCnt + nrow(x)
+        if(colCnt == 0){
+            colCnt = ncol(x)
+        }
+    }
+
+    print(paste("Download Meds: ", as.character(rowCnt), " medications", sep=""))
+
+    medsAll = rbindlist(medsAll, use.names=TRUE, fill=TRUE, idcol=FALSE)
+    return(medsAll)
+}
+
+# Depreciated function
+#import_med_admin <- function(input_dir){ return(import_files_fxn(file.path(input_dir, "MedicationAdministrationsComprehensive"))) }
 
