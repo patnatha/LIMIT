@@ -250,7 +250,6 @@ public class QuerySql {
 				else{
 					System.out.println("PatientInfo: Failure");
 				}
-
 				
 				//Query for the encounter results
 				/*if(cohortENCS.length > 0 && GetEncounters(analytes, cohortENCS, conn)){
@@ -267,7 +266,7 @@ public class QuerySql {
 				else{
 					System.out.println("Encounters Locations: Failure");
 				}
-				
+
 				//Query for the Diagnosis codes
 				if(cohortPIDS.length > 0 && GetDiagnoses(analytes, cohortPIDS, conn)){
 					System.out.println("Diagnoses: Success");
