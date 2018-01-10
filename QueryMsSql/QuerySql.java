@@ -47,11 +47,41 @@ public class QuerySql {
 		analytess.add(temp);
 		temp = new ArrayList<String>(Arrays.asList("UN"));
 		analytess.add(temp);
-		temp = new ArrayList<String>(Arrays.asList("BCARB"));
+		temp = new ArrayList<String>(Arrays.asList("CO2"));
 		analytess.add(temp);
 		temp = new ArrayList<String>(Arrays.asList("CREAT"));
 		analytess.add(temp);
 		temp = new ArrayList<String>(Arrays.asList("ALK"));
+		analytess.add(temp);
+		temp = new ArrayList<String>(Arrays.asList("DBIL"));
+		analytess.add(temp);
+		temp = new ArrayList<String>(Arrays.asList("PTBIL", "TBIL"));
+		analytess.add(temp);
+		temp = new ArrayList<String>(Arrays.asList("IRON"));
+		analytess.add(temp);
+		temp = new ArrayList<String>(Arrays.asList("MAG"));
+		analytess.add(temp);
+		temp = new ArrayList<String>(Arrays.asList("PHOS"));
+		analytess.add(temp);
+		temp = new ArrayList<String>(Arrays.asList("URIC"));
+		analytess.add(temp);
+		temp = new ArrayList<String>(Arrays.asList("AST"));
+		analytess.add(temp);
+		temp = new ArrayList<String>(Arrays.asList("ALT"));
+		analytess.add(temp);
+		temp = new ArrayList<String>(Arrays.asList("GGTP"));
+		analytess.add(temp);
+		temp = new ArrayList<String>(Arrays.asList("LDH"));
+		analytess.add(temp);
+		temp = new ArrayList<String>(Arrays.asList("APOA1"));
+		analytess.add(temp);
+		temp = new ArrayList<String>(Arrays.asList("APOB"));
+		analytess.add(temp);
+		temp = new ArrayList<String>(Arrays.asList("CHOL"));
+		analytess.add(temp);
+		temp = new ArrayList<String>(Arrays.asList("HDL"));
+		analytess.add(temp);
+		temp = new ArrayList<String>(Arrays.asList("TRIG"));
 		analytess.add(temp);
 		
 		//Add the CBC values
@@ -106,7 +136,9 @@ public class QuerySql {
 		Date end = null;
 		try{
 			start = sdf.parse("2013/01/01");
+			//start = sdf.parse("2016/01/01");
 			end = sdf.parse("2018/01/01");
+			//end = sdf.parse("2016/03/01");
 		}
 		catch(Exception e){
 			return;
@@ -218,7 +250,23 @@ public class QuerySql {
 				else{
 					System.out.println("PatientInfo: Failure");
 				}
-			
+				
+				//Query for the encounter results
+				/*if(cohortENCS.length > 0 && GetEncounters(analytes, cohortENCS, conn)){
+					System.out.println("Encounters: Success");
+				}
+				else{
+					System.out.println("Encounters: Failure");
+				}
+				
+				//Query for the encounter results
+				if(cohortENCS.length > 0 && GetEncounterLocations(analytes, cohortENCS, conn)){
+					System.out.println("Encounters Locations: Success");
+				}
+				else{
+					System.out.println("Encounters Locations: Failure");
+				}
+
 				//Query for the Diagnosis codes
 				if(cohortPIDS.length > 0 && GetDiagnoses(analytes, cohortPIDS, conn)){
 					System.out.println("Diagnoses: Success");
@@ -233,18 +281,14 @@ public class QuerySql {
 				}
 				else{
 					System.out.println("Medicaitons: Failure");
-				}
+				}*/
 				
 				//Write the done file
 				GetDone(analytes, conn);
 
 				//Update the startDate with new endDate
 				startDate = endDate;
-			}
-			
-            
-
-            
+			}   
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
