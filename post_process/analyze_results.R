@@ -5,7 +5,8 @@ library(boot)
 #Create the options list
 option_list <- list(
   make_option("--input", type="character", default=NA, help="file to load Rdata"),
-  make_option("--graph", action="store_true", default=FALSE)
+  make_option("--graph", action="store_true", default=FALSE),
+  make_option("--ref-interval", type="character", default="2.5", help="reference interval")
 )
 
 #Parse the incoming options
@@ -16,6 +17,7 @@ inputData = args[['input']]
 load(inputData)
 
 toGraph = args[['graph']]
+refConf = 1 - ((as.numeric(args[['ref-interval']]) * 2) / 100.0)
 
 #Build the output file name
 theResultFile = paste(dirname(inputData), "analysis_results.csv", sep="/")
@@ -80,7 +82,6 @@ nonparRI = function (data, indices = 1:length(data), refConf = 0.95)
     1 - ((1 - refConf)/2), type = 6))
     return(results)
 }
-refConf = 0.95
 bootresult = boot(data = cleanLabValues$l_val, statistic = nonparRI, refConf = refConf, R = 5000)
 
 #get the confidence intervals from the boot result
