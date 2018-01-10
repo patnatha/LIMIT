@@ -42,10 +42,10 @@ dir.create(paired_pieces_output)
 
 # Import the data
 source("../import_files.R")
-glucoseVals = import_lab_values(inputDir)
+selected_glucoses = import_lab_values(inputDir)
 
 #Pick out the columns that we need for analyzing
-selected_glucoses = select(glucoseVals, one_of(c('PatientID', 'ACCESSION_NUMBER', 'COLLECTION_DATE', 'RESULT_CODE', 'VALUE')))
+selected_glucoses = select(selected_glucoses, one_of(c('PatientID', 'ACCESSION_NUMBER', 'COLLECTION_DATE', 'RESULT_CODE', 'VALUE')))
 
 #Get a count of the largest bin
 opidCnt = selected_glucoses %>% group_by(PatientID) %>% count() %>% filter(n > 1) 

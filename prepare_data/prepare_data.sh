@@ -103,11 +103,9 @@ else
     exit
 fi
 
-outdir="/scratch/leeschro_armis/patnatha/prepared_data/${rawfile}_${theage}_${thesex}_${therace}"
+outdir="/scratch/leeschro_armis/patnatha/prepared_data/${rawfile}_${therace}_${thesex}_${theage}"
 mkdir $outdir
 
 fincmd="qsub prepare_data.pbs -F \"--input $finfile --sex $thesex --race $therace --include $incGrp --age $theage --output ${outdir}\""
-echo $fincmd
 eval $fincmd
-
 

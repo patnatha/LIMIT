@@ -68,13 +68,13 @@ if(!is.na(args[['day-time-offset-pre']])){
 
 #Check the output directory exists
 if(!dir.exists(outputDir)){
-    print("The output directory doesn't exist")
+    print("ERROR: The output directory doesn't exist")
     stop()
 }
 
 #Load RData from disk
 if(is.na(inputData) || !file.exists(inputData)){
-    print("The input file path doesn't exist")
+    print("ERROR: The input file path doesn't exist")
     stop()
 }
 print(paste("Loading Data: ", inputData, sep=""))
@@ -93,11 +93,11 @@ if(!is.na(codeType)){
         icdValues = icdValues
     }
     else{
-        print("Input code type is not valid")
+        print("ERROR: Input code type is not valid")
         stop()
     }
 }else{
-    print("A code type has not been selected [icd|med|lab]")
+    print("ERROR: A code type has not been selected [icd|med|lab]")
     stop()
 }
 
@@ -113,25 +113,9 @@ saving = paste(saving, '.Rdata', sep="")
 
 #Check to see if the file exists
 if(file.exists(saving)){
-    while(file.exists(saving)){
-        #Extract the filename from the path
-        persplit = strsplit(basename(saving), ".", fixed = TRUE)[[1]]
-        getnum = strsplit(persplit[1], "_")[[1]]
-   
-        #Calculate the new path name
-        if(is.na(as.numeric(tail(getnum, n = 1)))){
-            getnum[[length(getnum) + 1]] = 1
-        }
-        else{
-            getnum[[length(getnum)]] = as.numeric(tail(getnum, n=1)) + 1
-        }
- 
-        #Build the new path 
-        outputName=paste(getnum, collapse="_") 
-        saving = gsub('//', '/', paste(outputDir, outputName, sep="/"))
-        saving = paste(saving, '.Rdata', sep="")
-    }
-}
+    print("ERROR: File Already Exists")
+    stop()
+} 
 
 # Parse the singular_value parameter
 if(is.na(singular_value)){
@@ -314,7 +298,7 @@ while (!converged) {
             stopCluster(cl)
             if(debug){
                 time.taken <- as.numeric(Sys.time() - start.time, units="secs")
-                print(paste("Finding ICDs: ", as.character(time.taken), " secs", sep=""))
+                print(paste("Finding ICDs (", as.character(iteration), "): ", as.character(round(time.taken, digits=2)), " secs", sep=""))
             }
 
             # Process the results
@@ -345,13 +329,14 @@ while (!converged) {
                 cl <- makeCluster(parallelCores)
                 fisherTestICD = parSapply(cl=cl, ICDtable[(1:limit),]$icd, PerformFishertestICD, icdValues, ICDtable, totalFlaggedPatients, unflaggedPatients)                
                 stopCluster(cl)
+
+                #Do the Bonferroni correction
+                fisherTestICD = p.adjust(fisherTestICD, method = 'bonferroni')
+
                 if(debug){
                     time.taken <- as.numeric(Sys.time() - start.time, units="secs")
-                    print(paste("Fisher Testing: ", as.character(time.taken, units="secs"), " secs", sep=""))
+                    print(paste("Fisher Testing (", as.character(iteration), "): ", as.character(round(time.taken, digits=2)), " secs", sep=""))
                 }
-
-                fisherTestICD = p.adjust(fisherTestICD, method = 'bonferroni')
-                DOI = as.character(ICDtable[which.min(fisherTestICD),]$icd)
 
                 # Get the minumum Fisher value 
                 pvalue = min(fisherTestICD)
@@ -360,12 +345,13 @@ while (!converged) {
                     converged = TRUE
                     excludePID = numeric()
                 } else {
+                    # Removing ICD
+                    DOI = as.character(ICDtable[which.min(fisherTestICD),]$icd)
+                    print(paste('CODE (', as.character(iteration), "): ", DOI, sep=""))
+
                     #Find the ICD code for this given name
                     DOIName = unique(icdValues$icd_name[which(icdValues$icd == DOI)])
-                    print(paste('CODE NAME: ', DOIName, sep=""))
-
-                    # Removing ICD
-                    print(paste('CODE: ', DOI, sep=""))
+                    print(paste('CODE NAME (', as.character(iteration), "): ", DOIName, sep=""))
 
                     # Find all patients who have the significant codes
                     excludePID = FindExclusions(DOI)

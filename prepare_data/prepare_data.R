@@ -53,7 +53,7 @@ if(sex == "" || sex == "both"){
 #Parse the output directory and create if doesn't exists
 output_directory = args[['output']]
 if(!dir.exists(output_directory)){
-    print("The output directory doesn't exists")
+    print("ERROR: The output directory doesn't exists")
     stop()
 }
 
@@ -170,9 +170,9 @@ if(args[["name"]] == ""){
     #Build the filename
     theBasename = basename(input_dir)
 
-    #Add teh age range if it is in there
-    if(!is.na(age)){
-        theBasename = paste(theBasename, age, sep="_")
+    #Add the inclusion race
+    if(!is.na(race)){
+        theBasename = paste(theBasename, "_", race, sep="")
     }
 
     #Add the inclusion sex
@@ -180,9 +180,9 @@ if(args[["name"]] == ""){
         theBasename = paste(theBasename, "_", sex, sep="")
     }
 
-    #Add the inclusion race
-    if(!is.na(race)){
-        theBasename = paste(theBasename, "_", race, sep="")
+    #Add teh age range if it is in there
+    if(!is.na(age)){
+        theBasename = paste(theBasename, age, sep="_")
     }
 
     #Add the inclusion groups
@@ -198,7 +198,7 @@ if(args[["name"]] == ""){
 output_filename = paste(output_filename, '.Rdata', sep="")
 print(output_filename)
 if(file.exists(output_filename)){
-    print(paste("The output filename already exists: ", output_filename, sep=""))
+    print(paste("ERROR: The output filename already exists: ", output_filename, sep=""))
     stop()
 }
 

@@ -1,19 +1,19 @@
-analysisType = "gluc1mo"
-#analysisType = "gluc4yr"
+analysisType = "gluc2mo"
+#analysisType = "gluc5yr"
 
 #The base base path
 basicPath='/scratch/leeschro_armis/patnatha/'
 prepare_paired_glucoses_path=paste(basicPath, "prepared_data/", sep="")
 
 # The input directory where to do basic analysis
-if(analysisType == "gluc1mo"){
-    inputDir=paste(basicPath, 'glucose_1_month/', sep="")
+if(analysisType == "gluc2mo"){
+    inputDir=paste(basicPath, 'glucose_2_months/', sep="")
     prepare_paired_glucoses_path=paste(prepare_paired_glucoses_path, 
-        '1mo_paired_glucoses.Rdata', sep="")
-} else if(analysisType == "gluc4yr"){
-    inputDir=paste(basicPath, 'glucose_4_years/', sep="")
+        '2mo_paired_glucoses.Rdata', sep="")
+} else if(analysisType == "gluc5yr"){
+    inputDir=paste(basicPath, 'glucose_5_years/', sep="")
     prepare_paired_glucoses_path=paste(prepare_paired_glucoses_path, 
-        '4yr_paired_glucoses.Rdata', sep="")
+        '5yr_paired_glucoses.Rdata', sep="")
 }
 
 print(paste("inputDir", inputDir, sep="|"))

@@ -1,5 +1,17 @@
 tolistpath=$1
-preplist=`ls -1 ${tolistpath}*.Rdata | tr '\n' '\0' | xargs -0 -n 1 basename`
+preplist=`ls -1 ${tolistpath}*.Rdata | sort | tr '\n' '\0' | xargs -0 -n 1 basename`
+
+optionalConfInt=$2
+if [ -z $optionalConfInt ];
+then
+    optionalConfInt="2.5"
+fi
+
+optionalNewFile=$3
+if [ -z $optionalConfInt ];
+then
+    optionalNewFile="newfile"
+fi
 
 echo "=====Run these files?====="
 theCnt=0
@@ -8,13 +20,16 @@ do
     echo $tfile
 done
 
-outputFile="${tolistpath}analysis_results.csv"
-rm ${outputFile}
-echo "File, Pre-LIMIT Count, Post-LIMIT Count, Low Low, Low High, High Low, High High, Mean" > ${outputFile}
+if [ $optionalNewFile == 'newfile' ];
+then
+    outputFile="${tolistpath}analysis_results.csv"
+    rm ${outputFile}
+    echo "File, Pre-LIMIT Count, Post-LIMIT Count, Low Low, Low High, High Low, High High, Mean" > ${outputFile}
+fi
 
 for tfile in $preplist;
 do
-    thecmd="Rscript analyze_results.R --input $tolistpath$tfile"
+    thecmd="Rscript analyze_results.R --input $tolistpath$tfile --ref-interval $optionalConfInt"
     #echo $thecmd
     eval $thecmd
 done
