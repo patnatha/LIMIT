@@ -73,6 +73,8 @@ public class QuerySql {
 		analytess.add(temp);
 		temp = new ArrayList<String>(Arrays.asList("LDH"));
 		analytess.add(temp);
+		temp = new ArrayList<String>(Arrays.asList("LIP"));
+		analytess.add(temp);
 		temp = new ArrayList<String>(Arrays.asList("APOA1"));
 		analytess.add(temp);
 		temp = new ArrayList<String>(Arrays.asList("APOB"));
@@ -82,6 +84,30 @@ public class QuerySql {
 		temp = new ArrayList<String>(Arrays.asList("HDL"));
 		analytess.add(temp);
 		temp = new ArrayList<String>(Arrays.asList("TRIG"));
+		analytess.add(temp);
+		temp = new ArrayList<String>(Arrays.asList("ASO"));
+		analytess.add(temp);
+		temp = new ArrayList<String>(Arrays.asList("C3"));
+		analytess.add(temp);
+		temp = new ArrayList<String>(Arrays.asList("C4"));
+		analytess.add(temp);
+		temp = new ArrayList<String>(Arrays.asList("HSCRP"));
+		analytess.add(temp);
+		temp = new ArrayList<String>(Arrays.asList("HPT"));
+		analytess.add(temp);
+		temp = new ArrayList<String>(Arrays.asList("IGA"));
+		analytess.add(temp);
+		temp = new ArrayList<String>(Arrays.asList("IGG"));
+		analytess.add(temp);
+		temp = new ArrayList<String>(Arrays.asList("IGM"));
+		analytess.add(temp);
+		temp = new ArrayList<String>(Arrays.asList("PAB"));
+		analytess.add(temp);
+		temp = new ArrayList<String>(Arrays.asList("RF"));
+		analytess.add(temp);
+		temp = new ArrayList<String>(Arrays.asList("T PROTEIN"));
+		analytess.add(temp);
+		temp = new ArrayList<String>(Arrays.asList("TSF"));
 		analytess.add(temp);
 		
 		//Add the CBC values
