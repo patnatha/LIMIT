@@ -27,7 +27,7 @@ get_abnormal_labs <- function(pids){
     if(length(pids) > 0){
         # Chunkify
         toChunk = 1000
-        corecnt = 16
+        corecnt<-strtoi(system("nproc", ignore.stderr = TRUE, intern = TRUE))
         if(length(pids) / corecnt < toChunk){
             toChunk = round(length(pids) / corecnt, digits=0)
         }

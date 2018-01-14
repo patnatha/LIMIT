@@ -202,13 +202,17 @@ if(file.exists(output_filename)){
     stop()
 }
 
-#Load up the csv files
-print("Loading Patient B-Day")
-patient_bday = import_patient_bday(input_dir)
+#Load up the lab values data set
+print("Loading Lab Values")
+labValues = import_lab_values(input_dir)
 
-#Load up the patient demo graphic info and combine with patient bday info
+#Load up the Patient Info
+print("Loading Patient B-Day")
+patient_bday = import_patient_bday(labValues$PatientID)
+
+#Load up the patient demo graphic info 
 print("Loading Patient Demographics")
-patient_demo = import_demo_info(input_dir)
+patient_demo = import_demo_info(labValues$PatientID)
 
 print("Combine Patient D-Day & Demographics")
 patient_bday = inner_join(patient_bday, patient_demo %>% select(PatientID, GenderCode, GenderName, RaceCode, RaceName), by="PatientID")
@@ -228,13 +232,9 @@ if(!is.na(includeRace)){
 
 #Error stmt
 if(nrow(patient_bday) == 0){
-    print("Patient Bday is Empty")
+    print("Patient B-Day is Empty")
     stop()
 }
-
-#Build the lab values dataset
-print("Loading Lab Values")
-labValues = import_lab_values(input_dir)
 
 print("LV: Calculate Time-Offest")
 labValues = inner_join(labValues, patient_bday, by="PatientID")
