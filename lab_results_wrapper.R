@@ -51,7 +51,7 @@ get_abnormal_labs <- function(pids){
             finalList[[length(finalList) + 1]] = tmpList
         }
 
-        print(paste("Downloading Labs: ", as.character(length(pids)), " pids",sep=""))
+        print(paste("Download Labs: ", as.character(length(pids)), " pids",sep=""))
         allData = mclapply(finalList, async_query_labs, con, mc.cores = corecnt)
         return(allData)
     }

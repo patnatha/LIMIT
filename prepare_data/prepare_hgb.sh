@@ -1,14 +1,14 @@
 source ../basedir.sh
 
 #Set the input directory
-indir="hgb_5_years"
+indir="hgb_4_years"
 
 #Set the output directories
-toutdir="${preparedir}hgb_5_years/"
+toutdir="${preparedir}${indir}/"
 mkdir -p $toutdir
-toutdirtwogrps="${toutdir}hgb_5_years_2_groups"
+toutdirtwogrps="${toutdir}${indir}_2_groups"
 mkdir -p $toutdirtwogrps
-toutdirtengrps="${toutdir}hgb_5_years_10_y_range"
+toutdirtengrps="${toutdir}${indir}_10_y_range"
 mkdir -p $toutdirtengrps
 
 #Set the include grp

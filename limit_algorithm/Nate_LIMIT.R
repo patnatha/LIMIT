@@ -72,14 +72,6 @@ if(!dir.exists(outputDir)){
     stop()
 }
 
-#Load RData from disk
-if(is.na(inputData) || !file.exists(inputData)){
-    print("ERROR: The input file path doesn't exist")
-    stop()
-}
-print(paste("Loading Data: ", inputData, sep=""))
-load(inputData);
-
 #Check to see if the code type had been selected
 if(!is.na(codeType)){
     # Run algorithm against administered medicines
@@ -126,6 +118,14 @@ if(is.na(singular_value)){
 } else {
     singular_value = singular_value
 }
+
+#Load RData from disk
+if(is.na(inputData) || !file.exists(inputData)){
+    print("ERROR: The input file path doesn't exist")
+    stop()
+}
+print(paste("Loading Data: ", inputData, sep=""))
+load(inputData);
 
 #Save all the parameters to a structure
 parameters<-1:1

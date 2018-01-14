@@ -250,7 +250,19 @@ if(!is.na(ageBias[[1]])){
 #Exclude all the lab values that are not consistent with a grouping
 encountersAll = NA
 if(!is.na(toInclude)){
+    #Down sampling code
+    pidSampleMax = 300000
+    uniquePIDs = unique(labValues$PatientID)
+    if(length(uniquePIDs) > pidSampleMax){
+        print(paste("LV: Down Sample PIDs, ", length(uniquePIDs), " => ", pidSampleMax, sep=""))
+        randomlySelectedPIDs = sample(uniquePIDs, pidSampleMax)
+        labValues = labValues %>% filter(PatientID %in% randomlySelectedPIDs)
+    }
+    remove(uniquePIDs)
+
+    #Get count of lab values before inclusion groups
     preFilLen = nrow(labValues)
+
     if(toInclude == "inpatient"){
         encountersAll = import_encounter_all(labValues$PatientID)
         print("LV: Include Inpatients")

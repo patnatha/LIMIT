@@ -6,6 +6,8 @@ source('../lab_results_wrapper.R')
 source('../encounters_wrapper.R')
 source('../diagnoses_wrapper.R')
 source('../medadmin_wrapper.R')
+source('../demographics_wrapper.R')
+source('../patientinfo_wrapper.R')
 
 import_csv <- function(path_to_file){
     #dat <- read.delim(path_to_file, sep='|')
@@ -38,11 +40,47 @@ import_files_fxn <- function(path_to_file){
 
 import_lab_values <- function(input_dir){ return(import_files_fxn(file.path(input_dir, "LabResults"))) }
 
-import_demo_info <- function(input_dir){ return(import_files_fxn(file.path(input_dir, "DemographicInfo"))) }
+import_demo_info <- function(pids){
+    demoAll = get_demographics(unique(pids))
 
-import_patient_bday <- function(input_dir){ return(import_files_fxn(file.path(input_dir, "PatientInfo"))) }
+    #Get a count of the rows and columns
+    rowCnt = 0
+    colCnt = 0
+    for(x in demoAll){
+        rowCnt = rowCnt + nrow(x)
+        if(colCnt == 0){
+            colCnt = ncol(x)
+        }
+    }
 
-#import_diagnoses <- function(input_dir){ return(import_files_fxn(file.path(input_dir, "DiagnosesComprehensive"))) }
+    print(paste("Downloading Demographics: ", as.character(rowCnt), " pids", sep=""))
+
+    demoAll = rbindlist(demoAll, use.names=TRUE, fill=TRUE, idcol=FALSE)
+    return(demoAll)
+}
+
+#import_demo_info <- function(input_dir){ return(import_files_fxn(file.path(input_dir, "DemographicInfo"))) }
+
+import_patient_bday <- function(pids){
+    pinfoAll = get_patient_info(unique(pids))
+
+    #Get a count of the rows and columns
+    rowCnt = 0
+    colCnt = 0
+    for(x in pinfoAll){
+        rowCnt = rowCnt + nrow(x)
+        if(colCnt == 0){
+            colCnt = ncol(x)
+        }
+    }
+
+    print(paste("Downloading Patient Info: ", as.character(rowCnt), " pids", sep=""))
+
+    pinfoAll = rbindlist(pinfoAll, use.names=TRUE, fill=TRUE, idcol=FALSE)
+    return(pinfoAll)
+}
+
+#import_patient_bday <- function(input_dir){ return(import_files_fxn(file.path(input_dir, "PatientInfo"))) }
 
 import_diagnoses <- function(pids){
     diagAll = get_diagnoses(unique(pids))
@@ -62,6 +100,8 @@ import_diagnoses <- function(pids){
     diagAll = rbindlist(diagAll, use.names=TRUE, fill=TRUE, idcol=FALSE)
     return(diagAll)
 }
+
+#import_diagnoses <- function(input_dir){ return(import_files_fxn(file.path(input_dir, "DiagnosesComprehensive"))) }
 
 import_other_abnormal_labs <- function(pids){
     labsAll = get_abnormal_labs(unique(pids))
@@ -95,7 +135,7 @@ import_encounter_all <- function(pids){
         }
     }
 
-    print(paste("Download Encounters: ", as.character(rowCnt), " encounters", sep=""))
+    print(paste("Downloading Encounters: ", as.character(rowCnt), " encounters", sep=""))
 
     encountersAll = rbindlist(encountersAll, use.names=TRUE, fill=TRUE, idcol=FALSE)
     return(encountersAll)
@@ -117,7 +157,7 @@ import_med_admin <- function(pids){
         }
     }
 
-    print(paste("Download Meds: ", as.character(rowCnt), " medications", sep=""))
+    print(paste("Downloading Meds: ", as.character(rowCnt), " medications", sep=""))
 
     medsAll = rbindlist(medsAll, use.names=TRUE, fill=TRUE, idcol=FALSE)
     return(medsAll)

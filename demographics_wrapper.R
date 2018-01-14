@@ -1,17 +1,17 @@
 library("parallel")
 library("RSQLite")
 
-connect_sqlite_diagnoses <- function(){
-    con = dbConnect(drv=SQLite(), dbname="/scratch/leeschro_armis/patnatha/DiagComp/DiagComp.db")
+connect_sqlite_demos <- function(){
+    con = dbConnect(drv=SQLite(), dbname="/scratch/leeschro_armis/patnatha/Demographics/Demographics.db")
     return(con)
 }
 
-async_query_diagnoses <- function(pids, con){
+async_query_demos <- function(pids, con){
     out <- tryCatch(
         if(length(pids) > 0){
             #Build the query and execute
-            sql = paste('SELECT * FROM DiagComp WHERE PatientID IN ("', paste(pids, collapse="\",\""), '")', sep="")
-            con = connect_sqlite_diagnoses()
+            sql = paste('SELECT * FROM Demographics WHERE PatientID IN ("', paste(pids, collapse="\",\""), '")', sep="")
+            con = connect_sqlite_demos()
             myQuery = dbGetQuery(con, sql)
             dbDisconnect(con)
             return(myQuery)
@@ -23,7 +23,7 @@ async_query_diagnoses <- function(pids, con){
     )
 }
 
-get_diagnoses <- function(pids){
+get_demographics <- function(pids){
     if(length(pids) > 0){
         # Chunkify
         toChunk = 1000
@@ -51,8 +51,8 @@ get_diagnoses <- function(pids){
             finalList[[length(finalList) + 1]] = tmpList
         }
 
-        print(paste("Download Diagnoses: ", as.character(length(pids)), " pids",sep=""))
-        allData = mclapply(finalList, async_query_diagnoses, con, mc.cores = corecnt)
+        print(paste("Download Demographic: ", as.character(length(pids)), " pids",sep=""))
+        allData = mclapply(finalList, async_query_demos, con, mc.cores = corecnt)
         return(allData)
     }
     else{
