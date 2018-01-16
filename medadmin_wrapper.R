@@ -10,7 +10,7 @@ async_query_meds <- function(pids, con){
     out <- tryCatch(
         if(length(pids) > 0){
             #Build the query and execute
-            sql = paste('SELECT * FROM MedAdmin WHERE PatientID IN ("', paste(pids, collapse="\",\""), '")', sep="")
+            sql = paste('SELECT PatientID, EncounterID, MedicationTermID, MedicationName, DoseStartTime FROM MedAdmin WHERE PatientID IN ("', paste(pids, collapse="\",\""), '")', sep="")
             con = connect_sqlite_meds()
             myQuery = dbGetQuery(con, sql)
             dbDisconnect(con)

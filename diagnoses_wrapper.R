@@ -10,7 +10,7 @@ async_query_diagnoses <- function(pids, con){
     out <- tryCatch(
         if(length(pids) > 0){
             #Build the query and execute
-            sql = paste('SELECT * FROM DiagComp WHERE PatientID IN ("', paste(pids, collapse="\",\""), '")', sep="")
+            sql = paste('SELECT PatientID, EncounterID, TermCodeMapped, TermNameMapped, Lexicon FROM DiagComp WHERE PatientID IN ("', paste(pids, collapse="\",\""), '")', sep="")
             con = connect_sqlite_diagnoses()
             myQuery = dbGetQuery(con, sql)
             dbDisconnect(con)

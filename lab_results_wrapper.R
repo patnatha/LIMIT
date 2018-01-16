@@ -10,7 +10,7 @@ async_query_labs <- function(pids, con){
     out <- tryCatch(
         if(length(pids) > 0){
             #Build the query and execute
-            sql = paste('SELECT * FROM LabResults WHERE PatientID IN ("', paste(pids, collapse="\",\""), '") AND HILONORMAL_FLAG != "N" AND HILONORMAL_FLAG != ""', sep="")
+            sql = paste('SELECT PatientID, EncounterID, COLLECTION_DATE, ORDER_CODE, RESULT_CODE, RESULT_NAME, VALUE, HILONORMAL_FLAG, HILONORMAL_COMMENT FROM LabResults WHERE PatientID IN ("', paste(pids, collapse="\",\""), '") AND HILONORMAL_FLAG != "N" AND HILONORMAL_FLAG != ""', sep="")
             con = connect_sqlite_lab()
             myQuery = dbGetQuery(con, sql)
             dbDisconnect(con)
