@@ -72,27 +72,6 @@ if(!dir.exists(outputDir)){
     stop()
 }
 
-#Check to see if the code type had been selected
-if(!is.na(codeType)){
-    # Run algorithm against administered medicines
-    if(codeType == 'med'){
-        icdValues = medValues
-    }
-    else if(codeType == 'lab'){
-        icdValues = otherLabs
-    }
-    else if(codeType == 'icd'){
-        icdValues = icdValues
-    }
-    else{
-        print("ERROR: Input code type is not valid")
-        stop()
-    }
-}else{
-    print("ERROR: A code type has not been selected [icd|med|lab]")
-    stop()
-}
-
 #Check to make sure the name parameter was set
 if(is.na(outputName)){
     outputName = strsplit(basename(inputData), "[.]")[[1]][[1]]
@@ -126,6 +105,27 @@ if(is.na(inputData) || !file.exists(inputData)){
 }
 print(paste("Loading Data: ", inputData, sep=""))
 load(inputData);
+
+#Check to see if the code type had been selected
+if(!is.na(codeType)){
+    # Run algorithm against administered medicines
+    if(codeType == 'med'){
+        icdValues = medValues
+    }
+    else if(codeType == 'lab'){
+        icdValues = otherLabs
+    }
+    else if(codeType == 'icd'){
+        icdValues = icdValues
+    }
+    else{
+        print("ERROR: Input code type is not valid")
+        stop()
+    }
+}else{
+    print("ERROR: A code type has not been selected [icd|med|lab]")
+    stop()
+}
 
 #Save all the parameters to a structure
 parameters<-1:1

@@ -103,8 +103,8 @@ print(paste("Unique Patient Count: ", length(unique(cleanLabValues$pid))))
 
 #Write the results to file if exists
 if(writeToFile){
-    newLine = c(basename(inputData), attributes(parameters)$icd_pre_limit, length(cleanLabValues$l_val), lowerRefLowLimit, lowerRefUpperLimit, upperRefLowLimit, upperRefUpperLimit, mean(cleanLabValues$l_val, na.rm = TRUE))
-    write(newLine,ncolumns=8,sep=",",file=theResultFile, append=TRUE)
+    newLine = c(basename(inputData), attributes(parameters)$icd_pre_limit, length(cleanLabValues$l_val), lowerRefLowLimit, lowerRefUpperLimit, upperRefLowLimit, upperRefUpperLimit, mean(cleanLabValues$l_val, na.rm = TRUE), median(cleanLabValues$l_val, na.rm = TRUE), refConf)
+    write(newLine,ncolumns=10,sep=",",file=theResultFile, append=TRUE)
 }
 
 if(toGraph){

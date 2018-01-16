@@ -220,13 +220,13 @@ remove(patient_demo)
 
 #Select on Male or Female
 if(!is.na(includeSex)){
-    print("Filter Patient Info Based on Sex")
+    print(paste("Filter Patient Info Based on Sex: ", includeSex, sep=""))
     patient_bday = patient_bday %>% filter(GenderCode == includeSex)
 }
 
 #Select on Include Race
 if(!is.na(includeRace)){
-    print("Filter Patient Info Based on Race")
+    print(paste("Filter Patient Info Based on Race: ", includeRace, sep=""))
     patient_bday = patient_bday %>% filter(RaceCode == includeRace)
 }
 
@@ -243,7 +243,7 @@ labValues = labValues %>% mutate(timeOffset = as.numeric(
 
 #Filter labValues based on age bias
 if(!is.na(ageBias[[1]])){
-    print("LV: Extract age range")
+    print(paste("LV: Extract age range: ", ageBias[[1]], " - ", ageBias[[2]], " days", sep=""))
     labValues = labValues %>% filter(timeOffset >= ageBias[[1]] & timeOffset < ageBias[[2]])
 }
 
@@ -254,7 +254,7 @@ if(!is.na(toInclude)){
     pidSampleMax = 300000
     uniquePIDs = unique(labValues$PatientID)
     if(length(uniquePIDs) > pidSampleMax){
-        print(paste("LV: Down Sample PIDs, ", length(uniquePIDs), " => ", pidSampleMax, sep=""))
+        print(paste("LV: Down Sample PIDs, ", length(uniquePIDs), " => ", format(pidSampleMax, scientific=FALSE), sep=""))
         randomlySelectedPIDs = sample(uniquePIDs, pidSampleMax)
         labValues = labValues %>% filter(PatientID %in% randomlySelectedPIDs)
     }
@@ -293,7 +293,7 @@ if(!is.na(toInclude)){
         }
     }
 
-    print(paste("Extracted Labs:", preFilLen, '=>', nrow(labValues), sep=" "))
+    print(paste("Extracted Labs", preFilLen, '=>', nrow(labValues), ":", toInclude, sep=" "))
 }
 
 print("LV: Select columns for output")

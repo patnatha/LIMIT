@@ -16,7 +16,7 @@ thesex="male"
     theage="0D_14D"
     run_em_prepare
 
-    theage="14D_712D"
+    theage="14D_730D"
     run_em_prepare
 
     theage="2Y_10Y"
@@ -32,13 +32,16 @@ thesex="male"
     run_em_prepare
 
     theage="17Y_19Y"
+    run_em_prepare
+
+    theage="19Y_150Y"
     run_em_prepare
 
 thesex="female"
     theage="0D_14D"
     run_em_prepare
 
-    theage="14D_712D"
+    theage="14D_730D"
     run_em_prepare
 
     theage="2Y_10Y"
@@ -55,4 +58,8 @@ thesex="female"
 
     theage="17Y_19Y"
     run_em_prepare
+
+    theage="19Y_150Y"
+    run_em_prepare
+
 
