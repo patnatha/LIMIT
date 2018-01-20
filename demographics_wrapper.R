@@ -6,7 +6,7 @@ connect_sqlite_demos <- function(){
     return(con)
 }
 
-async_query_demos <- function(pids, con){
+async_query_demos <- function(pids){
     out <- tryCatch(
         if(length(pids) > 0){
             #Build the query and execute

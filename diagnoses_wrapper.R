@@ -6,7 +6,7 @@ connect_sqlite_diagnoses <- function(){
     return(con)
 }
 
-async_query_diagnoses <- function(pids, con){
+async_query_diagnoses <- function(pids){
     out <- tryCatch(
         if(length(pids) > 0){
             #Build the query and execute

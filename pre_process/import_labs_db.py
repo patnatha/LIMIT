@@ -2,6 +2,8 @@ import os
 import sys
 import sqlite3
 import time
+import math
+from datetime import datetime, timedelta, date
 
 if(len(sys.argv) != 2):
     print("ERROR CMD LINE OMISSION")
@@ -11,6 +13,8 @@ if(sys.argv[1] == "INSERT"):
     whichProc = "INSERT"
 elif(sys.argv[1] == "INDEX"):
     whichProc = "INDEX"
+elif(sys.argv[1] == "TIMEIT"):
+    whichProc = "TIMEIT"
 else:
     print("ERROR CMD LINE INPUT")
     sys.exit(1)
@@ -117,5 +121,85 @@ elif(whichProc == "INDEX"):
     sql = "CREATE INDEX hilownormal_flag ON " + tablename + "(HILONORMAL_FLAG); "
     c.execute(sql)
     conn.commit()
+elif(whichProc == "TIMEIT"):
+    se_exist = False
+    for row in c.execute("PRAGMA table_info(" + tablename + ")"):
+        if(row[1] == "since_epoch"): se_exist = True
+    if(not se_exist):
+        print("ADD since_epoch COLUMN")
+        sql = "ALTER TABLE " + tablename + " ADD COLUMN since_epoch INTEGER DEFAULT NULL"
+        c.execute(sql)
+        conn.commit()
+
+    cdk_exist = False
+    se_index_exists = False
+    for row in c.execute("SELECT name FROM sqlite_master WHERE type='index' ORDER BY name;"):
+        if(row[0] == "collection_date_key"): cdk_exist = True
+        if(row[0] == "since_epoch_key"): se_index_exists = True
+
+    if(not cdk_exist):
+        print("ADD INDEX ON collection_date_key")
+        sql = "CREATE INDEX collection_date_key ON " + tablename + "(COLLECTION_DATE);"
+        c.execute(sql)
+        conn.commit()
+
+    currentIteration = 1
+
+    #Iterate over the entire table day by day
+    def daterange(start_date, end_date):
+        for n in range(int ((end_date - start_date).days)):
+            yield start_date + timedelta(n)
+    start_date = date(2000, 04, 01) # This is constant from table
+    end_date = date(2017, 11, 26) # This is constant from table
+    last_date = None
+    for single_date in daterange(start_date, end_date):
+        if(last_date == None):
+            last_date = single_date.strftime("%Y-%m-%d")
+            continue
+        current_date = single_date.strftime("%Y-%m-%d")
+
+        #Query a group of collection_dates to update
+        stime = time.time()
+        sql = "SELECT COLLECTION_DATE, since_epoch FROM LabResults WHERE COLLECTION_DATE >= \"" + last_date + "\" AND COLLECTION_DATE < \"" + current_date + "\""
+        toUpdate = list()
+        uniqCollDate = dict()
+        for row in c.execute(sql):
+            #Get the date and convert to datetime object
+            coll_date = row[0]
+            cse = row[1]
+            if(cse == None and coll_date not in uniqCollDate):
+                datetimeobj = datetime.strptime(coll_date[:-1], '%Y-%m-%d %H:%M:%S.%f')
+                timeSinceEpoch = int(math.floor((datetimeobj - datetime.utcfromtimestamp(0)).total_seconds() / (3600 * 24)))
+
+                uniqCollDate[coll_date] = 1
+                toUpdate.append([timeSinceEpoch, coll_date])
+    
+        last_date = current_date
+
+        #Commit every group
+        print "To Update:", len(toUpdate), "records"
+        if(len(toUpdate) > 0):
+            cup = conn.cursor()
+            cup.executemany("UPDATE LabResults SET since_epoch = ? WHERE COLLECTION_DATE = ?", toUpdate)
+            conn.commit()
+            cup.close()
+        print "Updated (", currentIteration, "):", round(time.time() - stime, 2), "secs"
+
+        if(currentIteration == 1000):
+            sys.exit(1)
+        if(currentIteration % 365 == 0):
+            f = open("currentIter.txt", "w")
+            f.write(current_date)
+            f.close()
+        currentIteration = currentIteration + 1
+
+
+    print("ADD INDEX ON since_epoch_key")
+    if(not se_index_exists):
+        sql = "CREATE INDEX since_epoch_key ON " + tablename + "(since_epoch);"
+        c.execute(sql)
+        conn.commit()
+
+#Close the connection
 conn.close()
 

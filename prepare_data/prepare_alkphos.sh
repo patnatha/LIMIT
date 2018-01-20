@@ -8,7 +8,7 @@ outdir="${preparedir}alk_phos_5_years/"
 mkdir -p $outdir
 
 #Set basic variables
-incGrp="all"
+incGrp="outpatient"
 therace="all"
 indir="alk_phos_5_years"
 

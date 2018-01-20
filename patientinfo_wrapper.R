@@ -6,7 +6,7 @@ connect_sqlite_pinfo <- function(){
     return(con)
 }
 
-async_query_pinfo <- function(pids, con){
+async_query_pinfo <- function(pids){
     out <- tryCatch(
         if(length(pids) > 0){
             #Build the query and execute

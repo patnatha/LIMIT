@@ -6,11 +6,11 @@ connect_sqlite_enc <- function(){
     return(con)
 }
 
-async_query_encs <- function(pids, con){
+async_query_encs <- function(pids){
     out <- tryCatch(
         if(length(pids) > 0){
             #Build the query and execute
-            sql = paste('SELECT PatientID, EncounterID, AdmitDate, PatientClassCode,  FROM EncountersAll WHERE PatientID IN ("', paste(pids, collapse="\",\""), '")', sep="")
+            sql = paste('SELECT PatientID, EncounterID, AdmitDate, PatientClassCode FROM EncountersAll WHERE PatientID IN ("', paste(pids, collapse="\",\""), '")', sep="")
             con = connect_sqlite_enc()
             myQuery = dbGetQuery(con, sql)
             dbDisconnect(con)

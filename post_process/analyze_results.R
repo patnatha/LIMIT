@@ -63,7 +63,7 @@ horn.outliers = function(data){
 runs=1
 outliered = horn.outliers(cleanLabValues)
 print(paste("Horn Outliers: ", runs, " (", nrow(cleanLabValues), " - ", nrow(outliered), ")", sep=""))
-while(nrow(outliered) != nrow(cleanLabValues) & runs < 10){
+while(nrow(outliered) != nrow(cleanLabValues) & runs < 3){
     cleanLabValues = outliered
     outliered = horn.outliers(cleanLabValues)
     runs=runs+1
@@ -91,9 +91,13 @@ bootresultupper = boot.ci(bootresult, conf = limitConf, type = "basic", index = 
 
 #Get the upper and lower limits for limits for displaying
 lowerRefLowLimit = bootresultlower$basic[4]
+if(is.null(lowerRefLowLimit)){ lowerRefLowLimit = "NA" }
 lowerRefUpperLimit = bootresultlower$basic[5]
+if(is.null(lowerRefUpperLimit)){ lowerRefUpperLimit = "NA" }
 upperRefLowLimit = bootresultupper$basic[4]
+if(is.null(upperRefLowLimit)){ upperRefLowLimit = "NA" }
 upperRefUpperLimit = bootresultupper$basic[5]
+if(is.null(upperRefUpperLimit)){ upperRefUpperLimit = "NA" }
 
 print(paste("Lab Values Parametric Quartiles: ", paste(round(((1 - refConf)/2.0)*100, digits=1), "% <=CI=> ", round(100-(((1 - refConf)/2.0)*100), digits=1),"%: (", lowerRefLowLimit, "-", lowerRefUpperLimit, ") <=> (", upperRefLowLimit, "-", upperRefUpperLimit, ")", sep="")), sep="")
 
@@ -103,8 +107,10 @@ print(paste("Unique Patient Count: ", length(unique(cleanLabValues$pid))))
 
 #Write the results to file if exists
 if(writeToFile){
-    newLine = c(basename(inputData), attributes(parameters)$icd_pre_limit, length(cleanLabValues$l_val), lowerRefLowLimit, lowerRefUpperLimit, upperRefLowLimit, upperRefUpperLimit, mean(cleanLabValues$l_val, na.rm = TRUE), median(cleanLabValues$l_val, na.rm = TRUE), refConf)
-    write(newLine,ncolumns=10,sep=",",file=theResultFile, append=TRUE)
+    newLine = c(basename(inputData), attributes(parameters)$icd_pre_limit, length(cleanLabValues$l_val), lowerRefLowLimit, lowerRefUpperLimit, upperRefLowLimit, upperRefUpperLimit, mean(cleanLabValues$l_val, na.rm = TRUE), median(cleanLabValues$l_val, na.rm = TRUE), refConf, 
+    quantile(cleanLabValues$l_val, c((1 - refConf)/2.0), na.rm = TRUE), 
+    quantile(cleanLabValues$l_val, c(1-((1 - refConf)/2.0)), na.rm = TRUE))
+    write(newLine,ncolumns=12,sep=",",file=theResultFile, append=TRUE)
 }
 
 if(toGraph){

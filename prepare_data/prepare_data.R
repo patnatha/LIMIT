@@ -4,7 +4,7 @@ source("../import_files.R")
 #Parse input from command line
 library(optparse)
 option_list <- list(
-    make_option("--input", type="character", default="", help="directory to load data from"),
+    make_option("--input", type="character", default=NA, help="directory to load data from"),
     make_option("--output", type="character", default="/scratch/leeschro_armis/patnatha/prepared_data/", help="filepath output"),
     make_option("--name", type="character", default="", help="name of this set analysis"),
     make_option("--age", type="character", default="", help="enter range of ages separate by _"),
@@ -14,10 +14,10 @@ option_list <- list(
 )
 parser <- OptionParser(usage="%prog [options] file", option_list=option_list)
 args <- parse_args(parser)
-input_dir = args[['input']]
+input_val = args[['input']]
 
 #Calculate the file size
-filesize<-system(paste("ls -l ", input_dir, " | awk '{ total += $5 }; END { print total }'", sep=""), ignore.stderr = TRUE, intern = TRUE)
+filesize<-system(paste("ls -l ", input_val, " | awk '{ total += $5 }; END { print total }'", sep=""), ignore.stderr = TRUE, intern = TRUE)
 print(paste("Total Filesize: ", round(as.double(filesize) / (1024.0 * 1024.0 * 1024.0), digit=2), " GB", sep=""))
 
 #Parse the input race value
@@ -168,7 +168,7 @@ if(toInclude != ""){
 #Parse the name from input if exists
 if(args[["name"]] == ""){
     #Build the filename
-    theBasename = basename(input_dir)
+    theBasename = basename(input_val)
 
     #Add the inclusion race
     if(!is.na(race)){
@@ -204,7 +204,16 @@ if(file.exists(output_filename)){
 
 #Load up the lab values data set
 print("Loading Lab Values")
-labValues = import_lab_values(input_dir)
+if(!is.na(input_val)){
+    input_val = strsplit(input_val, ",")[[1]]
+}
+else{
+    print("ERROR: no input analyte")
+    stop()
+}
+startDate = unclass(as.Date("2013-01-01"))
+endDate = unclass(as.Date("2018-01-01"))
+labValues = import_lab_values(input_val, startDate, endDate)
 
 #Load up the Patient Info
 print("Loading Patient B-Day")
@@ -361,7 +370,7 @@ medValues = medValues %>% mutate(timeOffset =
                                  as.Date(DOB)))
 
 print("MED: Select columns for output")
-medValues = medValues %>% select(pid, icd, icd_name, timeOffset, EncounterID) %>% as.data.frame()
+medValues = medValues %>% select(pid, icd, icd_name, timeOffset, EncounterID)
 
 print("SAVING RESULTS")
 save(labValues, icdValues, medValues, otherLabs, file=output_filename)

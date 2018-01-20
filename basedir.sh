@@ -1,9 +1,12 @@
-basedir="/scratch/leeschro_armis/patnatha/"
+homedir="/scratch/leeschro_armis/patnatha/"
 
-preparedir="${basedir}prepared_data/"
+basedir="${homedir}raw_data/"
+mkdir -p "${basdir}"
+
+preparedir="${homedir}prepared_data/"
 mkdir -p "${preparedir}"
 
-limitdir="${basedir}limit_results/"
+limitdir="${homedir}limit_results/"
 mkdir -p "${limitdir}"
 
 run_dir(){
