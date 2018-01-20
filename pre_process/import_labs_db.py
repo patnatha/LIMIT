@@ -149,7 +149,8 @@ elif(whichProc == "TIMEIT"):
     def daterange(start_date, end_date):
         for n in range(int ((end_date - start_date).days)):
             yield start_date + timedelta(n)
-    start_date = date(2000, 04, 01) # This is constant from table
+    #start_date = date(2000, 04, 01) # This is constant from table
+    start_date = date(2002, 04, 01)
     end_date = date(2017, 11, 26) # This is constant from table
     last_date = None
     for single_date in daterange(start_date, end_date):
@@ -174,10 +175,8 @@ elif(whichProc == "TIMEIT"):
                 uniqCollDate[coll_date] = 1
                 toUpdate.append([timeSinceEpoch, coll_date])
     
-        last_date = current_date
-
         #Commit every group
-        print "To Update:", len(toUpdate), "records"
+        print "To Update:", len(toUpdate), "records", last_date, "<=>", current_date
         if(len(toUpdate) > 0):
             cup = conn.cursor()
             cup.executemany("UPDATE LabResults SET since_epoch = ? WHERE COLLECTION_DATE = ?", toUpdate)
@@ -185,14 +184,15 @@ elif(whichProc == "TIMEIT"):
             cup.close()
         print "Updated (", currentIteration, "):", round(time.time() - stime, 2), "secs"
 
-        if(currentIteration == 1000):
-            sys.exit(1)
         if(currentIteration % 365 == 0):
             f = open("currentIter.txt", "w")
             f.write(current_date)
             f.close()
         currentIteration = currentIteration + 1
+        last_date = current_date
 
+        if(currentIteration == (365 * 4)):
+            sys.exit(1)
 
     print("ADD INDEX ON since_epoch_key")
     if(not se_index_exists):
