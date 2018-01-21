@@ -15,16 +15,16 @@ thesex="both"
 therace="all"
 theage="adult"
 
-indir="bun_5_years"
+inval="UN"
 run_em_prepare
-indir="chloride_5_years"
+inval="CHLOR"
 run_em_prepare
-indir="co2_5_years"
+inval="CO2"
 run_em_prepare
-indir="creatinine_5_years"
+inval="CREAT"
 run_em_prepare
-indir="potassium_5_years"
+inval="POT,POTPL"
 run_em_prepare
-indir="sodium_5_years"
+inval="SOD"
 run_em_prepare
 

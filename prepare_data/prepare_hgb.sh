@@ -4,14 +4,15 @@ sed -i 's/ppn=[0-9]\+/ppn=4/' prepare_data.pbs
 sed -i 's/pmem=[0-9]\+gb/pmem=16gb/' prepare_data.pbs
 
 #Set the input directory
-indir="hgb_4_years"
+inval="HGB,HGBN"
 
 #Set the output directories
-toutdir="${preparedir}${indir}/"
+indir=`echo $inval | sed -e 's/,/_/g'`
+toutdir="${preparedir}${inval}/"
 mkdir -p $toutdir
-toutdirtwogrps="${toutdir}${indir}_2_groups"
+toutdirtwogrps="${toutdir}${inval}_2_groups/"
 mkdir -p $toutdirtwogrps
-toutdirtengrps="${toutdir}${indir}_10_y_range"
+toutdirtengrps="${toutdir}${inval}_10_y_range/"
 mkdir -p $toutdirtengrps
 
 #Set the include grp

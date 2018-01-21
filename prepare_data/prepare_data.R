@@ -1,4 +1,5 @@
 library("RSQLite")
+library("stringr")
 source("../import_files.R")
 
 #Parse input from command line
@@ -17,8 +18,8 @@ args <- parse_args(parser)
 input_val = args[['input']]
 
 #Calculate the file size
-filesize<-system(paste("ls -l ", input_val, " | awk '{ total += $5 }; END { print total }'", sep=""), ignore.stderr = TRUE, intern = TRUE)
-print(paste("Total Filesize: ", round(as.double(filesize) / (1024.0 * 1024.0 * 1024.0), digit=2), " GB", sep=""))
+#filesize<-system(paste("ls -l ", input_val, " | awk '{ total += $5 }; END { print total }'", sep=""), ignore.stderr = TRUE, intern = TRUE)
+#print(paste("Total Filesize: ", round(as.double(filesize) / (1024.0 * 1024.0 * 1024.0), digit=2), " GB", sep=""))
 
 #Parse the input race value
 race=tolower(args[['race']])
@@ -168,7 +169,7 @@ if(toInclude != ""){
 #Parse the name from input if exists
 if(args[["name"]] == ""){
     #Build the filename
-    theBasename = basename(input_val)
+    theBasename = basename(str_replace(input_val, ",", "_"))
 
     #Add the inclusion race
     if(!is.na(race)){
@@ -214,6 +215,7 @@ else{
 startDate = unclass(as.Date("2013-01-01"))
 endDate = unclass(as.Date("2018-01-01"))
 labValues = import_lab_values(input_val, startDate, endDate)
+#labValues = import_lab_vlaues(input_val)
 
 #Load up the Patient Info
 print("Loading Patient B-Day")

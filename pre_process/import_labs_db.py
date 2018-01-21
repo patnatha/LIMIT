@@ -150,7 +150,7 @@ elif(whichProc == "TIMEIT"):
         for n in range(int ((end_date - start_date).days)):
             yield start_date + timedelta(n)
     #start_date = date(2000, 04, 01) # This is constant from table
-    start_date = date(2002, 04, 01)
+    start_date = date(2013, 9, 19)
     end_date = date(2017, 11, 26) # This is constant from table
     last_date = None
     for single_date in daterange(start_date, end_date):
@@ -191,7 +191,7 @@ elif(whichProc == "TIMEIT"):
         currentIteration = currentIteration + 1
         last_date = current_date
 
-        if(currentIteration == (365 * 4)):
+        if(currentIteration == (365 * 2)):
             sys.exit(1)
 
     print("ADD INDEX ON since_epoch_key")

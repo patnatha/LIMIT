@@ -15,12 +15,12 @@ thesex="both"
 therace="all"
 theage="adult"
 
-indir="calcium_5_years"
+inval="CAL"
 run_em_prepare
 
-indir="magnesium_5_years"
+inval="MAG"
 run_em_prepare
 
-indir="phosphate_5_years"
+inval="PHOS"
 run_em_prepare
 
