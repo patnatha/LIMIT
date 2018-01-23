@@ -1,3 +1,5 @@
+source ../basedir.sh
+
 read -r -p '=====Type a Result Code=====: ' var
 inval=$var
 
@@ -76,9 +78,9 @@ else
     exit
 fi
 
-outdir="/scratch/leeschro_armis/patnatha/prepared_data/${rawfile}_${therace}_${thesex}_${theage}"
+outdir="${preparedir}${rawfile}_${therace}_${thesex}_${theage}"
 mkdir $outdir
 
 fincmd="qsub prepare_data.pbs -F \"--input $inval --sex $thesex --race $therace --include $incGrp --age $theage --output ${outdir}\""
-eval $fincmd
+echo $fincmd
 
