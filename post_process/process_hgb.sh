@@ -1,6 +1,6 @@
 source ../basedir.sh
 
-whichdir="hgb_5_years"
+whichdir="HGB"
 
 #Analyze the decade range
 tolistpath="${limitdir}${whichdir}/${whichdir}_10_y_range/"
