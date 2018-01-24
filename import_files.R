@@ -56,7 +56,7 @@ import_lab_values <- function(resultCodes, startEpoch, endEpoch){
 
     labsAll = rbindlist(labsAll, use.names=TRUE, fill=TRUE, idcol=FALSE)
     return(labsAll)
-}*/
+}
 
 #import_lab_values <- function(input_dir){ return(import_files_fxn(file.path(input_dir, "LabResults"))) }
 

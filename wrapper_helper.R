@@ -39,7 +39,7 @@ parallelfxn_large <- function(theList, asyncFxn){
 }
 
 parallelfxn_labs <- function(resultCodes, asyncFxn, startEpoch, endEpoch){
-    toChunk = (endEpoch - startEpoch) / corcnt
+    toChunk = (endEpoch - startEpoch) / corecnt
     theList=seq(floor(startEpoch), ceiling(endEpoch), floor(toChunk))
     finalList = list()
     lastX = NA

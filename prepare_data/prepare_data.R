@@ -17,10 +17,6 @@ parser <- OptionParser(usage="%prog [options] file", option_list=option_list)
 args <- parse_args(parser)
 input_val = args[['input']]
 
-#Calculate the file size
-#filesize<-system(paste("ls -l ", input_val, " | awk '{ total += $5 }; END { print total }'", sep=""), ignore.stderr = TRUE, intern = TRUE)
-#print(paste("Total Filesize: ", round(as.double(filesize) / (1024.0 * 1024.0 * 1024.0), digit=2), " GB", sep=""))
-
 #Parse the input race value
 race=tolower(args[['race']])
 includeRace=NA
@@ -207,15 +203,13 @@ if(file.exists(output_filename)){
 print("Loading Lab Values")
 if(!is.na(input_val)){
     input_val = strsplit(input_val, ",")[[1]]
-}
-else{
+} else {
     print("ERROR: no input analyte")
     stop()
 }
 startDate = unclass(as.Date("2013-01-01"))
 endDate = unclass(as.Date("2018-01-01"))
 labValues = import_lab_values(input_val, startDate, endDate)
-#labValues = import_lab_vlaues(input_val)
 
 #Load up the Patient Info
 print("Loading Patient B-Day")

@@ -1,6 +1,6 @@
 source ../basedir.sh
 
-sed -i 's/ppn=[0-9]\+/ppn=4/' prepare_data.pbs
+sed -i 's/ppn=[0-9]\+/ppn=8/' prepare_data.pbs
 sed -i 's/pmem=[0-9]\+gb/pmem=16gb/' prepare_data.pbs
 
 #Set the output directory
@@ -10,11 +10,12 @@ mkdir -p $outdir
 #Set basic variables
 incGrp="outpatient"
 therace="all"
-indir="ALK"
+inval="ALK"
 
 thesex="male"
     theage="0D_14D"
     run_em_prepare
+    exit
 
     theage="14D_730D"
     run_em_prepare

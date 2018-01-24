@@ -10,16 +10,14 @@ async_query_labs <- function(epochRange, resultCodes){
     out <- tryCatch(
         if(length(resultCodes) > 0){
             #Build the query and execute
-            sql = 'SELECT PatientID, EncounterID, COLLECTION_DATE, ACCESSION_NUMBER, ORDER_CODE, RESULT_CODE, RESULT_NAME, VALUE WHERE RESULT_CODE IN ("', paste(pids, collapse="\",\""), '") AND since_epoch > ' + epochRange[[1]] + ' AND since_epoch < ' + epochRange[[2]] 
-            print(sql)
-            return(NA)
+            sql = paste('SELECT PatientID, EncounterID, COLLECTION_DATE, ACCESSION_NUMBER, ORDER_CODE, RESULT_CODE, RESULT_NAME, VALUE FROM LabResults WHERE RESULT_CODE IN ("', paste(resultCodes, collapse='","'), '") AND since_epoch >= ', epochRange[1], ' AND since_epoch < ', epochRange[2], sep="") 
             con = connect_sqlite_lab()
             myQuery = dbGetQuery(con, sql)
             dbDisconnect(con)
             return(myQuery)
         }
     ,error=function(cond) {
-            message(cond)
+            message(paste("async_query_labs: ", cond, sep=""))
             return(NA)
         }
     )
@@ -36,7 +34,7 @@ async_query_abnormal_labs <- function(pids){
             return(myQuery)
         }
     ,error=function(cond) {
-            message(cond)
+            message(paste("async_query_abnormal_labs: ", cond, sep=""))
             return(NA)
         }
     )

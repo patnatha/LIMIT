@@ -26,7 +26,7 @@ else:
 #Edit this line below to upload a text file to a sqlite file
 txtfile = "/scratch/leeschro_armis/patnatha/EncountersAll/EncountersAll.txt"
 tablename = os.path.basename(os.path.splitext(txtfile)[0])
-dbfile = os.path.join(os.path.basename(txtfile), tablename + ".db")
+dbfile = os.path.join(os.path.dirname(txtfile), tablename + ".db")
 print(dbfile)
 
 conn = sqlite3.connect(dbfile)
@@ -144,8 +144,11 @@ elif(whichProc == "FIND_INPATIENTS"):
 
                 ic.execute("UPDATE " + tablename + " SET FirstED = \"" + curRec[3] + "\", EDCnt = " + str(curRec[4] + 1) + " WHERE PatientID = \"" + pid + "\"")
                 conn.commit()
-
     ic.close()
+
+    sql = "CREATE INDEX inpatient_cnt_key ON " + tablename + "(InpatientCnt)"
+    c.execute(sql)
+    conn.commit()
 
 c.close()
 conn.close()

@@ -215,8 +215,12 @@ elif(whichProc == "TIMEIT_EXT"):
         c = conn.cursor()
         c.executemany("UPDATE LabResults SET since_epoch = ? WHERE COLLECTION_DATE = ?", toUpdate)
         conn.commit()
-    c.close()
     print "Updated (since_epoch IS NULL):", round(time.time() - stime, 2), "secs"
+
+    sql = "CREATE INDEX since_epoch_result_code_key ON " + tablename + "(RESULT_CODE, since_epoch);"
+    c.execute(sql)
+    conn.commit()
+    c.close()
 
 #Close the connection
 conn.close()
