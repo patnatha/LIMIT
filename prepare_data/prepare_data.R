@@ -210,6 +210,7 @@ if(!is.na(input_val)){
 startDate = unclass(as.Date("2013-01-01"))
 endDate = unclass(as.Date("2018-01-01"))
 labValues = import_lab_values(input_val, startDate, endDate)
+save(labValues, file="temp.R")
 
 #Load up the Patient Info
 print("Loading Patient B-Day")
@@ -369,5 +370,13 @@ print("MED: Select columns for output")
 medValues = medValues %>% select(pid, icd, icd_name, timeOffset, EncounterID)
 
 print("SAVING RESULTS")
-save(labValues, icdValues, medValues, otherLabs, file=output_filename)
+parameters<-1:1
+attr(parameters, "resultCode") = input_val
+attr(parameters, "resultStart") = startDate
+attr(parameters, "resultEnd") = endDate
+attr(parameters, "race") = includeRace
+attr(parameters, "age") = ageBias
+attr(parameters, "sex") = includeSex
+
+save(parameters, labValues, icdValues, medValues, otherLabs, file=output_filename)
 

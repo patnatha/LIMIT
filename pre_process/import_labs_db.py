@@ -108,21 +108,43 @@ if(whichProc == "INSERT"):
         conn.commit()
 elif(whichProc == "INDEX"):
     print("Indexing")
-    sql = "CREATE INDEX pid_key ON " + tablename + "(PatientID);"
-    c.execute(sql)
-    conn.commit()
 
-    sql = "CREATE INDEX enc_key ON " + tablename + "(EncounterID); "
-    c.execute(sql)
-    conn.commit()
+    pid_key_exists = False
+    enc_key_exists = False
+    resc_key_exists = False
+    hlnf_key_exists = False
+    pid_hlnf_key_exists = False
+    for row in c.execute("SELECT name FROM sqlite_master WHERE type='index' ORDER BY name;"):
+        if(row[0] == "pid_key"): pid_key_exists = True
+        if(row[0] == "enc_key"): enc_key_exists = True
+        if(row[0] == "results_code_key"): resc_key_exists = True
+        if(row[0] == "hilownormal_flag"): hlnf_key_exists = True
+        if(row[0] == "pid_hlnf_key"): pid_hlnf_key_exists = True
 
-    sql = "CREATE INDEX results_code_key ON " + tablename + "(RESULT_CODE); "
-    c.execute(sql)
-    conn.commit()
+    if(not pid_key_exists):
+        sql = "CREATE INDEX pid_key ON " + tablename + "(PatientID);"
+        c.execute(sql)
+        conn.commit()
 
-    sql = "CREATE INDEX hilownormal_flag ON " + tablename + "(HILONORMAL_FLAG); "
-    c.execute(sql)
-    conn.commit()
+    if(not enc_key_exists):
+        sql = "CREATE INDEX enc_key ON " + tablename + "(EncounterID); "
+        c.execute(sql)
+        conn.commit()
+
+    if(not resc_key_exists):
+        sql = "CREATE INDEX results_code_key ON " + tablename + "(RESULT_CODE); "
+        c.execute(sql)
+        conn.commit()
+
+    if(not hlnf_key_exists):
+        sql = "CREATE INDEX hilownormal_flag ON " + tablename + "(HILONORMAL_FLAG); "
+        c.execute(sql)
+        conn.commit()
+
+    if(not pid_hlnf_key_exists):
+        sql = "CREATE INDEX pid_hlnf_key ON " + tablename + "(PatientID, HILONORMAL_FLAG)"
+        c.execute(sql)
+        conn.commit()
 elif(whichProc == "TIMEIT"):
     se_exist = False
     for row in c.execute("PRAGMA table_info(" + tablename + ")"):

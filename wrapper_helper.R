@@ -4,7 +4,10 @@ corecnt<-strtoi(system("nproc", ignore.stderr = TRUE, intern = TRUE))
 partition_incoming <- function(pids, toChunk = 1000){
     # Chunk by at least each core
     if(length(pids) / corecnt < toChunk){
-        toChunk = round(length(pids) / corecnt, digits=0)
+        toChunk = floor(length(pids) / corecnt)
+        if(toChunk == 0){
+            toChunk = 1
+        }
     }
 
     # Chunkify
@@ -39,16 +42,21 @@ parallelfxn_large <- function(theList, asyncFxn){
 }
 
 parallelfxn_labs <- function(resultCodes, asyncFxn, startEpoch, endEpoch){
-    toChunk = (endEpoch - startEpoch) / corecnt
-    theList=seq(floor(startEpoch), ceiling(endEpoch), floor(toChunk))
     finalList = list()
-    lastX = NA
-    for(x in theList){
-        if(!is.na(lastX)){
-            finalList[[length(finalList) + 1]] = c(lastX, x)
+    for(resultCode in resultCodes){
+        toChunk = 30
+        theList=seq(floor(startEpoch), ceiling(endEpoch), floor(toChunk))
+        if(theList[length(theList)] != endEpoch){
+            theList[length(theList) + 1] = endEpoch
         }
-        lastX = x
+        lastX = NA
+        for(x in theList){
+            if(!is.na(lastX)){
+                finalList[[length(finalList) + 1]] = c(resultCode, as.character(lastX), as.character(x))
+            }
+            lastX = x
+        }
     }
-    return(mclapply(finalList, asyncFxn, resultCodes, mc.cores = corecnt))
+    return(mclapply(finalList, asyncFxn, mc.cores = corecnt))
 }
 
