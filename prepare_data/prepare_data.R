@@ -22,7 +22,7 @@ race=tolower(args[['race']])
 includeRace=NA
 if(race == "" | race == "all"){
     includeRace = NA
-    race = NA
+    race = "all"
 } else if(race == "white"){
     includeRace = "C"
 } else if(race == "black"){
@@ -37,7 +37,7 @@ sex=tolower(args[['sex']])
 includeSex=NA
 if(sex == "" || sex == "both"){
     includeSex = NA
-    sex = NA
+    sex = "both"
 } else if (sex == "male"){
     includeSex = "M"
 } else if(sex == "female"){
@@ -210,7 +210,6 @@ if(!is.na(input_val)){
 startDate = unclass(as.Date("2013-01-01"))
 endDate = unclass(as.Date("2018-01-01"))
 labValues = import_lab_values(input_val, startDate, endDate)
-save(labValues, file="temp.R")
 
 #Load up the Patient Info
 print("Loading Patient B-Day")
@@ -372,11 +371,11 @@ medValues = medValues %>% select(pid, icd, icd_name, timeOffset, EncounterID)
 print("SAVING RESULTS")
 parameters<-1:1
 attr(parameters, "resultCode") = input_val
-attr(parameters, "resultStart") = startDate
-attr(parameters, "resultEnd") = endDate
-attr(parameters, "race") = includeRace
+attr(parameters, "resultStart") = as.Date(as.POSIXlt(startDate * 86400, origin="1970-01-01"))
+attr(parameters, "resultEnd") = as.Date(as.POSIXlt(endDate * 86400, origin="1970-01-01"))
+attr(parameters, "race") = race
 attr(parameters, "age") = ageBias
-attr(parameters, "sex") = includeSex
-
+attr(parameters, "sex") = sex
+attr(parameters, "group") = toInclude
 save(parameters, labValues, icdValues, medValues, otherLabs, file=output_filename)
 

@@ -133,8 +133,6 @@ import_other_abnormal_labs <- function(pids){
         rowCnt = rowCnt + nrow(x)
         if(colCnt == 0){
             colCnt = ncol(x)
-            print(colCnt)
-            print(x)
         }
     }
 
