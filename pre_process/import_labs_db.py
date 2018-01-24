@@ -15,6 +15,8 @@ elif(sys.argv[1] == "INDEX"):
     whichProc = "INDEX"
 elif(sys.argv[1] == "TIMEIT"):
     whichProc = "TIMEIT"
+elif(sys.argv[1] == "TIMEIT_EXT"):
+    whichProc = "TIMEIT_EXT"
 else:
     print("ERROR CMD LINE INPUT")
     sys.exit(1)
@@ -192,6 +194,29 @@ elif(whichProc == "TIMEIT"):
         sql = "CREATE INDEX since_epoch_key ON " + tablename + "(since_epoch);"
         c.execute(sql)
         conn.commit()
+elif(whichProc == "TIMEIT_EXT"):
+    stime = time.time()
+    sql = "SELECT COLLECTION_DATE, since_epoch FROM LabResults WHERE since_epoch IS NULL"
+    toUpdate = list()
+    uniqCollDate = dict()
+    for row in c.execute(sql):
+        coll_date = row[0]
+        cse = row[1]
+        if(cse == None and coll_date not in uniqCollDate):
+            datetimeobj = datetime.strptime(coll_date[:-1], '%Y-%m-%d %H:%M:%S.%f')
+            timeSinceEpoch = int(math.floor((datetimeobj - datetime.utcfromtimestamp(0)).total_seconds() / (3600 * 24)))
+
+            uniqCollDate[coll_date] = 1
+            toUpdate.append([timeSinceEpoch, coll_date])
+
+    #Commit the whole group
+    print "To Update:", len(toUpdate), "records"
+    if(len(toUpdate) > 0):
+        c = conn.cursor()
+        c.executemany("UPDATE LabResults SET since_epoch = ? WHERE COLLECTION_DATE = ?", toUpdate)
+        conn.commit()
+    c.close()
+    print "Updated (since_epoch IS NULL):", round(time.time() - stime, 2), "secs"
 
 #Close the connection
 conn.close()
