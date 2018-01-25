@@ -8,7 +8,7 @@ outdir="${preparedir}bilirubin/"
 mkdir -p $outdir
 
 #Set basic variables
-incGrp="outpatient_and_never_inpatient"
+incGrp="outpatient"
 therace="all"
 thesex="both"
 
@@ -25,6 +25,8 @@ run_em_prepare
 theage="1Y_11Y"
 run_em_prepare
 
+sed -i 's/ppn=[0-9]\+/ppn=8/' prepare_data.pbs
+sed -i 's/pmem=[0-9]\+gb/pmem=32gb/' prepare_data.pbs
 theage="12Y_150Y"
 run_em_prepare
 

@@ -39,8 +39,8 @@ run_em_limit(){
 }
 
 run_em_prepare(){
-    outdir="${outdir}${incGrp}/"
-    mkdir -p $outdir
-    eval "qsub prepare_data.pbs -F \"--input $inval --sex $thesex --race $therace --include $incGrp --age $theage --output ${outdir}\""
+    toutdir="${outdir}${incGrp}/"
+    mkdir -p $toutdir
+    eval "qsub prepare_data.pbs -F \"--input $inval --sex $thesex --race $therace --include $incGrp --age $theage --output ${toutdir}\""
 }
 

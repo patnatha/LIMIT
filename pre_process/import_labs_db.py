@@ -11,6 +11,8 @@ if(len(sys.argv) != 2):
 
 if(sys.argv[1] == "INSERT"):
     whichProc = "INSERT"
+elif(sys.argv[1] == "INSERT_RC"):
+    whichProc = "INSERT_RC"
 elif(sys.argv[1] == "INDEX"):
     whichProc = "INDEX"
 elif(sys.argv[1] == "TIMEIT"):
@@ -242,6 +244,27 @@ elif(whichProc == "TIMEIT_EXT"):
     sql = "CREATE INDEX since_epoch_result_code_key ON " + tablename + "(RESULT_CODE, since_epoch);"
     c.execute(sql)
     conn.commit()
+    c.close()
+elif(whichProc == "INSERT_RC"):
+    thefile = "RESULT_CODES.txt"
+    tablename = (thefile.split(".")[0]).lower()
+    print(thefile + " => " + tablename)
+    f = open(thefile)
+    for linenum, line in enumerate(f):
+        splitline = line.split('\t')
+        if(len(splitline) == 2):
+            splitline[1] = splitline[1].rstrip('\n')
+            print(splitline)
+            if(linenum == 0):
+                c.execute("DROP TABLE IF EXISTS " + tablename)
+                c.execute("CREATE TABLE " + tablename + " (" + (" TEXT, ").join(splitline) + " TEXT)")
+                conn.commit()
+            else:
+                c.execute("INSERT INTO " + tablename + " VALUES (\"" + ("\",\"").join(splitline) + "\")")
+   
+    c.execute("CREATE INDEX result_code_key ON " + tablename + "(RESULT_CODE)") 
+    conn.commit()
+    f.close()
     c.close()
 
 #Close the connection
