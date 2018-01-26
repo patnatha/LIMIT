@@ -12,11 +12,6 @@ incGrp="outpatient"
 therace="all"
 thesex="both"
 
-#RUN DBILI
-theage="all"
-inval="DBIL"
-run_em_prepare
-
 #RUN TBILI 
 inval="TBIL"
 theage="0D_30D"
@@ -30,3 +25,7 @@ sed -i 's/pmem=[0-9]\+gb/pmem=32gb/' prepare_data.pbs
 theage="12Y_150Y"
 run_em_prepare
 
+#RUN DBILI
+theage="all"
+inval="DBIL"
+run_em_prepare

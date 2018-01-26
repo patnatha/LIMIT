@@ -60,3 +60,20 @@ get_labs <-function(resultCodes, startEpoch, endEpoch){
     }
 }
 
+get_similar_lab_codes <- function(resultCodes){
+    if(length(resultCodes) > 0){
+        con = connect_sqlite_lab() 
+        outputList = list()
+        for(resultCode in resultCodes){
+            sql = paste("SELECT result_code FROM result_codes WHERE RESULT_CODE LIKE \"%", resultCode, "%\" OR RESULT_NAME LIKE \"%", resultCode,"%\"", sep="")
+            myQuery = dbGetQuery(con, sql)
+            outputList = rbind(outputList, myQuery)
+        }
+        dbDisconnect(con)
+        return(unique(outputList$RESULT_CODE))
+    }
+    else{
+        return(list())
+    }
+}
+

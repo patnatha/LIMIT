@@ -304,12 +304,12 @@ if(!is.na(toInclude)){
 print("LV: Select columns for output")
 labValues = rename(labValues, pid = PatientID)
 labValues = rename(labValues, l_val = VALUE)
-resultCode = unique(labValues$RESULT_CODE)
-orderCode = unique(labValues$ORDER_CODE)
 labValues = labValues %>% select(pid, l_val, timeOffset, EncounterID)
 
 print("Loading Diagnoses")
+start.time <- Sys.time()
 icdValues = import_diagnoses(unique(labValues$pid))
+print(paste("Loading Diagnoses Time: ", Sys.time() - start.time, " secs", sep=""))
 icdValues = inner_join(icdValues, patient_bday, by="PatientID")
 
 print("DX: Combine with encounters")
@@ -330,14 +330,23 @@ print("DX: Select columns for output")
 icdValues = icdValues %>% select(pid, icd, icd_name, timeOffset, EncounterID, Lexicon)
 
 print("Loading Other Labs")
+start.time <- Sys.time()
 otherLabs = import_other_abnormal_labs(unique(labValues$pid))
+print(paste("Loading Other Labs Time: ", Sys.time() - start.time, " secs", sep=""))
 otherLabs = inner_join(otherLabs, patient_bday, by="PatientID")
 
 print("Other Labs: Filter results on not similar to analyte")
-otherLabs = otherLabs %>% filter(!ORDER_CODE %in% orderCode)
-remove(orderCode)
-otherLabs = otherLabs %>% filter(!RESULT_CODE %in% resultCode)
-remove(resultCode)
+#Search the result codes database for simliar analytes
+similar_result_codes = import_similar_result_codes(input_val)
+#Hard code some of the analyte exclusion results
+if('HGB' %in% input_val){
+    similar_result_codes = c(similar_result_codes, "HCT", "HCRT", "RBC")
+}
+#Remove the result codes that are too similar
+if(length(similar_result_codes) > 0){
+    otherLabs = otherLabs %>% filter(!RESULT_CODE %in% similar_result_codes)
+}
+remove(similar_result_codes)
 
 print("Other Labs: Calculate Time-Offset")
 otherLabs = otherLabs %>% mutate(timeOffset =
@@ -349,11 +358,12 @@ otherLabs = otherLabs %>% mutate(icd = paste(HILONORMAL_FLAG, "_", RESULT_CODE, 
 otherLabs = otherLabs %>% mutate(icd_name = paste(HILONORMAL_COMMENT, "_", RESULT_NAME, sep=""))
 
 print("Other Labs: Select columns for output")
-otherLabs<-otherLabs %>% select(pid, icd, icd_name, timeOffset, ACCESSION_NUMBER)
+otherLabs<-otherLabs %>% select(pid, icd, icd_name, timeOffset)
 
 print("Loading Medications")
+start.time <- Sys.time()
 medValues = import_med_admin(unique(labValues$pid))
-medValues = medValues %>% filter(MedicationStatus == "Given")
+print(paste("Loading Medications Time: ", Sys.time() - start.time, " secs", sep=""))
 
 print("MED: Calculate Time-Offset")
 medValues = inner_join(medValues, patient_bday, by="PatientID")
@@ -377,5 +387,6 @@ attr(parameters, "race") = race
 attr(parameters, "age") = ageBias
 attr(parameters, "sex") = sex
 attr(parameters, "group") = toInclude
+arrt(parameters, "similar_resultCodes") = similar_result_codes
 save(parameters, labValues, icdValues, medValues, otherLabs, file=output_filename)
 
