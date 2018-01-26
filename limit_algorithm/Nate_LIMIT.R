@@ -128,7 +128,6 @@ if(!is.na(codeType)){
 }
 
 #Save all the parameters to a structure
-parameters<-1:1
 attr(parameters, "criticalProp") <- criticalProp
 attr(parameters, "criticalP") <- criticalP
 attr(parameters, "criticalHampel") <- criticalHampel
