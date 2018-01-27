@@ -313,7 +313,7 @@ print(paste("Loading Diagnoses Time: ", Sys.time() - start.time, " secs", sep=""
 icdValues = inner_join(icdValues, patient_bday, by="PatientID")
 
 print("DX: Combine with encounters")
-if(is.na(encountersAll)){ encountersAll = import_encounter_all(icdValues$PatientID) }
+if(typeof(encountersAll) == "list"){ encountersAll = import_encounter_all(icdValues$PatientID) }
 icdValues = inner_join(icdValues, encountersAll %>% filter(AdmitDate != ""), by=c("PatientID", "EncounterID"))
 remove(encountersAll)
 
@@ -342,11 +342,6 @@ similar_result_codes = import_similar_result_codes(input_val)
 if('HGB' %in% input_val){
     similar_result_codes = c(similar_result_codes, "HCT", "HCRT", "RBC")
 }
-#Remove the result codes that are too similar
-if(length(similar_result_codes) > 0){
-    otherLabs = otherLabs %>% filter(!RESULT_CODE %in% similar_result_codes)
-}
-remove(similar_result_codes)
 
 print("Other Labs: Calculate Time-Offset")
 otherLabs = otherLabs %>% mutate(timeOffset =
@@ -387,6 +382,6 @@ attr(parameters, "race") = race
 attr(parameters, "age") = ageBias
 attr(parameters, "sex") = sex
 attr(parameters, "group") = toInclude
-arrt(parameters, "similar_resultCodes") = similar_result_codes
-save(parameters, labValues, icdValues, medValues, otherLabs, file=output_filename)
+similarResultCodes = similar_result_codes
+save(parameters, labValues, icdValues, medValues, otherLabs, similarResultCodes, file=output_filename)
 

@@ -105,10 +105,14 @@ elif(whichProc == "INDEX"):
     pid_key_exists = False
     enc_key_exists = False
     pid_ms_key_exists = False
+    med_term_id_key_exists = False
+    pid_med_term_id_key_exists = False
     for row in c.execute("SELECT name FROM sqlite_master WHERE type='index' ORDER BY name;"):
         if(row[0] == "pid_key"): pid_key_exists = True
         if(row[0] == "enc_key"): enc_key_exists = True
         if(row[0] == "pid_med_status_key"): pid_ms_key_exists = True
+        if(row[0] == "med_term_id_key"): med_term_id_key_exists = True
+        if(row[0] == "pid_med_term_id_key"): pid_med_term_id_key_exists = True
 
     if(not pid_key_exists):
         sql = "CREATE INDEX pid_key ON " + tablename + "(PatientID);"
@@ -125,5 +129,14 @@ elif(whichProc == "INDEX"):
         c.execute(sql)
         conn.commit()
 
+    if(not med_term_id_key_exists):
+        sql = "CREATE INDEX med_term_id_key ON " + tablename + "(MedicationTermID)"
+        c.execute(sql)
+        conn.commit()
+
+    if(not pid_med_term_id_key_exists):
+        sql = "CREATE INDEX pid_med_term_id_key ON " + tablename + "(PatientID, MedicationTermID)"
+        c.execute(sql)
+        conn.commit()
 conn.close()
 

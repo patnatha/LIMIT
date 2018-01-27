@@ -232,6 +232,7 @@ if(singular_value == "most_recent"){
 origLabValuesLength = nrow(labValues)
 
 #Print the original results
+attr(parameters, "pre-limit_quantiles") = paste(as.numeric(quantile(labValues$l_val, c(0.025, 0.05, 0.95, 0.975), na.rm = TRUE)), collapse=" ") 
 print(paste("Lab Values Quartiles: ", paste(as.numeric(quantile(labValues$l_val, c(0.025, 0.05, 0.95, 0.975), na.rm = TRUE)), collapse=" ")))
 print(paste("Lab Values Count: ", origLabValuesLength))
 print(paste("Patient Count: ", length(unique(labValues$pid))))

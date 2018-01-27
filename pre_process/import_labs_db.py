@@ -116,12 +116,16 @@ elif(whichProc == "INDEX"):
     resc_key_exists = False
     hlnf_key_exists = False
     pid_hlnf_key_exists = False
+    rc_hlnf_key_exists = False
+    pid_rc_hlnf_key_exists = False
     for row in c.execute("SELECT name FROM sqlite_master WHERE type='index' ORDER BY name;"):
         if(row[0] == "pid_key"): pid_key_exists = True
         if(row[0] == "enc_key"): enc_key_exists = True
         if(row[0] == "results_code_key"): resc_key_exists = True
         if(row[0] == "hilownormal_flag"): hlnf_key_exists = True
         if(row[0] == "pid_hlnf_key"): pid_hlnf_key_exists = True
+        if(row[0] == "rc_hlnf_key"): rc_hlnf_key_exists = True
+        if(row[0] == "pid_rc_hlnf_key"): pid_rc_hlnf_key_exists = True
 
     if(not pid_key_exists):
         sql = "CREATE INDEX pid_key ON " + tablename + "(PatientID);"
@@ -145,6 +149,16 @@ elif(whichProc == "INDEX"):
 
     if(not pid_hlnf_key_exists):
         sql = "CREATE INDEX pid_hlnf_key ON " + tablename + "(PatientID, HILONORMAL_FLAG)"
+        c.execute(sql)
+        conn.commit()
+
+    if(not rc_hlnf_key_exists):
+        sql = "CREATE INDEX rc_hlnf_key ON " + tablename + "(RESULT_CODE, HILONORMAL_FLAG)"
+        c.execute(sql)
+        conn.commit()
+
+    if(not pid_rc_hlnf_key_exists):
+        sql = "CREATE INDEX pid_rc_hlnf_key ON " + tablename + "(PatientID, RESULT_CODE, HILONORMAL_FLAG)"
         c.execute(sql)
         conn.commit()
 elif(whichProc == "TIMEIT"):
