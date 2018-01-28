@@ -8,10 +8,10 @@ option_list <- list(
     make_option("--input", type="character", default=NA, help="directory to load data from"),
     make_option("--output", type="character", default="/scratch/leeschro_armis/patnatha/prepared_data/", help="filepath output"),
     make_option("--name", type="character", default="", help="name of this set analysis"),
-    make_option("--age", type="character", default="", help="enter range of ages separate by _"),
-    make_option("--sex", type="character", default="", help="enter Male|Female|Both"),
-    make_option("--race", type="character", default="", help="enter White|Black|All"),
-    make_option("--include", type="character", default="", help="groups to include")
+    make_option("--age", type="character", default=NA, help="enter range of ages separate by _"),
+    make_option("--sex", type="character", default=NA, help="enter Male|Female|Both"),
+    make_option("--race", type="character", default=NA, help="enter White|Black|All"),
+    make_option("--include", type="character", default=NA, help="groups to include")
 )
 parser <- OptionParser(usage="%prog [options] file", option_list=option_list)
 args <- parse_args(parser)
@@ -20,7 +20,7 @@ input_val = args[['input']]
 #Parse the input race value
 race=tolower(args[['race']])
 includeRace=NA
-if(race == "" | race == "all"){
+if(is.na(race) || race == "" || race == "all"){
     includeRace = NA
     race = "all"
 } else if(race == "white"){
@@ -35,7 +35,7 @@ if(race == "" | race == "all"){
 #Parse the input sex value
 sex=tolower(args[['sex']])
 includeSex=NA
-if(sex == "" || sex == "both"){
+if(is.na(sex) || sex == "" || sex == "both"){
     includeSex = NA
     sex = "both"
 } else if (sex == "male"){
@@ -100,12 +100,10 @@ convert_month_to_days = function(tTime){
 #Parse out the ageBias
 ageBias = c(NA, NA)
 age = tolower(args[["age"]])
-if(age == "" || age == "adult"){
-    #By default get all adults
+if(is.na(age) || age == "" || age == "adult"){
     age = "adult"
     ageBias = c(20 * 365, 100 * 365)
 } else if(age == "all"){
-    #If specified all then get all
     ageBias = c(0, 100 * 365)
 } else {
     theSplit = strsplit(age, "_")[[1]]
@@ -151,15 +149,13 @@ if(age == "" || age == "adult"){
 
 #Parse the include statement
 toInclude = tolower(args[["include"]])
-if(toInclude != ""){
-    if(toInclude != "inpatient" &
-       toInclude != "outpatient" &
-       toInclude != "never_inpatient" &
-       toInclude != "outpatient_and_never_inpatient"){
-        toInclude == NA
-    }
-} else {
-    toInclude = NA
+if(!is.na(toInclude) &
+   toInclude != "inpatient" &
+   toInclude != "outpatient" &
+   toInclude != "never_inpatient" &
+   toInclude != "outpatient_and_never_inpatient"){
+    print("ERROR: include_group is invalid")
+    stop() 
 }
 
 #Parse the name from input if exists
@@ -192,6 +188,7 @@ if(args[["name"]] == ""){
     output_filename = gsub("//", "/", paste(output_directory, args[['name']], sep="/"))
 }
 
+#Check the output file for existence
 output_filename = paste(output_filename, '.Rdata', sep="")
 print(output_filename)
 if(file.exists(output_filename)){
@@ -199,14 +196,16 @@ if(file.exists(output_filename)){
     stop()
 }
 
-#Load up the lab values data set
-print("Loading Lab Values")
+#Parse the input_vals
 if(!is.na(input_val)){
     input_val = strsplit(input_val, ",")[[1]]
 } else {
     print("ERROR: no input analyte")
     stop()
 }
+
+#Load up the lab values data set
+print("Loading Lab Values")
 startDate = unclass(as.Date("2013-01-01"))
 endDate = unclass(as.Date("2018-01-01"))
 labValues = import_lab_values(input_val, startDate, endDate)
@@ -262,6 +261,7 @@ if(!is.na(toInclude)){
         print(paste("LV: Down Sample PIDs, ", length(uniquePIDs), " => ", format(pidSampleMax, scientific=FALSE), sep=""))
         randomlySelectedPIDs = sample(uniquePIDs, pidSampleMax)
         labValues = labValues %>% filter(PatientID %in% randomlySelectedPIDs)
+        remove(randomlySelectedPIDs)
     }
     remove(uniquePIDs)
 
@@ -307,9 +307,7 @@ labValues = rename(labValues, l_val = VALUE)
 labValues = labValues %>% select(pid, l_val, timeOffset, EncounterID)
 
 print("Loading Diagnoses")
-start.time <- Sys.time()
 icdValues = import_diagnoses(unique(labValues$pid))
-print(paste("Loading Diagnoses Time: ", Sys.time() - start.time, " secs", sep=""))
 icdValues = inner_join(icdValues, patient_bday, by="PatientID")
 
 print("DX: Combine with encounters")
@@ -330,24 +328,22 @@ print("DX: Select columns for output")
 icdValues = icdValues %>% select(pid, icd, icd_name, timeOffset, EncounterID, Lexicon)
 
 print("Loading Other Labs")
-start.time <- Sys.time()
 otherLabs = import_other_abnormal_labs(unique(labValues$pid))
-print(paste("Loading Other Labs Time: ", Sys.time() - start.time, " secs", sep=""))
 otherLabs = inner_join(otherLabs, patient_bday, by="PatientID")
 
-print("Other Labs: Filter results on not similar to analyte")
-#Search the result codes database for simliar analytes
-similar_result_codes = import_similar_result_codes(input_val)
-#Hard code some of the analyte exclusion results
-if('HGB' %in% input_val){
-    similar_result_codes = c(similar_result_codes, "HCT", "HCRT", "RBC")
+print("Loading Results Codes: find similar result_codes to analyte")
+similarResultCodes = get_similar_lab_codes(input_val)
+if('HGB' %in% input_val || 'HGBN' %in% input_val){
+    similarResultCodes = c(similarResultCodes, "HCT", "HCRT", "RBC")
+    similarResultCodes = unique(similarResultCodes)
 }
 
+pinrt("Other Labs: exclude similar result codes")
+otherLabs = otherLabs %>% filter(!RESULT_CODE %in% similarResultCodes)
+
 print("Other Labs: Calculate Time-Offset")
-otherLabs = otherLabs %>% mutate(timeOffset =
-                                 as.numeric(as.Date(COLLECTION_DATE)
-                                    -
-                                 as.Date(DOB)))
+otherLabs = otherLabs %>% mutate(timeOffset = as.numeric(
+                                 as.Date(COLLECTION_DATE) - as.Date(DOB)))
 otherLabs = rename(otherLabs, pid = PatientID)
 otherLabs = otherLabs %>% mutate(icd = paste(HILONORMAL_FLAG, "_", RESULT_CODE, sep=""))
 otherLabs = otherLabs %>% mutate(icd_name = paste(HILONORMAL_COMMENT, "_", RESULT_NAME, sep=""))
@@ -356,19 +352,15 @@ print("Other Labs: Select columns for output")
 otherLabs<-otherLabs %>% select(pid, icd, icd_name, timeOffset)
 
 print("Loading Medications")
-start.time <- Sys.time()
 medValues = import_med_admin(unique(labValues$pid))
-print(paste("Loading Medications Time: ", Sys.time() - start.time, " secs", sep=""))
+medValues = inner_join(medValues, patient_bday, by="PatientID")
 
 print("MED: Calculate Time-Offset")
-medValues = inner_join(medValues, patient_bday, by="PatientID")
+medValues = medValues %>% mutate(timeOffset = as.numeric(
+                                 as.Date(DoseStartTime) - as.Date(DOB)))
 medValues = rename(medValues, pid = PatientID)
 medValues = rename(medValues, icd = MedicationTermID)
 medValues = rename(medValues, icd_name = MedicationName)
-medValues = medValues %>% mutate(timeOffset = 
-                                 as.numeric(as.Date(DoseStartTime) 
-                                    -
-                                 as.Date(DOB)))
 
 print("MED: Select columns for output")
 medValues = medValues %>% select(pid, icd, icd_name, timeOffset, EncounterID)
@@ -382,6 +374,6 @@ attr(parameters, "race") = race
 attr(parameters, "age") = ageBias
 attr(parameters, "sex") = sex
 attr(parameters, "group") = toInclude
-similarResultCodes = similar_result_codes
-save(parameters, labValues, icdValues, medValues, otherLabs, similarResultCodes, file=output_filename)
+attr(parameters, "similarResultCodes") = similarResultCodes
+save(parameters, labValues, icdValues, medValues, otherLabs, file=output_filename)
 

@@ -7,12 +7,17 @@ from datetime import datetime, timedelta, date
 
 if(len(sys.argv) != 2):
     print("ERROR CMD LINE OMISSION")
+    print("ERROR: INSERT, INDEX, TIMEIT, TIMEIT_EXT, RC_INSERT, RC_PERMUTE, RC_EDIT")
     sys.exit(1)
 
 if(sys.argv[1] == "INSERT"):
     whichProc = "INSERT"
-elif(sys.argv[1] == "INSERT_RC"):
-    whichProc = "INSERT_RC"
+elif(sys.argv[1] == "RC_INSERT"):
+    whichProc = "RC_INSERT"
+elif(sys.argv[1] == "RC_PERMUTE"):
+    whichProc = "RC_PERMUTE"
+elif(sys.argv[1] == "RC_EDIT"):
+    whichProc = "RC_EDIT"
 elif(sys.argv[1] == "INDEX"):
     whichProc = "INDEX"
 elif(sys.argv[1] == "TIMEIT"):
@@ -20,7 +25,7 @@ elif(sys.argv[1] == "TIMEIT"):
 elif(sys.argv[1] == "TIMEIT_EXT"):
     whichProc = "TIMEIT_EXT"
 else:
-    print("ERROR CMD LINE INPUT")
+    print("ERROR: INSERT, INDEX, TIMEIT, TIMEIT_EXT, RC_INSERT, RC_PERMUTE, RC_EDIT")
     sys.exit(1)
 
 #Edit this line below to upload a text file to a sqlite file
@@ -259,7 +264,7 @@ elif(whichProc == "TIMEIT_EXT"):
     c.execute(sql)
     conn.commit()
     c.close()
-elif(whichProc == "INSERT_RC"):
+elif(whichProc == "RC_INSERT"):
     thefile = "RESULT_CODES.txt"
     tablename = (thefile.split(".")[0]).lower()
     print(thefile + " => " + tablename)
@@ -279,6 +284,145 @@ elif(whichProc == "INSERT_RC"):
     c.execute("CREATE INDEX result_code_key ON " + tablename + "(RESULT_CODE)") 
     conn.commit()
     f.close()
+    c.close()
+elif(whichProc == "RC_PERMUTE"):
+    #Create result table
+    dropsql = "DROP TABLE IF EXISTS similar_result_codes"
+    createsql = "CREATE TABLE similar_result_codes (RESULT_CODE TEXT, RESULT_NAME TEXT, similar_result_code TEXT, similar_result_name TEXT, valid TEXT)"
+    c.execute(dropsql)
+    c.execute(createsql)
+    conn.commit()
+
+    #Query all the result_codes from the table
+    sql = "SELECT RESULT_CODE, RESULT_NAME FROM result_codes"
+    cc = conn.cursor()
+    similarDict = dict()
+    resultNameDict = dict()
+    origtbllen = 0
+    for row in c.execute(sql):
+        # For each result_code query for similar results
+        rc = row[0]
+        rn = row[1]
+        sql = "SELECT RESULT_CODE FROM result_codes WHERE RESULT_CODE LIKE \"%" + rc + "%\" OR RESULT_NAME LIKE \"%" + rc + "%\""
+        similarList = list()
+        for frc in cc.execute(sql):
+            similarList.append(frc[0])
+    
+        if(rc not in similarDict):
+            similarDict[rc] = similarList
+            resultNameDict[rc] = rn
+            origtbllen = origtbllen + 1
+        else:
+            print(rc, "already exists", similarDict[rc], "=", similarList)
+    cc.close()
+
+    #Insert the results into the new table
+    newtbllen = 0
+    for result_code in similarDict:
+        result_name = resultNameDict[result_code]
+        for simcode in similarDict[result_code]:
+            simname = resultNameDict[simcode]
+            sql = 'INSERT INTO similar_result_codes VALUES("' + result_code + '","' + result_name + '","'+ simcode + '","' + simname + '","enabled")'
+            c.execute(sql)
+            newtbllen = newtbllen + 1
+
+    #Commit the results and print out some info
+    print(str(origtbllen) + " => " + str(newtbllen))
+    conn.commit()
+    c.close()
+elif(whichProc == "RC_EDIT"):
+    chooseFxn = None
+    choosenResult = None
+    enabled = list()
+    disabled = list()
+    while(True):
+        if(choosenResult == None):
+            choosenResult = raw_input("Which RESULT_CODE to inspect: ").upper()
+            sql = "SELECT * FROM similar_result_codes WHERE RESULT_CODE = \"" + choosenResult + "\""
+            for row in c.execute(sql):
+                if(row[4] == "enabled"):
+                    enabled.append(row)
+                elif(row[4] == "disabled"):
+                    disabled.append(row)
+            
+            if(len(enabled) + len(disabled) == 0):
+                print("ERROR: invalid RESULT_CODE...try again!", choosenResult)
+                choosenResult = None
+                chooseFxn = None
+        elif(choosenResult != None):
+            print("================" + choosenResult + "================")
+            print("================Enabled================")
+            index = 0
+            for index, row in enumerate(enabled):
+                print(str(index + 1) + " - (" + row[0] + "): " + row[2] + ", " + row[3])
+
+            if(len(disabled) > 0):
+                print("================Disabled================")
+                for index, row in enumerate(disabled):
+                    print(str(index + 1) + " - (" + row[0] + "): " + row[2] + ", " + row[3])
+        
+            if(chooseFxn == None):
+                chooseFxn = raw_input("Which function [enable|disable]: ")
+                if(chooseFxn == "enable"):
+                    chooseFxn = "enabled"
+                elif(chooseFxn == "disable"):
+                    chooseFxn = "disabled"
+                elif(chooseFxn == "quit" or chooseFxn == "exit"):
+                    chooseFxn = None
+                    choosenResult = None
+                    enabled = list()
+                    disabled = list()
+                    continue
+                else:
+                    print("ERROR: invalid function [enable|disable]...try again!")
+                    chooseFxn = None
+            else:
+                whichNum = raw_input(chooseFxn + ", choose number: ")
+                if(whichNum == "quit" or whichNum == "exit"):
+                    chooseFxn = None
+                    choosenResult = None
+                    enabled = list()
+                    disabled = list()
+                    continue
+
+                try:
+                    whichNum = int(whichNum)
+                except Exception as ex:
+                    print(ex)
+                    whichNum = None
+
+                if(whichNum != None and whichNum > 0):
+                    simrescode = None
+                    sql = "UPDATE similar_result_codes SET valid = ? WHERE RESULT_CODE = ? AND similar_result_code = ?"
+                   
+                    successUpdate = True
+                    rowmove = None
+                    if(chooseFxn == "disabled" and whichNum <= len(enabled)):
+                        try:
+                            rowmove = enabled[whichNum - 1]
+                            simrescode = rowmove[2]
+                            c.execute(sql, (chooseFxn, choosenResult, simrescode))
+                            conn.commit()
+                        except Exception as ex:
+                            print(ex)
+                            successUpdate = False
+                    
+                        if(successUpdate):
+                            del enabled[whichNum - 1]
+                            disabled.append(rowmove)
+                    elif(chooseFxn == "enabled" and whichNum <= len(disabled)):
+                        try:
+                            rowmove = disabled[whichNum - 1]
+                            simrescode = rowmove[2]
+                            c.execute(sql, (chooseFxn, choosenResult, simrescode))
+                            conn.commit()
+                        except Exception as ex:
+                            print(ex)
+                            successUpdate = False
+                
+                        if(successUpdate):
+                            del disabled[whichNum - 1]
+                            enabled.append(rowmove)
     c.close()
 
 #Close the connection

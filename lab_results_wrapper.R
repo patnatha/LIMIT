@@ -65,12 +65,12 @@ get_similar_lab_codes <- function(resultCodes){
         con = connect_sqlite_lab() 
         outputList = list()
         for(resultCode in resultCodes){
-            sql = paste("SELECT result_code FROM result_codes WHERE RESULT_CODE LIKE \"%", resultCode, "%\" OR RESULT_NAME LIKE \"%", resultCode,"%\"", sep="")
+            sql = paste("SELECT similar_result_code FROM similar_result_codes WHERE RESULT_CODE = \"", resultCode,"\"", " AND valid = \"enabled\"", sep="")
             myQuery = dbGetQuery(con, sql)
             outputList = rbind(outputList, myQuery)
         }
         dbDisconnect(con)
-        return(unique(outputList$RESULT_CODE))
+        return(unique(outputList$similar_result_code))
     }
     else{
         return(list())
