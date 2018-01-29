@@ -19,8 +19,8 @@ lab_file = args[['lab']]
 #Load up the results from limit algorithm using Meds
 load(med_file)
 medLabValues = cleanLabValues
-medLabPre = origLabValuesLength
-medLabPost = labValuesLength
+medLabPre = attr(parameters, "pre-limit_count")
+medLabPost = nrow(cleanLabValues)
 medExcludedPatients = excludedPatients
 excludedMeds = rbind(excludedICDs, excludedICDNames)
 #medPreQuantile = attr(parameters, "pre-limit_quantiles")
@@ -28,8 +28,8 @@ excludedMeds = rbind(excludedICDs, excludedICDNames)
 #Load up the results from limit algorithm using ICDs
 icd_results = load(icd_file)
 icdLabValues = cleanLabValues
-icdLabPre = origLabValuesLength
-icdLabPost = labValuesLength
+icdLabPre = attr(parameters, "pre-limit_count")
+icdLabPost = nrow(cleanLabValues)
 icdExcludedPatients = excludedPatients
 excludedICDS = rbind(excludedICDs, excludedICDNames)
 #icdPreQuantile = attr(parameters, "pre-limit_quantiles")
@@ -37,8 +37,8 @@ excludedICDS = rbind(excludedICDs, excludedICDNames)
 #Load up the results from limit algorithm using Other Labs
 lab_results = load(lab_file)
 labLabValues = cleanLabValues
-labLabPre = origLabValuesLength
-labLabPost = labValuesLength
+labLabPre = attr(parameters, "pre-limit_count")
+labLabPost = nrow(cleanLabValues)
 labExcludedPatients = excludedPatients
 excludedLabs = rbind(excludedICDs, excludedICDNames)
 #labPreQuantile = attr(parameters, "pre-limit_quantiles")

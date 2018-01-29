@@ -5,9 +5,9 @@ sed -i 's/pmem=[0-9]\+gb/pmem=16gb/' Nate_LIMIT.pbs
 
 singularValue="random"
 
-tolistpath="${preparedir}hgb/hgb_2_groups/"
+tolistpath="${preparedir}HGB_HGBN/HGB_HGBN_2_groups/outpatient_and_never_inpatient/"
 run_dir_limit
 
-tolistpath="${preparedir}hgb/hgb_10_y_range/"
+tolistpath="${preparedir}HGB_HGBN/HGB_HGBN_10_y_range/outpatient_and_never_inpatient/"
 run_dir_limit
 

@@ -311,7 +311,7 @@ icdValues = import_diagnoses(unique(labValues$pid))
 icdValues = inner_join(icdValues, patient_bday, by="PatientID")
 
 print("DX: Combine with encounters")
-if(typeof(encountersAll) == "list"){ encountersAll = import_encounter_all(icdValues$PatientID) }
+if(typeof(encountersAll) != "list"){ encountersAll = import_encounter_all(icdValues$PatientID) }
 icdValues = inner_join(icdValues, encountersAll %>% filter(AdmitDate != ""), by=c("PatientID", "EncounterID"))
 remove(encountersAll)
 
@@ -338,7 +338,7 @@ if('HGB' %in% input_val || 'HGBN' %in% input_val){
     similarResultCodes = unique(similarResultCodes)
 }
 
-pinrt("Other Labs: exclude similar result codes")
+print("Other Labs: exclude similar result codes")
 otherLabs = otherLabs %>% filter(!RESULT_CODE %in% similarResultCodes)
 
 print("Other Labs: Calculate Time-Offset")

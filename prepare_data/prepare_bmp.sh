@@ -1,6 +1,6 @@
 source ../basedir.sh
 
-sed -i 's/ppn=[0-9]\+/ppn=4/' prepare_data.pbs
+sed -i 's/ppn=[0-9]\+/ppn=8/' prepare_data.pbs
 sed -i 's/pmem=[0-9]\+gb/pmem=32gb/' prepare_data.pbs
 
 #Set the output directory
