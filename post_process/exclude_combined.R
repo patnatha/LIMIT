@@ -25,7 +25,7 @@ write("input, type, code, name", file=outfile, append=FALSE)
 filelist = list.files(input_dir, pattern = ".Rdata", full.names = TRUE)
 for (tfile in filelist){
     #Load up the file
-    tempLoadJoined = load(tfile)
+    load(tfile)
 
     #Create master exclusion list
     tempExclude = unique(c(attr(parameters, "lab_exclude_pid"), attr(parameters, "icd_excluded_pid"), attr(parameters, "med_excluded_pid")))
@@ -101,13 +101,12 @@ print(paste("Total PIDs (icd,lab,med) Exclusion: ", length(icdLabMedPIDExclude),
 
 for (tfile in filelist){
     #Load up the file
-    tempLoadJoined = load(tfile)
+    load(tfile)
 
     #Clear out PIDs that were found
     oldCleanLabValuesLen = nrow(cleanLabValues)
     cleanLabValues = cleanLabValues %>% filter(!pid %in% icdLabMedPIDExclude)
-    newCleanLabValuesLen = nrow(cleanLabValues)
-    print(paste(basename(tfile), " to filter: ", oldCleanLabValuesLen, " => ", newCleanLabValuesLen, sep=""))
+    print(paste(basename(tfile), " to filter: ", oldCleanLabValuesLen, " => ", nrow(cleanLabValues), sep=""))
 
     #Save the update results
     save(cleanLabValues, parameters, file=tfile)

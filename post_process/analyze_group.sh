@@ -24,7 +24,7 @@ if [ $optionalNewFile == 'newfile' ];
 then
     outputFile="${tolistpath}analysis_results.csv"
     rm ${outputFile}
-    echo "File, Pre-LIMIT Count, Pre-LIMIT 2.5%, Pre-LIMIT 5%, Pre-LIMIT 95%, Pre-LIMIT 97.5%, Post-LIMIT Count, Post-LIMIT 2.5%, Post-LIMIT 5%, Post-LIMIT 95%, Post-LIMIT 97.5%, Boot Low Low, Boot Low High, Boot High Low, Boot High High, Reference Interval" > ${outputFile}
+    echo "File, Result Code, Start Date, End Date, Pre-LIMIT Count, Pre-LIMIT 2.5%, Pre-LIMIT 5%, Pre-LIMIT 95%, Pre-LIMIT 97.5%, Post-Limit ICD, Post-Limit Med, Post-Limit Lab, Post-Combined Count, Post-Horn Count, Post-LIMIT 2.5%, Post-LIMIT 5%, Post-LIMIT 95%, Post-LIMIT 97.5%, Boot Low Low, Boot Low High, Boot High Low, Boot High High, Boot Ref Interval" > ${outputFile}
 fi
 
 for tfile in $preplist;

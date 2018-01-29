@@ -233,9 +233,9 @@ attr(parameters, "pre-limit_quantiles") = as.numeric(quantile(labValues$l_val, c
 attr(parameters, "pre-limit_count") = nrow(labValues) 
 
 #Print the original results
-print(paste("Lab Values Quartiles: ", paste(as.numeric(quantile(labValues$l_val, c(0.025, 0.05, 0.95, 0.975), na.rm = TRUE)), collapse=" ")))
 print(paste("Lab Values Count: ", nrow(labValues)))
 print(paste("Patient Count: ", length(unique(labValues$pid))))
+print(paste("Lab Values Quantiles: ", paste(as.numeric(quantile(labValues$l_val, c(0.025, 0.05, 0.95, 0.975), na.rm = TRUE)), collapse=" ")))
 
 # Create data set
 labValues$outlier = rep(FALSE, length(labValues$pid))
@@ -383,9 +383,9 @@ while (!converged) {
     }
 }
 
-print(paste("Lab Values Quartiles: ", paste(as.numeric(quantile(labValues$l_val, c(0.025, 0.05, 0.95, 0.975), na.rm = TRUE)), collapse=" ")))
 print(paste("Lab Values Count: ", nrow(labValues)))
 print(paste("Patient Count: ", length(unique(labValues$pid))))
+print(paste("Lab Values Quantiles: ", paste(as.numeric(quantile(labValues$l_val, c(0.025, 0.05, 0.95, 0.975), na.rm = TRUE)), collapse=" ")))
 
 #Save the updated labValues and excluded ICD values
 cleanLabValues = labValues

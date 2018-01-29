@@ -26,5 +26,5 @@ if [ -n "$PBS_O_WORKDIR" ]; then cd $PBS_O_WORKDIR; fi
 module load R/3.3.3
 
 #Submit the script 
-Rscript post_process.sh $@
+./post_process.sh $@
 

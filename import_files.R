@@ -1,6 +1,6 @@
 library(readr)
-library(plyr)
 library(dplyr)
+library(plyr)
 library(data.table)
 source('../lab_results_wrapper.R')
 source('../encounters_wrapper.R')
