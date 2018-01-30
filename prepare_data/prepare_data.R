@@ -302,8 +302,10 @@ if(!is.na(toInclude)){
 }
 
 print("LV: Select columns for output")
-labValues = rename(labValues, pid = PatientID)
-labValues = rename(labValues, l_val = VALUE)
+save(labValues, file="temp.Rdata")
+glimpse(labValues)
+labValues = labValues %>% rename( pid = PatientID)
+labValues = labValues %>% rename(l_val = VALUE)
 labValues = labValues %>% select(pid, l_val, timeOffset, EncounterID)
 
 print("Loading Diagnoses")
@@ -316,9 +318,9 @@ icdValues = inner_join(icdValues, encountersAll %>% filter(AdmitDate != ""), by=
 remove(encountersAll)
 
 print("DX: Calculate Time-Offset")
-icdValues = rename(icdValues, pid = PatientID)
-icdValues = rename(icdValues, icd = TermCodeMapped)
-icdValues = rename(icdValues, icd_name = TermNameMapped)
+icdValues = icdValues %>% rename(pid = PatientID)
+icdValues = icdValues %>% rename(icd = TermCodeMapped)
+icdValues = icdValues %>% rename(icd_name = TermNameMapped)
 icdValues = icdValues %>% mutate(timeOffset =
                                  as.numeric(as.Date(AdmitDate)
                                     -
@@ -344,7 +346,8 @@ otherLabs = otherLabs %>% filter(!RESULT_CODE %in% similarResultCodes)
 print("Other Labs: Calculate Time-Offset")
 otherLabs = otherLabs %>% mutate(timeOffset = as.numeric(
                                  as.Date(COLLECTION_DATE) - as.Date(DOB)))
-otherLabs = rename(otherLabs, pid = PatientID)
+glimpse(otherLabs)
+otherLabs = otherLabs %>% rename(pid = PatientID)
 otherLabs = otherLabs %>% mutate(icd = paste(HILONORMAL_FLAG, "_", RESULT_CODE, sep=""))
 otherLabs = otherLabs %>% mutate(icd_name = paste(HILONORMAL_COMMENT, "_", RESULT_NAME, sep=""))
 
@@ -358,9 +361,9 @@ medValues = inner_join(medValues, patient_bday, by="PatientID")
 print("MED: Calculate Time-Offset")
 medValues = medValues %>% mutate(timeOffset = as.numeric(
                                  as.Date(DoseStartTime) - as.Date(DOB)))
-medValues = rename(medValues, pid = PatientID)
-medValues = rename(medValues, icd = MedicationTermID)
-medValues = rename(medValues, icd_name = MedicationName)
+medValues = medValues %>% rename(pid = PatientID)
+medValues = medValues %>% rename(icd = MedicationTermID)
+medValues = medValues %>% rename(icd_name = MedicationName)
 
 print("MED: Select columns for output")
 medValues = medValues %>% select(pid, icd, icd_name, timeOffset, EncounterID)

@@ -20,8 +20,11 @@ lab_file = args[['lab']]
 load(med_file)
 medLabValues = cleanLabValues
 medResultCode = attr(parameters, "resultCode")
-medStartTime = attr(parameters, "resultStart")
-medEndTime = attr(parameters, "resultEnd")
+medRace = attr(parameters, "race")
+medGroup = attr(parameters, "group")
+medSex = attr(parameters, "sex")
+medStartTime = attr(parameters, "age")[1]
+medEndTime = attr(parameters, "age")[2]
 medLabPre = attr(parameters, "pre-limit_count")
 medPreQuantile = attr(parameters, "pre-limit_quantiles")
 medLabPost = nrow(cleanLabValues)
@@ -32,8 +35,11 @@ excludedMeds = rbind(excludedICDs, excludedICDNames)
 #Load up the results from limit algorithm using ICDs
 icd_results = load(icd_file)
 icdResultCode = attr(parameters, "resultCode")
-icdStartTime = attr(parameters, "resultStart")
-icdEndTime = attr(parameters, "resultEnd")
+icdRace = attr(parameters, "race")
+icdGroup = attr(parameters, "group")
+icdSex = attr(parameters, "sex")
+icdStartTime = attr(parameters, "age")[1]
+icdEndTime = attr(parameters, "age")[2]
 icdLabValues = cleanLabValues
 icdLabPre = attr(parameters, "pre-limit_count")
 icdPreQuantile = attr(parameters, "pre-limit_quantiles")
@@ -45,8 +51,11 @@ excludedICDS = rbind(excludedICDs, excludedICDNames)
 #Load up the results from limit algorithm using Other Labs
 lab_results = load(lab_file)
 labResultCode = attr(parameters, "resultCode")
-labStartTime = attr(parameters, "resultStart")
-labEndTime = attr(parameters, "resultEnd")
+labRace = attr(parameters, "race")
+labGroup = attr(parameters, "group")
+labSex = attr(parameters, "sex")
+labStartTime = attr(parameters, "age")[1]
+labEndTime = attr(parameters, "age")[2]
 labLabValues = cleanLabValues
 labLabPre = attr(parameters, "pre-limit_count")
 labPreQuantile = attr(parameters, "pre-limit_quantiles")
@@ -69,6 +78,9 @@ saving=paste(saving, "/", finName, sep="")
 parameters<-1:1
 attr(parameters, "med_file") <- med_file
 attr(parameters, "med_result_code") <- medResultCode
+attr(parameters, "med_sex") <- medSex
+attr(parameters, "med_race") <- medRace
+attr(parameters, "med_group") <- medGroup
 attr(parameters, "med_start_time") <- medStartTime
 attr(parameters, "med_end_time") <- medEndTime 
 attr(parameters, "med_pre_limit") <- medLabPre 
@@ -80,6 +92,9 @@ attr(parameters, "med_excluded_pid") <- medExcludedPatients
 
 attr(parameters, "icd_file") <- icd_file
 attr(parameters, "icd_result_code") <- icdResultCode
+attr(parameters, "icd_sex") <- icdSex
+attr(parameters, "icd_race") <- icdRace
+attr(parameters, "icd_group") <- icdGroup
 attr(parameters, "icd_start_time") <- icdStartTime
 attr(parameters, "icd_end_time") <- icdEndTime
 attr(parameters, "icd_pre_limit") <- icdLabPre
@@ -91,6 +106,9 @@ attr(parameters, "icd_excluded_pid") <- icdExcludedPatients
 
 attr(parameters, "lab_file") <- lab_file
 attr(parameters, "lab_result_code") <- labResultCode
+attr(parameters, "lab_sex") <- labSex
+attr(parameters, "lab_race") <- labRace
+attr(parameters, "lab_group") <- labGroup
 attr(parameters, "lab_start_time") <- medStartTime
 attr(parameters, "lab_end_time") <- medEndTime
 attr(parameters, "lab_pre_limit") <- labLabPre

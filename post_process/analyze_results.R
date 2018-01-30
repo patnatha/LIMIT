@@ -101,6 +101,9 @@ print(paste("Lab Values Parametric Quantiles: ", paste(round(((1 - refConf)/2.0)
 if(writeToFile){
     newLine = c(basename(inputData), 
                 attributes(parameters)$icd_result_code,
+                attributes(parameters)$icd_group,
+                attributes(parameters)$icd_sex,
+                attributes(parameters)$icd_race,
                 attributes(parameters)$icd_start_time,
                 attributes(parameters)$icd_end_time,
                 attributes(parameters)$icd_pre_limit, 

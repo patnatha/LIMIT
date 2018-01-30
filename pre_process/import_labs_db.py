@@ -7,7 +7,7 @@ from datetime import datetime, timedelta, date
 
 if(len(sys.argv) != 2):
     print("ERROR CMD LINE OMISSION")
-    print("ERROR: INSERT, INDEX, TIMEIT, TIMEIT_EXT, RC_INSERT, RC_PERMUTE, RC_EDIT")
+    print("ERROR: INSERT, INDEX, TIMEIT, TIMEIT_EXT, PREPARE, RC_INSERT, RC_PERMUTE, RC_EDIT")
     sys.exit(1)
 
 if(sys.argv[1] == "INSERT"):
@@ -20,6 +20,8 @@ elif(sys.argv[1] == "RC_EDIT"):
     whichProc = "RC_EDIT"
 elif(sys.argv[1] == "INDEX"):
     whichProc = "INDEX"
+elif(sys.argv[1] == "PREPARE"):
+    whichProc = "PREPARE"
 elif(sys.argv[1] == "TIMEIT"):
     whichProc = "TIMEIT"
 elif(sys.argv[1] == "TIMEIT_EXT"):
@@ -265,33 +267,48 @@ elif(whichProc == "TIMEIT_EXT"):
     conn.commit()
     c.close()
 elif(whichProc == "RC_INSERT"):
-    thefile = "RESULT_CODES.txt"
-    tablename = (thefile.split(".")[0]).lower()
+    filename = "RESULT_CODES.txt"
+    thefile = os.path.join(filepath, filename)
+    tablename = (filename.split(".")[0]).lower()
     print(thefile + " => " + tablename)
+    
     f = open(thefile)
     for linenum, line in enumerate(f):
+        line = line.replace("\"","").rstrip('\n').rstrip('\r')
         splitline = line.split('\t')
-        if(len(splitline) == 2):
-            splitline[1] = splitline[1].rstrip('\n')
-            print(splitline)
+        if(len(splitline) == 3):
             if(linenum == 0):
                 c.execute("DROP TABLE IF EXISTS " + tablename)
-                c.execute("CREATE TABLE " + tablename + " (" + (" TEXT, ").join(splitline) + " TEXT)")
+                c.execute("CREATE TABLE " + tablename + " (RESULT_CODE TEXT, RESULT_NAME TEXT, RESULT_COUNT INTEGER)")
                 conn.commit()
             else:
                 c.execute("INSERT INTO " + tablename + " VALUES (\"" + ("\",\"").join(splitline) + "\")")
-   
-    c.execute("CREATE INDEX result_code_key ON " + tablename + "(RESULT_CODE)") 
-    conn.commit()
+        else:
+            print(line)
     f.close()
+
+    sql = "CREATE INDEX results_code_rc_key ON " + tablename + "(RESULT_CODE)"
+    c.execute(sql)
+    conn.commit()
     c.close()
 elif(whichProc == "RC_PERMUTE"):
     #Create result table
-    dropsql = "DROP TABLE IF EXISTS similar_result_codes"
-    createsql = "CREATE TABLE similar_result_codes (RESULT_CODE TEXT, RESULT_NAME TEXT, similar_result_code TEXT, similar_result_name TEXT, valid TEXT)"
-    c.execute(dropsql)
+    createsql = "CREATE TABLE IF NOT EXISTS similar_result_codes (RESULT_CODE TEXT, RESULT_NAME TEXT, similar_result_code TEXT, similar_result_name TEXT, valid TEXT)"
+    c.execute(createsql)
+    createsql = "CREATE INDEX IF NOT EXISTS result_codes_similar_key ON " + tablename + " (RESULT_CODE)"
+    c.execute(createsql)
+    createsql = "CREATE INDEX IF NOT EXISTS result_codes_valid_similar_key ON " + tablename + " (RESULT_CODE, valid)"
     c.execute(createsql)
     conn.commit()
+
+    #Get list of result_codes already run
+    sql = "SELECT RESULT_CODE FROM similar_result_codes"
+    alreadyRun = dict()
+    for row in c.execute(sql):
+        if(row[0] not in alreadyRun):
+            alreadyRun[row[0]] = 1
+        else:
+            alreadyRun[row[0]] = alreadyRun[row[0]] + 1
 
     #Query all the result_codes from the table
     sql = "SELECT RESULT_CODE, RESULT_NAME FROM result_codes"
@@ -303,17 +320,18 @@ elif(whichProc == "RC_PERMUTE"):
         # For each result_code query for similar results
         rc = row[0]
         rn = row[1]
-        sql = "SELECT RESULT_CODE FROM result_codes WHERE RESULT_CODE LIKE \"%" + rc + "%\" OR RESULT_NAME LIKE \"%" + rc + "%\""
-        similarList = list()
-        for frc in cc.execute(sql):
-            similarList.append(frc[0])
-    
-        if(rc not in similarDict):
-            similarDict[rc] = similarList
-            resultNameDict[rc] = rn
-            origtbllen = origtbllen + 1
-        else:
-            print(rc, "already exists", similarDict[rc], "=", similarList)
+        resultNameDict[rc] = rn
+        if(rc not in alreadyRun):
+            sql = "SELECT RESULT_CODE FROM result_codes WHERE RESULT_CODE LIKE \"%" + rc + "%\" OR RESULT_NAME LIKE \"%" + rc + "%\""
+            similarList = list()
+            for frc in cc.execute(sql):
+                similarList.append(frc[0])
+        
+            if(rc not in similarDict):
+                similarDict[rc] = similarList
+                origtbllen = origtbllen + 1
+            else:
+                print(rc, "already exists", similarDict[rc], "=", similarList)
     cc.close()
 
     #Insert the results into the new table
@@ -424,6 +442,11 @@ elif(whichProc == "RC_EDIT"):
                             del disabled[whichNum - 1]
                             enabled.append(rowmove)
     c.close()
+elif(whichProc == "PREPARE"):
+    analytes = sys.argv[2]
+    for analyte in analytes.split(','):
+        print "Downloading: " + analyte
+        sql = "SELECT * LabResults WHERE "
 
 #Close the connection
 conn.close()

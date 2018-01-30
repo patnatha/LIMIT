@@ -128,6 +128,8 @@ print("Created Patients")
 #Create a list of random associated ICD codes
 print("Add ICD values")
 icdValues = create_icd_values(patientDemo, 10)
+medValues = create_icd_values(patientDemo, 10)
+otherLabs = create_icd_values(patientDemo, 10)
 print("Added ICD values")
 
 #Create some normally distributed lab observations
@@ -143,12 +145,15 @@ print("Created Bad Lab Values")
 #Over saturate a set of lab values with small selection of icds values
 print("Oversaturate Bad Lab Values")
 icdValues = over_sat_icd_values(bad_lab_vals, icdValues, 10)
+medValues = over_sat_icd_values(bad_lab_vals, medValues, 10)
+otherLabs = over_sat_icd_values(bad_lab_vals, otherLabs, 10)
 print("Oversaturated Bad Lab Values")
+
 
 #combine all the lab values
 labValues = rbind((normal_lab_vals), (bad_lab_vals))
 remove(normal_lab_vals, bad_lab_vals)
 
 #Save values to disk
-save(patientDemo, icdValues, labValues, file=saving)
+save(patientDemo, icdValues, medValues, otherLabs, labValues, file=saving)
 
