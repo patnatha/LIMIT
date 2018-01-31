@@ -24,13 +24,12 @@ if [ $optionalNewFile == 'newfile' ];
 then
     outputFile="${tolistpath}analysis_results.csv"
     rm ${outputFile}
-    echo "File, Pre-LIMIT Count, Post-LIMIT Count, Low Low, Low High, High Low, High High, Mean" > ${outputFile}
+    echo "File, Result Code, Group, Sex, Race, Start Days, End Days, Pre-LIMIT Count, Pre-LIMIT 2.5%, Pre-LIMIT 5%, Pre-LIMIT 95%, Pre-LIMIT 97.5%, Post-Limit ICD Count, Post-Limit Med Count, Post-Limit Lab Count, Post-Combined Count, Post-Horn Count, Post-LIMIT 2.5%, Post-LIMIT 5%, Post-LIMIT 95%, Post-LIMIT 97.5%, Boot Low Low, Boot Low High, Boot High Low, Boot High High, Boot Ref Interval" > ${outputFile}
 fi
 
 for tfile in $preplist;
 do
     thecmd="Rscript analyze_results.R --input $tolistpath$tfile --ref-interval $optionalConfInt"
-    #echo $thecmd
     eval $thecmd
 done
 

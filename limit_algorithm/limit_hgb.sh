@@ -2,9 +2,13 @@ source ../basedir.sh
 
 singularValue="random"
 
-tolistpath="${preparedir}hgb_5_years/hgb_5_years_2_groups/"
+sed -i 's/ppn=[0-9]\+/ppn=8/' Nate_LIMIT.pbs
+sed -i 's/pmem=[0-9]\+gb/pmem=8gb/' Nate_LIMIT.pbs
+tolistpath="${preparedir}HGB_HGBN/HGB_HGBN_2_groups/outpatient_and_never_inpatient/"
 run_dir_limit
 
-tolistpath="${preparedir}hgb_5_years/hgb_5_years_10_y_range/"
+sed -i 's/ppn=[0-9]\+/ppn=4/' Nate_LIMIT.pbs
+sed -i 's/pmem=[0-9]\+gb/pmem=8gb/' Nate_LIMIT.pbs
+tolistpath="${preparedir}HGB_HGBN/HGB_HGBN_10_y_range/outpatient_and_never_inpatient/"
 run_dir_limit
 

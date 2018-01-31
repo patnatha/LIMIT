@@ -1,5 +1,8 @@
 source ../basedir.sh
 
+sed -i 's/ppn=[0-9]\+/ppn=8/' prepare_data.pbs
+sed -i 's/pmem=[0-9]\+gb/pmem=32gb/' prepare_data.pbs
+
 #Set the output directory
 outdir="${preparedir}other_electrolytes/"
 mkdir -p $outdir
@@ -12,12 +15,12 @@ thesex="both"
 therace="all"
 theage="adult"
 
-indir="calcium_5_years"
+inval="CAL"
 run_em_prepare
 
-indir="magnesium_5_years"
+inval="MAG"
 run_em_prepare
 
-indir="phosphate_5_years"
+inval="PHOS"
 run_em_prepare
 

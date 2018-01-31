@@ -1,31 +1,7 @@
-basedir="/scratch/leeschro_armis/patnatha/"
-prepfile=`ls -1 ${basedir} | tr '\n' '\0' | xargs -0 -n 1 basename`
+source ../basedir.sh
 
-echo "=====Which directory set to prepare?====="
-theCnt=0
-finarr=()
-for tfile in $prepfile;
-do
-    if [ $tfile != 'EncountersAll' ] && [ $tfile != 'RESULT_CODES.txt' ] && [ $tfile != 'limit_results' ] && [ $tfile != 'prepared_data' ] && [ $tfile != 'LabResults' ] && [ $tfile != 'MedAdmin' ] && [ $tfile != 'DiagComp' ]; then
-        finarr+="${tfile}|"
-        theCnt=$((theCnt+1))
-        echo "${theCnt}) $tfile"
-    fi
-done
-read -r -p '=====Choose a number=====: ' var
-
-rawfile=''
-theCnt=0
-for tfile in $(echo $finarr | tr "|" "\n");
-do
-    if [[ $theCnt == $((var-1)) ]];
-    then
-        rawfile=$tfile
-    fi
-    theCnt=$((theCnt+1))
-done
-
-finfile=$basedir$rawfile
+read -r -p '=====Type a Result Code=====: ' var
+inval=$var
 
 echo "=====INCLUDE====="
 includArr=( "inpatient" "outpatient" "never_inpatient" "outpatient_and_never_inpatient" "all")
@@ -61,7 +37,6 @@ else
     echo "ERROR: 1 only"
     exit
 fi 
-
 
 echo "=====SEX====="
 echo "1) Both"
@@ -103,9 +78,9 @@ else
     exit
 fi
 
-outdir="/scratch/leeschro_armis/patnatha/prepared_data/${rawfile}_${therace}_${thesex}_${theage}"
+outdir="${preparedir}${rawfile}_${therace}_${thesex}_${theage}"
 mkdir $outdir
 
-fincmd="qsub prepare_data.pbs -F \"--input $finfile --sex $thesex --race $therace --include $incGrp --age $theage --output ${outdir}\""
-eval $fincmd
+fincmd="qsub prepare_data.pbs -F \"--input $inval --sex $thesex --race $therace --include $incGrp --age $theage --output ${outdir}\""
+echo $fincmd
 

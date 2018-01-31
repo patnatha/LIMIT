@@ -1,16 +1,16 @@
-library("parallel")
 library("RSQLite")
+source("../wrapper_helper.R")
 
 connect_sqlite_enc <- function(){
     con = dbConnect(drv=SQLite(), dbname="/scratch/leeschro_armis/patnatha/EncountersAll/EncountersAll.db")
     return(con)
 }
 
-async_query_encs <- function(pids, con){
+async_query_encs <- function(pids){
     out <- tryCatch(
         if(length(pids) > 0){
             #Build the query and execute
-            sql = paste('SELECT * FROM EncountersAll WHERE PatientID IN ("', paste(pids, collapse="\",\""), '")', sep="")
+            sql = paste('SELECT PatientID, EncounterID, AdmitDate, PatientClassCode FROM EncountersAll WHERE PatientID IN ("', paste(pids, collapse="\",\""), '")', sep="")
             con = connect_sqlite_enc()
             myQuery = dbGetQuery(con, sql)
             dbDisconnect(con)
@@ -25,30 +25,8 @@ async_query_encs <- function(pids, con){
 
 get_encounters <- function(pids){
     if(length(pids) > 0){
-        # Chunkify
-        toChunk = 1000
-        cnt = 0
-        tmpList = list()
-        finalList = list()
-        for(pid in pids){
-            tmpList[(cnt %% toChunk) + 1] = pid
-            cnt = cnt + 1
-
-            if(cnt %% toChunk == 0){
-                #Reset the list to empty
-                finalList[[length(finalList) + 1]] = tmpList
-                tmpList = list()
-            }
-        }
-
-        #Build the final list set
-        if(length(tmpList) > 0){
-            finalList[[length(finalList) + 1]] = tmpList
-        }
-
         print(paste("Download Encounters: ", as.character(length(pids)), " pids",sep=""))
-        allData = mclapply(finalList, async_query_encs, con, mc.cores = 16)
-        return(allData)
+        return(parallelfxn_large(pids, async_query_encs))
     }
     else{
         return(NULL)

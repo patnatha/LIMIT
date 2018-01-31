@@ -10,7 +10,7 @@
 
 # Change the number of cores (ppn=1), amount of memory, and walltime:
 #PBS -l nodes=1:ppn=1,pmem=4gb
-#PBS -l walltime=1:00:00
+#PBS -l walltime=24:00:00
 #PBS -j oe
 #PBS -V
 
@@ -23,5 +23,5 @@ if [ -n "$PBS_NODEFILE" ]; then cat $PBS_NODEFILE; fi
 if [ -n "$PBS_O_WORKDIR" ]; then cd $PBS_O_WORKDIR; fi
 
 #Submit the script 
-python import_txt_to_db.py $@
+python import_encounters_db.py $@
 

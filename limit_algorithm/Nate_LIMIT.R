@@ -72,6 +72,32 @@ if(!dir.exists(outputDir)){
     stop()
 }
 
+#Check to make sure the name parameter was set
+if(is.na(outputName)){
+    outputName = strsplit(basename(inputData), "[.]")[[1]][[1]]
+    outputName = paste(outputName, codeType, sep="_")
+}
+
+#Create the output file
+saving = gsub('//', '/', paste(outputDir, outputName, sep="/"))
+saving = paste(saving, '.Rdata', sep="")
+
+#Check to see if the file exists
+if(file.exists(saving)){
+    print("ERROR: File Already Exists")
+    stop()
+} 
+
+# Parse the singular_value parameter
+if(is.na(singular_value)){
+    singular_value = "all"
+} else if(singular_value != "random" && singular_value != "most_recent"){
+    print("ERROR: incorrect singular_value")
+    stop()
+} else {
+    singular_value = singular_value
+}
+
 #Load RData from disk
 if(is.na(inputData) || !file.exists(inputData)){
     print("ERROR: The input file path doesn't exist")
@@ -101,34 +127,10 @@ if(!is.na(codeType)){
     stop()
 }
 
-#Check to make sure the name parameter was set
-if(is.na(outputName)){
-    outputName = strsplit(basename(inputData), "[.]")[[1]][[1]]
-    outputName = paste(outputName, codeType, sep="_")
-}
-
-#Create the output file
-saving = gsub('//', '/', paste(outputDir, outputName, sep="/"))
-saving = paste(saving, '.Rdata', sep="")
-
-#Check to see if the file exists
-if(file.exists(saving)){
-    print("ERROR: File Already Exists")
-    stop()
-} 
-
-# Parse the singular_value parameter
-if(is.na(singular_value)){
-    singular_value = "all"
-} else if(singular_value != "random" && singular_value != "most_recent"){
-    print("ERROR: incorrect singular_value")
-    stop()
-} else {
-    singular_value = singular_value
-}
-
 #Save all the parameters to a structure
-parameters<-1:1
+if(!exists("parameters")){
+    parameters<-1:1
+}
 attr(parameters, "criticalProp") <- criticalProp
 attr(parameters, "criticalP") <- criticalP
 attr(parameters, "criticalHampel") <- criticalHampel
@@ -227,12 +229,13 @@ if(singular_value == "most_recent"){
 }
 
 # Write down the pre-limit length algorithm
-origLabValuesLength = nrow(labValues)
+attr(parameters, "pre-limit_quantiles") = as.numeric(quantile(labValues$l_val, c(0.025, 0.05, 0.95, 0.975), na.rm = TRUE))
+attr(parameters, "pre-limit_count") = nrow(labValues) 
 
 #Print the original results
-print(paste("Lab Values Quartiles: ", paste(as.numeric(quantile(labValues$l_val, c(0.025, 0.05, 0.95, 0.975), na.rm = TRUE)), collapse=" ")))
-print(paste("Lab Values Count: ", origLabValuesLength))
+print(paste("Lab Values Count: ", nrow(labValues)))
 print(paste("Patient Count: ", length(unique(labValues$pid))))
+print(paste("Lab Values Quantiles: ", paste(as.numeric(quantile(labValues$l_val, c(0.025, 0.05, 0.95, 0.975), na.rm = TRUE)), collapse=" ")))
 
 # Create data set
 labValues$outlier = rep(FALSE, length(labValues$pid))
@@ -380,12 +383,11 @@ while (!converged) {
     }
 }
 
-labValuesLength = nrow(labValues)
-print(paste("Lab Values Quartiles: ", paste(as.numeric(quantile(labValues$l_val, c(0.025, 0.05, 0.95, 0.975), na.rm = TRUE)), collapse=" ")))
-print(paste("Lab Values Count: ", labValuesLength))
+print(paste("Lab Values Count: ", nrow(labValues)))
 print(paste("Patient Count: ", length(unique(labValues$pid))))
+print(paste("Lab Values Quantiles: ", paste(as.numeric(quantile(labValues$l_val, c(0.025, 0.05, 0.95, 0.975), na.rm = TRUE)), collapse=" ")))
 
 #Save the updated labValues and excluded ICD values
-cleanLabValues = labValues
-save(parameters, cleanLabValues, excludedPatients, excludedICDs, excludedICDNames, excludedCounts, excludedPval, origLabValuesLength, labValuesLength, file=saving)
+cleanLabValues = labValues %>% select(pid, l_val, timeOffset, EncounterID)
+save(parameters, cleanLabValues, excludedPatients, excludedICDs, excludedICDNames, excludedCounts, excludedPval, file=saving)
 

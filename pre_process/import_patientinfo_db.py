@@ -16,7 +16,7 @@ else:
     sys.exit(1)
 
 #Edit this line below to upload a text file to a sqlite file
-filepath = "/scratch/leeschro_armis/patnatha/MedAdmin/"
+filepath = "/scratch/leeschro_armis/patnatha/PatientInfo/"
 filesupload = []
 for tfile in os.listdir(filepath):
     if(os.path.splitext(tfile)[1] == ".txt"):
@@ -102,41 +102,9 @@ if(whichProc == "INSERT"):
         conn.commit()
 elif(whichProc == "INDEX"):
     print("Indexing")
-    pid_key_exists = False
-    enc_key_exists = False
-    pid_ms_key_exists = False
-    med_term_id_key_exists = False
-    pid_med_term_id_key_exists = False
-    for row in c.execute("SELECT name FROM sqlite_master WHERE type='index' ORDER BY name;"):
-        if(row[0] == "pid_key"): pid_key_exists = True
-        if(row[0] == "enc_key"): enc_key_exists = True
-        if(row[0] == "pid_med_status_key"): pid_ms_key_exists = True
-        if(row[0] == "med_term_id_key"): med_term_id_key_exists = True
-        if(row[0] == "pid_med_term_id_key"): pid_med_term_id_key_exists = True
+    sql = "CREATE INDEX pid_key ON " + tablename + "(PatientID);"
+    c.execute(sql)
+    conn.commit()
 
-    if(not pid_key_exists):
-        sql = "CREATE INDEX pid_key ON " + tablename + "(PatientID);"
-        c.execute(sql)
-        conn.commit()
-
-    if(not enc_key_exists):
-        sql = "CREATE INDEX enc_key ON " + tablename + "(EncounterID); "
-        c.execute(sql)
-        conn.commit()
-
-    if(not pid_ms_key_exists):
-        sql = "CREATE INDEX pid_med_status_key ON " + tablename + "(PatientID, MedicationStatus)"
-        c.execute(sql)
-        conn.commit()
-
-    if(not med_term_id_key_exists):
-        sql = "CREATE INDEX med_term_id_key ON " + tablename + "(MedicationTermID)"
-        c.execute(sql)
-        conn.commit()
-
-    if(not pid_med_term_id_key_exists):
-        sql = "CREATE INDEX pid_med_term_id_key ON " + tablename + "(PatientID, MedicationTermID)"
-        c.execute(sql)
-        conn.commit()
 conn.close()
 

@@ -1,16 +1,16 @@
-library("parallel")
 library("RSQLite")
+source("../wrapper_helper.R")
 
 connect_sqlite_meds <- function(){
     con = dbConnect(drv=SQLite(), dbname="/scratch/leeschro_armis/patnatha/MedAdmin/MedAdmin.db")
     return(con)
 }
 
-async_query_meds <- function(pids, con){
+async_query_meds <- function(pids){
     out <- tryCatch(
         if(length(pids) > 0){
             #Build the query and execute
-            sql = paste('SELECT * FROM MedAdmin WHERE PatientID IN ("', paste(pids, collapse="\",\""), '")', sep="")
+            sql = paste('SELECT PatientID, EncounterID, MedicationTermID, MedicationName, DoseStartTime, MedicationStatus FROM MedAdmin WHERE PatientID IN ("', paste(pids, collapse="\",\""), '") AND MedicationStatus = "Given"', sep="")
             con = connect_sqlite_meds()
             myQuery = dbGetQuery(con, sql)
             dbDisconnect(con)
@@ -25,38 +25,51 @@ async_query_meds <- function(pids, con){
 
 get_meds <- function(pids){
     if(length(pids) > 0){
-        # Chunkify
-        toChunk = 1000
-        corecnt = 16
-        if(length(pids) / corecnt < toChunk){
-            toChunk = round(length(pids) / corecnt, digits=0)
-        }
-
-        cnt = 0
-        tmpList = list()
-        finalList = list()
-        for(pid in pids){
-            tmpList[(cnt %% toChunk) + 1] = pid
-            cnt = cnt + 1
-
-            if(cnt %% toChunk == 0){
-                #Reset the list to empty
-                finalList[[length(finalList) + 1]] = tmpList
-                tmpList = list()
-            }
-        }
-
-        #Build the final list set
-        if(length(tmpList) > 0){
-            finalList[[length(finalList) + 1]] = tmpList
-        }
-
-        print(paste("Downloading Meds: ", as.character(length(pids)), " pids",sep=""))
-        allData = mclapply(finalList, async_query_meds, con, mc.cores = corecnt)
-        return(allData)
+        print(paste("Download Meds: ", as.character(length(pids)), " pids",sep=""))
+        return(parallelfxn_large(pids, async_query_meds))
     }
     else{
         return(NULL)
     }
+}
+
+async_query_pid_med <-function(pids, med){
+    if(length(pids) > 0){
+        sql = paste("SELECT PatientID, MedicationTermID, DoseStartTime FROM MedAdmin WHERE MedicationTermID = \"", med, "\" AND PatientID IN (\"", paste(pids, collapse="\",\""), "\")", sep="")
+        con = connect_sqlite_meds()
+        myQuery = dbGetQuery(con, sql)
+        dbDisconnect(con)
+        return(myQuery)
+    } else {
+        return(list())
+    }
+}
+
+get_pid_with_med <- function(meds, validPIDs){
+    toExcludePids = list()
+
+    curiter = 1
+    totaliter = length(meds)
+    for(med in meds){
+        #Split the PIDs into chunks and send to the cloud
+        pidChunks = split(unique(validPIDs), ceiling(seq_along(validPIDs)/(length(validPIDs) / corecnt)))
+        tempExcludePIDs = mclapply(pidChunks, async_query_pid_med, med, mc.cores = corecnt)
+
+        #Flatten the results
+        uniqueLen = 0
+        for(x in tempExcludePIDs){
+            if(nrow(x) > 0){
+                uniqueLen = uniqueLen + nrow(x)
+                toExcludePids = rbind(toExcludePids, x)
+            }
+        }
+
+        #Exclude unique PIDs
+        toExcludePids = unique(toExcludePids)
+        print(paste("Downloaded (", med, ") ", curiter, "/", totaliter,": ", uniqueLen, " pids", sep=""))
+        curiter = curiter + 1
+    }
+
+    return(toExcludePids)
 }
 
