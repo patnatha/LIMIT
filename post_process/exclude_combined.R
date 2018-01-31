@@ -94,6 +94,15 @@ print(paste("Unique Clean PIDs: ", length(uniquePIDs), sep=""))
 #Get list of patients b-days
 patient_bday = import_patient_bday(uniquePIDs)
 
+#Calculate icd offest
+icdPIDsExclude <- get_pid_with_icd(masterExcludeICD, uniquePIDs)
+icdPIDsExclude = inner_join(icdPIDsExclude, patient_bday, by="PatientID")
+icdPIDsEncounters = import_encounter_all(unique(icdPIDsExclude$PatientID))
+icdPIDsExclude = inner_join(icdPIDsExclude, icdPIDsEncounters, by=c("PatientID", "EncounterID"))
+icdPIDsExclude = icdPIDsExclude %>% mutate(timeOffsetIcd = as.numeric(
+                                           as.Date(AdmitDate) - as.Date(DOB)))
+icdPIDsExclude = icdPIDsExclude %>% rename(pid = PatientID) %>% select(pid, timeOffsetIcd)
+
 #Calculate med offest
 medPIDsExclude <- get_pid_with_med(masterExcludeMED, uniquePIDs)
 medPIDsExclude = inner_join(medPIDsExclude, patient_bday, by="PatientID")
@@ -107,15 +116,6 @@ labPIDsExclude = inner_join(labPIDsExclude, patient_bday, by="PatientID")
 labPIDsExclude = labPIDsExclude %>% mutate(timeOffsetLab = as.numeric(
                                            as.Date(COLLECTION_DATE) - as.Date(DOB)))
 labPIDsExclude = labPIDsExclude %>% rename(pid = PatientID) %>% select(pid, timeOffsetLab)
-
-#Calculate icd offest
-icdPIDsExclude <- get_pid_with_icd(masterExcludeICD, uniquePIDs)
-icdPIDsExclude = inner_join(icdPIDsExclude, patient_bday, by="PatientID")
-icdPIDsEncounters = import_encounter_all(unique(icdPIDsExclude$PatientID))
-icdPIDsExclude = inner_join(icdPIDsExclude, icdPIDsEncounters, by="PatientID, EncounterID")
-icdPIDsExclude = icdPIDsExclude %>% mutate(timeOffsetIcd = as.numeric(
-                                           as.Date(AdmitDate) - as.Date(DOB)))
-icdPIDsExclude = icdPIDsExclude %>% rename(pid = PatientID) %>% select(pid, timeOffsetIcd)
 
 #Clean up data
 remove(icdPIDsEncounters)

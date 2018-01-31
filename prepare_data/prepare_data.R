@@ -334,8 +334,13 @@ otherLabs = inner_join(otherLabs, patient_bday, by="PatientID")
 print("Loading Results Codes: find similar result_codes to analyte")
 similarResultCodes = get_similar_lab_codes(input_val)
 if('HGB' %in% input_val || 'HGBN' %in% input_val){
-    similarResultCodes = c(similarResultCodes, "HCT", "HCRT", "RBC")
+    hctSimilarResultCodes = get_similar_lab_codes(c("HCT"))
+    similarResultCodes = c(similarResultCodes, hctSimilarResultCodes)
     similarResultCodes = unique(similarResultCodes)
+}
+else if('CREAT' %in% input_val){
+    egfrSimilarResultCodes = get_similar_lab_codes(c("EGFR"))
+    similarResultCodes = c(similarResultCodes, egfrSimilarResultCodes)
 }
 
 print("Other Labs: exclude similar result codes")

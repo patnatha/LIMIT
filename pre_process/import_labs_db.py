@@ -292,23 +292,23 @@ elif(whichProc == "RC_INSERT"):
     conn.commit()
     c.close()
 elif(whichProc == "RC_PERMUTE"):
-    #Create result table
     createsql = "CREATE TABLE IF NOT EXISTS similar_result_codes (RESULT_CODE TEXT, RESULT_NAME TEXT, similar_result_code TEXT, similar_result_name TEXT, valid TEXT)"
     c.execute(createsql)
-    createsql = "CREATE INDEX IF NOT EXISTS result_codes_similar_key ON " + tablename + " (RESULT_CODE)"
+    createsql = "CREATE INDEX IF NOT EXISTS result_codes_similar_key ON similar_result_codes (RESULT_CODE)"
     c.execute(createsql)
-    createsql = "CREATE INDEX IF NOT EXISTS result_codes_valid_similar_key ON " + tablename + " (RESULT_CODE, valid)"
+    createsql = "CREATE INDEX IF NOT EXISTS result_codes_valid_similar_key ON similar_result_codes (RESULT_CODE, valid)"
     c.execute(createsql)
     conn.commit()
 
-    #Get list of result_codes already run
-    sql = "SELECT RESULT_CODE FROM similar_result_codes"
+    #Get list of similar_result_codes already run
+    sql = "SELECT RESULT_CODE, similar_result_code FROM similar_result_codes"
     alreadyRun = dict()
     for row in c.execute(sql):
-        if(row[0] not in alreadyRun):
-            alreadyRun[row[0]] = 1
+        rcsrc = row[0] + row[1]
+        if(rcsrc not in alreadyRun):
+            alreadyRun[rcsrc] = 1
         else:
-            alreadyRun[row[0]] = alreadyRun[row[0]] + 1
+            alreadyRun[rcsrc] = alreadyRun[rcsrc] + 1
 
     #Query all the result_codes from the table
     sql = "SELECT RESULT_CODE, RESULT_NAME FROM result_codes"
@@ -321,15 +321,19 @@ elif(whichProc == "RC_PERMUTE"):
         rc = row[0]
         rn = row[1]
         resultNameDict[rc] = rn
-        if(rc not in alreadyRun):
-            sql = "SELECT RESULT_CODE FROM result_codes WHERE RESULT_CODE LIKE \"%" + rc + "%\" OR RESULT_NAME LIKE \"%" + rc + "%\""
-            similarList = list()
-            for frc in cc.execute(sql):
+        sql = "SELECT RESULT_CODE FROM result_codes WHERE RESULT_CODE LIKE \"%" + rc + "%\" OR RESULT_NAME LIKE \"%" + rc + "%\""
+        similarList = list()
+        for frc in cc.execute(sql):
+            rcsrc = rc + frc[0]
+            if(rcsrc not in alreadyRun):
                 similarList.append(frc[0])
         
             if(rc not in similarDict):
-                similarDict[rc] = similarList
-                origtbllen = origtbllen + 1
+                if(len(similarList) > 0):
+                    similarDict[rc] = similarList
+                    origtbllen = origtbllen + 1
+                else:
+                    print(rc, "no new similar results codes")
             else:
                 print(rc, "already exists", similarDict[rc], "=", similarList)
     cc.close()
