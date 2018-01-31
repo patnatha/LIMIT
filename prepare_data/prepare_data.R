@@ -302,9 +302,7 @@ if(!is.na(toInclude)){
 }
 
 print("LV: Select columns for output")
-save(labValues, file="temp.Rdata")
-glimpse(labValues)
-labValues = labValues %>% rename( pid = PatientID)
+labValues = labValues %>% rename(pid = PatientID)
 labValues = labValues %>% rename(l_val = VALUE)
 labValues = labValues %>% select(pid, l_val, timeOffset, EncounterID)
 

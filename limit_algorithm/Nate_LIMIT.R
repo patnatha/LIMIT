@@ -388,6 +388,6 @@ print(paste("Patient Count: ", length(unique(labValues$pid))))
 print(paste("Lab Values Quantiles: ", paste(as.numeric(quantile(labValues$l_val, c(0.025, 0.05, 0.95, 0.975), na.rm = TRUE)), collapse=" ")))
 
 #Save the updated labValues and excluded ICD values
-cleanLabValues = labValues
+cleanLabValues = labValues %>% select(pid, l_val, timeOffset, EncounterID)
 save(parameters, cleanLabValues, excludedPatients, excludedICDs, excludedICDNames, excludedCounts, excludedPval, file=saving)
 

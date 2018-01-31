@@ -20,7 +20,7 @@ uniquePIDs = list()
 
 #Write the first line in the output file
 outfile=paste(input_dir, "/icd_med_lab_excludes.csv", sep="")
-write("input, type, code, name", file=outfile, append=FALSE) 
+write("input, type, code, name, excluded lab count, pre-limit count, percent removed", file=outfile, append=FALSE) 
 
 filelist = list.files(input_dir, pattern = ".Rdata", full.names = TRUE)
 for (tfile in filelist){
@@ -35,28 +35,37 @@ for (tfile in filelist){
     #Writeout all the icds
     curind = 1
     for(x in attr(parameters, "icd_excluded")[1,]){
-        code=(attr(parameters, "icd_excluded")[1,curind])
-        name=(attr(parameters, "icd_excluded")[2,curind])
+        code = (attr(parameters, "icd_excluded")[1,curind])
+        name = (attr(parameters, "icd_excluded")[2,curind])
+        tcnt = (attr(parameters, "icd_excluded")[3,curind])
+        plcnt = attr(parameters,"icd_pre_limit")
+        remperct = paste(as.character((as.numeric(tcnt) / as.numeric(plcnt)) * 100), "%", sep="")
         curind = curind + 1
-        write(paste(basename(tfile), "icd", code, gsub(',','',name), sep=","), file=outfile, append=TRUE)
+        write(paste(basename(tfile), "icd", code, gsub(',','',name), tcnt, plcnt, remperct, sep=","), file=outfile, append=TRUE)
     }
 
     #Write out all the labs
     curind = 1
     for(x in attr(parameters, "lab_excluded")[1,]){
-        code=(attr(parameters, "lab_excluded")[1,curind])
-        name=(attr(parameters, "lab_excluded")[2,curind])
+        code = (attr(parameters, "lab_excluded")[1,curind])
+        name = (attr(parameters, "lab_excluded")[2,curind])
+        tcnt = (attr(parameters, "lab_excluded")[3,curind])
+        plcnt = attr(parameters,"lab_pre_limit")
+        remperct = paste(as.character((as.numeric(tcnt) / as.numeric(plcnt)) * 100), "%", sep="")
         curind = curind + 1
-        write(paste(basename(tfile), "lab", code, gsub(',','',name), sep=","), file=outfile, append=TRUE)
+        write(paste(basename(tfile), "lab", code, gsub(',','',name), tcnt, plcnt, remperct, sep=","), file=outfile, append=TRUE)
     }
 
     #Write out all the meds
     curind = 1
     for(x in attr(parameters, "med_excluded")[1,]){
-        code=(attr(parameters, "med_excluded")[1,curind])
-        name=(attr(parameters, "med_excluded")[2,curind])
+        code = (attr(parameters, "med_excluded")[1,curind])
+        name = (attr(parameters, "med_excluded")[2,curind])
+        tcnt = (attr(parameters, "med_excluded")[3,curind])
+        plcnt = attr(parameters,"med_pre_limit")
+        remperct = paste(as.character((as.numeric(tcnt) / as.numeric(plcnt)) * 100), "%", sep="")
         curind = curind + 1
-        write(paste(basename(tfile), "med", code, gsub(',','',name), sep=","), file=outfile, append=TRUE)    
+        write(paste(basename(tfile), "med", code, gsub(',','',name), tcnt, plcnt, remperct, sep=","), file=outfile, append=TRUE)
     }
 
     #Append to master lists
@@ -82,30 +91,63 @@ print(paste("Unique Excluded PIDs: ", length(masterExcludePidList), sep=""))
 uniquePIDs = unique(uniquePIDs)
 print(paste("Unique Clean PIDs: ", length(uniquePIDs), sep=""))
 
-icdLabMedPIDExclude = list()
-#Get all PIDs from MEDs that were Excluded
+#Get list of patients b-days
+patient_bday = import_patient_bday(uniquePIDs)
+
+#Calculate med offest
 medPIDsExclude <- get_pid_with_med(masterExcludeMED, uniquePIDs)
-icdLabMedPIDExclude = c(icdLabMedPIDExclude, medPIDsExclude)
+medPIDsExclude = inner_join(medPIDsExclude, patient_bday, by="PatientID")
+medPIDsExclude = medPIDsExclude %>% mutate(timeOffsetMed = as.numeric(
+                                           as.Date(DoseStartTime) - as.Date(DOB))) 
+medPIDsExclude = medPIDsExclude %>% rename(pid = PatientID) %>% select(pid, timeOffsetMed)
 
-#Get all PIDs from LABs that were excluded
+#Calculate lab offest
 labPIDsExclude <- get_pid_with_result_hlnf(masterExcludeLAB, uniquePIDs)
-icdLabMedPIDExclude = c(icdLabMedPIDExclude, labPIDsExclude)
+labPIDsExclude = inner_join(labPIDsExclude, patient_bday, by="PatientID")
+labPIDsExclude = labPIDsExclude %>% mutate(timeOffsetLab = as.numeric(
+                                           as.Date(COLLECTION_DATE) - as.Date(DOB)))
+labPIDsExclude = labPIDsExclude %>% rename(pid = PatientID) %>% select(pid, timeOffsetLab)
 
-#Get all PIDs from ICDs that were excluded
+#Calculate icd offest
 icdPIDsExclude <- get_pid_with_icd(masterExcludeICD, uniquePIDs)
-icdLabMedPIDExclude = c(icdLabMedPIDExclude, icdPIDsExclude)
+icdPIDsExclude = inner_join(icdPIDsExclude, patient_bday, by="PatientID")
+icdPIDsEncounters = import_encounter_all(unique(icdPIDsExclude$PatientID))
+icdPIDsExclude = inner_join(icdPIDsExclude, icdPIDsEncounters, by="PatientID, EncounterID")
+icdPIDsExclude = icdPIDsExclude %>% mutate(timeOffsetIcd = as.numeric(
+                                           as.Date(AdmitDate) - as.Date(DOB)))
+icdPIDsExclude = icdPIDsExclude %>% rename(pid = PatientID) %>% select(pid, timeOffsetIcd)
 
-#Get list of unique PIDs
-icdLabMedPIDExclude = unique(icdLabMedPIDExclude)
-print(paste("Total PIDs (icd,lab,med) Exclusion: ", length(icdLabMedPIDExclude), sep=""))
+#Clean up data
+remove(icdPIDsEncounters)
+remove(patient_bday)
+save(medPIDsExclude, labPIDsExclude, icdPIDsExclude, file="temp.Rdata")
 
 for (tfile in filelist){
     #Load up the file
     load(tfile)
 
-    #Clear out PIDs that were found
+    #Print out some baseline characteristics
     oldCleanLabValuesLen = nrow(cleanLabValues)
-    cleanLabValues = cleanLabValues %>% filter(!pid %in% icdLabMedPIDExclude)
+
+    #Get the abnormal meds and clear them out
+    medCleanLabs = inner_join(medPIDsExclude, cleanLabValues, by="pid")
+    medCleanLabs = medcleanLabs %>% mutate(timeDiff = timeOffset - timeOffsetMed) %>% filter(timeDiff > -120 && timeDiff < 120) %>% select(pid)
+    medCleanLabs = unique(medCleanLabs$pid)
+    cleanLabValues = cleanLabValues %>% filter(!pid in medCleanLabs)
+
+    #Get the abnormal labs and clear them out
+    labCleanLabs = inner_join(labPIDsExclude, cleanLabValues, by="pid")
+    labCleanLabs = labCleanLabs %>% mutate(timeDiff = timeOffset - timeOffsetLab) %>% filter(timeDiff > -120 && timeDiff < 120) %>% select(pid)
+    labCleanLabs = unique(labCleanLabs$pid)
+    cleanLabValues = cleanLabValues %>% filter(!pid in labCleanLabs)
+
+    #Get abnormal icdss and clear them out
+    icdCleanLabs = inner_join(icdPIDsExclude, cleanLabValues, by="pid")
+    icdCleanLabs = icdCleanLabs %>% mutate(timeDiff = timeOffset - timeOffsetIcd) %>% filter(timeDiff > -120 && timeDiff < 120) %>% select(pid)
+    icdCleanLabs = unique(icdCleanLabs$pid)
+    cleanLabValues = cleanLabValues %>% filter(!pid in icdCleanLabs)
+
+    #Print some output of results
     print(paste(basename(tfile), " to filter: ", oldCleanLabValuesLen, " => ", nrow(cleanLabValues), sep=""))
 
     #Save the update results

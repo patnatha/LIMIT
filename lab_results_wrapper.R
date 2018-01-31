@@ -79,11 +79,11 @@ get_similar_lab_codes <- function(resultCodes){
 
 async_query_pid_rc_hlnf <- function(pids, rc, hlnf){
     if(length(pids) > 0){
-        sql = paste("SELECT PatientID FROM LabResults WHERE RESULT_CODE = \"", rc, "\" AND HILONORMAL_FLAG = \"", hlnf, "\" AND PatientID IN (\"", paste(pids, collapse="\",\""), "\")", sep="")
+        sql = paste("SELECT PatientID, RESULT_CODE, HILONORMAL_FLAG, COLLECTION_DATE FROM LabResults WHERE RESULT_CODE = \"", rc, "\" AND HILONORMAL_FLAG = \"", hlnf, "\" AND PatientID IN (\"", paste(pids, collapse="\",\""), "\")", sep="")
         con = connect_sqlite_lab()
         myQuery = dbGetQuery(con, sql)
         dbDisconnect(con)
-        return(unique(myQuery$PatientID))
+        return(myQuery)
     } else {
         return(list())
     }
@@ -105,17 +105,17 @@ get_pid_with_result_hlnf <- function(rc_hlnfs, validPIDs){
             #Split the PIDs into chunks and send to the cloud
             pidChunks = split(unique(validPIDs), ceiling(seq_along(validPIDs)/(length(validPIDs) / corecnt)))
             tempExcludePIDs = mclapply(pidChunks, async_query_pid_rc_hlnf, rc, hlnf, mc.cores = corecnt)
+
             #Flatten the results
             uniqueLen = 0
             for(x in tempExcludePIDs){
-                if(length(x) > 0){
-                    uniqueLen = uniqueLen + length(x)
-                    toExcludePids = c(toExcludePids, x)
+                if(nrow(x) > 0){
+                    uniqueLen = uniqueLen + nrow(x)
+                    toExcludePids = rbind(toExcludePids, x)
                 }
             }
-    
+   
             #Exclude unique PIDs
-            toExcludePids = unique(toExcludePids)
             print(paste("Downloaded (", hlnf, "_", rc, ") ", curiter, "/", totaliter,": ", uniqueLen, " pids", sep=""))
             curiter = curiter + 1
         } else {

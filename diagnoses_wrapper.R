@@ -35,11 +35,11 @@ get_diagnoses <- function(pids){
 
 async_query_pid_icd <- function(pids, icd){
     if(length(pids) > 0){
-        sql = paste("SELECT PatientID FROM DiagComp WHERE TermCodeMapped = \"", icd, "\" AND PatientID IN (\"", paste(pids, collapse="\",\""), "\")", sep="")
+        sql = paste("SELECT PatientID, EncounterID, TermCodeMapped FROM DiagComp WHERE TermCodeMapped = \"", icd, "\" AND PatientID IN (\"", paste(pids, collapse="\",\""), "\")", sep="")
         con = connect_sqlite_diagnoses()
         myQuery = dbGetQuery(con, sql)
         dbDisconnect(con)
-        return(unique(myQuery$PatientID))
+        return(myQuery)
     } else {
         return(list())
     }
@@ -59,9 +59,9 @@ get_pid_with_icd <- function(icds, validPIDs){
         #Flatten the results
         uniqueLen = 0
         for(x in tempExcludePIDs){
-            if(length(x) > 0){
-                uniqueLen = uniqueLen + length(x)
-                toExcludePids = c(toExcludePids, x)
+            if(nrow(x) > 0){
+                uniqueLen = uniqueLen + nrow(x)
+                toExcludePids = rbind(toExcludePids, x)
             }
         }
 

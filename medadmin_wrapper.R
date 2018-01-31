@@ -35,11 +35,11 @@ get_meds <- function(pids){
 
 async_query_pid_med <-function(pids, med){
     if(length(pids) > 0){
-        sql = paste("SELECT PatientID FROM MedAdmin WHERE MedicationTermID = \"", med, "\" AND PatientID IN (\"", paste(pids, collapse="\",\""), "\")", sep="")
+        sql = paste("SELECT PatientID, MedicationTermID, DoseStartTime FROM MedAdmin WHERE MedicationTermID = \"", med, "\" AND PatientID IN (\"", paste(pids, collapse="\",\""), "\")", sep="")
         con = connect_sqlite_meds()
         myQuery = dbGetQuery(con, sql)
         dbDisconnect(con)
-        return(unique(myQuery$PatientID))
+        return(myQuery)
     } else {
         return(list())
     }
@@ -58,9 +58,9 @@ get_pid_with_med <- function(meds, validPIDs){
         #Flatten the results
         uniqueLen = 0
         for(x in tempExcludePIDs){
-            if(length(x) > 0){
-                uniqueLen = uniqueLen + length(x)
-                toExcludePids = c(toExcludePids, x)
+            if(nrow(x) > 0){
+                uniqueLen = uniqueLen + nrow(x)
+                toExcludePids = rbind(toExcludePids, x)
             }
         }
 

@@ -19,6 +19,8 @@ lab_file = args[['lab']]
 #Load up the results from limit algorithm using Meds
 load(med_file)
 medLabValues = cleanLabValues
+medPreTimeOffest = attr(parameters, "day_time_offset_pre")
+medPostTimeOffest = attr(parameters, "day_time_offset_post")
 medResultCode = attr(parameters, "resultCode")
 medRace = attr(parameters, "race")
 medGroup = attr(parameters, "group")
@@ -30,10 +32,12 @@ medPreQuantile = attr(parameters, "pre-limit_quantiles")
 medLabPost = nrow(cleanLabValues)
 medPostQuantile = as.numeric(quantile(cleanLabValues$l_val, c(0.025, 0.05, 0.95, 0.975), na.rm = TRUE))
 medExcludedPatients = excludedPatients
-excludedMeds = rbind(excludedICDs, excludedICDNames)
+excludedMeds = rbind(excludedICDs, excludedICDNames, excludedCounts, excludedPval)
 
 #Load up the results from limit algorithm using ICDs
 icd_results = load(icd_file)
+icdPreTimeOffest = attr(parameters, "day_time_offset_pre")
+icdPostTimeOffest = attr(parameters, "day_time_offset_post")
 icdResultCode = attr(parameters, "resultCode")
 icdRace = attr(parameters, "race")
 icdGroup = attr(parameters, "group")
@@ -46,10 +50,12 @@ icdPreQuantile = attr(parameters, "pre-limit_quantiles")
 icdLabPost = nrow(cleanLabValues)
 icdPostQuantile = as.numeric(quantile(cleanLabValues$l_val, c(0.025, 0.05, 0.95, 0.975), na.rm = TRUE))
 icdExcludedPatients = excludedPatients
-excludedICDS = rbind(excludedICDs, excludedICDNames)
+excludedICDS = rbind(excludedICDs, excludedICDNames, excludedCounts, excludedPval)
 
 #Load up the results from limit algorithm using Other Labs
 lab_results = load(lab_file)
+labPreTimeOffest = attr(parameters, "day_time_offset_pre")
+labPostTimeOffest = attr(parameters, "day_time_offset_post")
 labResultCode = attr(parameters, "resultCode")
 labRace = attr(parameters, "race")
 labGroup = attr(parameters, "group")
@@ -62,7 +68,7 @@ labPreQuantile = attr(parameters, "pre-limit_quantiles")
 labLabPost = nrow(cleanLabValues)
 labPostQuantile = as.numeric(quantile(cleanLabValues$l_val, c(0.025, 0.05, 0.95, 0.975), na.rm = TRUE))
 labExcludedPatients = excludedPatients
-excludedLabs = rbind(excludedICDs, excludedICDNames)
+excludedLabs = rbind(excludedICDs, excludedICDNames, excludedCounts, excludedPval)
 
 #Join the results
 cleanLabValues=inner_join(icdLabValues, medLabValues, by=c("pid", "l_val", "timeOffset", "EncounterID"))
@@ -77,6 +83,8 @@ saving=paste(saving, "/", finName, sep="")
 #Save the results to disk
 parameters<-1:1
 attr(parameters, "med_file") <- med_file
+attr(parameters, "med_pre_offest") <- medPreTimeOffest
+attr(parameters, "med_post_offest") <- medPostTimeOffest
 attr(parameters, "med_result_code") <- medResultCode
 attr(parameters, "med_sex") <- medSex
 attr(parameters, "med_race") <- medRace
@@ -91,6 +99,8 @@ attr(parameters, "med_excluded") <- excludedMeds
 attr(parameters, "med_excluded_pid") <- medExcludedPatients
 
 attr(parameters, "icd_file") <- icd_file
+attr(parameters, "icd_pre_offest") <- icdPreTimeOffest
+attr(parameters, "icd_post_offest") <- icdPostTimeOffest
 attr(parameters, "icd_result_code") <- icdResultCode
 attr(parameters, "icd_sex") <- icdSex
 attr(parameters, "icd_race") <- icdRace
@@ -105,6 +115,8 @@ attr(parameters, "icd_excluded") <- excludedICDS
 attr(parameters, "icd_excluded_pid") <- icdExcludedPatients
 
 attr(parameters, "lab_file") <- lab_file
+attr(parameters, "lab_pre_offest") <- labPreTimeOffest
+attr(parameters, "lab_post_offest") <- labPostTimeOffest
 attr(parameters, "lab_result_code") <- labResultCode
 attr(parameters, "lab_sex") <- labSex
 attr(parameters, "lab_race") <- labRace
@@ -116,7 +128,7 @@ attr(parameters, "lab_pre_quantiles") <- labPreQuantile
 attr(parameters, "lab_post_limit") <- labLabPost
 attr(parameters, "lab_post_quantile") <- labPostQuantile
 attr(parameters, "lab_excluded") <- excludedLabs
-attr(parameters, "lab_exclude_pid") <- labExcludedPatients
+attr(parameters, "lab_excluded_pid") <- labExcludedPatients
 
 save(cleanLabValues, parameters, file=saving)
 
