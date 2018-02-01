@@ -107,13 +107,12 @@ if(writeToFile){
                 attributes(parameters)$icd_start_time,
                 attributes(parameters)$icd_end_time,
                 attributes(parameters)$icd_pre_limit, 
-                attr(parameters, "pre-limit_quantiles"),
                 attr(parameters, "icd_post_limit"),
                 attr(parameters, "med_post_limit"), 
-                attr(parameters, "lab_post_limit"), 
+                attr(parameters, "lab_post_limit"),
                 postCombinedLabValuesCnt,
                 postHornLabValuesCnt,
-                length(cleanLabValues$l_val),
+                attr(parameters, "pre-limit_quantiles"),
                 as.numeric(quantile(cleanLabValues$l_val, c(0.025, 0.05, 0.95, 0.975), na.rm = TRUE)),
                 lowerRefLowLimit, lowerRefUpperLimit, upperRefLowLimit, upperRefUpperLimit, refConf)
     write(newLine,ncolumns=length(newLine),sep=",",file=theResultFile, append=TRUE)

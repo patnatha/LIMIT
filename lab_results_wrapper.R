@@ -116,7 +116,7 @@ get_pid_with_result_hlnf <- function(rc_hlnfs, validPIDs){
             }
    
             #Exclude unique PIDs
-            print(paste("Downloaded (", hlnf, "_", rc, ") ", curiter, "/", totaliter,": ", uniqueLen, " pids", sep=""))
+            print(paste("Downloaded (", hlnf, "_", rc, ") ", curiter, "/", totaliter,": ", uniqueLen, " labs", sep=""))
             curiter = curiter + 1
         } else {
             print("ERROR in splitting: ", splitstrings)

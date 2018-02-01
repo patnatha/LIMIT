@@ -67,7 +67,7 @@ get_pid_with_icd <- function(icds, validPIDs){
 
         #Exclude unique PIDs
         toExcludePids = unique(toExcludePids)
-        print(paste("Downloaded (", icd, ") ", curiter, "/", totaliter,": ", uniqueLen, " pids", sep=""))
+        print(paste("Downloaded (", icd, ") ", curiter, "/", totaliter,": ", uniqueLen, " icds", sep=""))
         curiter = curiter + 1
     }
 

@@ -83,8 +83,8 @@ saving=paste(saving, "/", finName, sep="")
 #Save the results to disk
 parameters<-1:1
 attr(parameters, "med_file") <- med_file
-attr(parameters, "med_pre_offest") <- medPreTimeOffest
-attr(parameters, "med_post_offest") <- medPostTimeOffest
+attr(parameters, "med_pre_offset") <- medPreTimeOffest
+attr(parameters, "med_post_offset") <- medPostTimeOffest
 attr(parameters, "med_result_code") <- medResultCode
 attr(parameters, "med_sex") <- medSex
 attr(parameters, "med_race") <- medRace
@@ -99,8 +99,8 @@ attr(parameters, "med_excluded") <- excludedMeds
 attr(parameters, "med_excluded_pid") <- medExcludedPatients
 
 attr(parameters, "icd_file") <- icd_file
-attr(parameters, "icd_pre_offest") <- icdPreTimeOffest
-attr(parameters, "icd_post_offest") <- icdPostTimeOffest
+attr(parameters, "icd_pre_offset") <- icdPreTimeOffest
+attr(parameters, "icd_post_offset") <- icdPostTimeOffest
 attr(parameters, "icd_result_code") <- icdResultCode
 attr(parameters, "icd_sex") <- icdSex
 attr(parameters, "icd_race") <- icdRace
@@ -115,8 +115,8 @@ attr(parameters, "icd_excluded") <- excludedICDS
 attr(parameters, "icd_excluded_pid") <- icdExcludedPatients
 
 attr(parameters, "lab_file") <- lab_file
-attr(parameters, "lab_pre_offest") <- labPreTimeOffest
-attr(parameters, "lab_post_offest") <- labPostTimeOffest
+attr(parameters, "lab_pre_offset") <- labPreTimeOffest
+attr(parameters, "lab_post_offset") <- labPostTimeOffest
 attr(parameters, "lab_result_code") <- labResultCode
 attr(parameters, "lab_sex") <- labSex
 attr(parameters, "lab_race") <- labRace
