@@ -109,11 +109,20 @@ import_similar_result_codes <- function(resultCodes){
 
 import_encounter_all <- function(pids){
     stime = start_timer()
-    encountersAll = get_encounters(unique(pids)) 
+    encountersAll = get_encounters_pid(unique(pids)) 
     encountersAll = rbindlist(encountersAll, use.names=TRUE, fill=TRUE, idcol=FALSE)
     print(paste("Downloading Encounters: ", as.character(nrow(encountersAll)), " encounters", sep=""))
     print(paste("Downloading Encounters: ", import_timeout(stime), sep=""))
     return(encountersAll)
+}
+
+import_encounter_encid <- function(encids){
+    stime = start_timer()
+    encounters = get_encounters_encid(unique(encids))
+    encounters = rbindlist(encounters, use.names=TRUE, fill=TRUE, idcol=FALSE)
+    print(paste("Downloading Encounters: ", as.character(nrow(encounters)), " encounters", sep=""))
+    print(paste("Downloading Encounters: ", import_timeout(stime), sep=""))
+    return(encounters)
 }
 
 # Depreciated function

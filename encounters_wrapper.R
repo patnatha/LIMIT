@@ -23,10 +23,37 @@ async_query_encs <- function(pids){
     )
 }
 
-get_encounters <- function(pids){
+get_encounters_pid <- function(pids){
     if(length(pids) > 0){
         print(paste("Download Encounters: ", as.character(length(pids)), " pids",sep=""))
         return(parallelfxn_large(pids, async_query_encs))
+    }
+    else{
+        return(NULL)
+    }
+}
+
+async_query_encid <- function(encids){
+    out <- tryCatch(
+        if(length(encids) > 0){
+            #Build the query and execute
+            sql = paste('SELECT PatientID, EncounterID, AdmitDate, PatientClassCode FROM EncountersAll WHERE EncounterID IN ("', paste(encids, collapse="\",\""), '")', sep="")
+            con = connect_sqlite_enc()
+            myQuery = dbGetQuery(con, sql)
+            dbDisconnect(con)
+            return(myQuery)
+        }
+    ,error=function(cond) {
+            message(cond)
+            return(NA)
+        }
+    )
+}
+
+get_encounters_encid <- function(encIDs){
+    if(length(encIDs) > 0){
+        print(paste("Download Encounters: ", as.character(length(encIDs)), " encs",sep=""))
+        return(parallelfxn_large(encIDs, async_query_encid))
     }
     else{
         return(NULL)
@@ -39,4 +66,5 @@ get_encounters_never_inpatient <- function(){
     dbDisconnect(con)
     return(p1)
 }
+
 

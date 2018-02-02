@@ -64,6 +64,7 @@ nonparRI = function (data, indices = 1:length(data), refConf = 0.95)
     return(results)
 }
 
+postJoinedLabValuesCnt = attr(parameters, "icd_med_lab_joined_count")
 postCombinedLabValuesCnt = length(cleanLabValues$l_val)
 print(paste("Lab Values Count: ", length(cleanLabValues$l_val)))
 print(paste("Unique Patient Count: ", length(unique(cleanLabValues$pid))))
@@ -110,9 +111,10 @@ if(writeToFile){
                 attr(parameters, "icd_post_limit"),
                 attr(parameters, "med_post_limit"), 
                 attr(parameters, "lab_post_limit"),
+                postJoinedLabValuesCnt,
                 postCombinedLabValuesCnt,
                 postHornLabValuesCnt,
-                attr(parameters, "pre-limit_quantiles"),
+                attr(parameters, "icd_pre_quantiles"),
                 as.numeric(quantile(cleanLabValues$l_val, c(0.025, 0.05, 0.95, 0.975), na.rm = TRUE)),
                 lowerRefLowLimit, lowerRefUpperLimit, upperRefLowLimit, upperRefUpperLimit, refConf)
     write(newLine,ncolumns=length(newLine),sep=",",file=theResultFile, append=TRUE)
