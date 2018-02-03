@@ -41,6 +41,12 @@ run_em_limit(){
 run_em_prepare(){
     toutdir="${outdir}${incGrp}/"
     mkdir -p $toutdir
-    eval "qsub prepare_data.pbs -F \"--input $inval --sex $thesex --race $therace --include $incGrp --age $theage --output ${toutdir}\""
+
+    if [[ -z $startDate ]] & [[ -z $endDate ]]
+    then
+        eval "qsub prepare_data.pbs -F \"--input $inval --sex $thesex --race $therace --include $incGrp --age $theage --output ${toutdir}\""
+    else
+        eval "qsub prepare_data.pbs -F \"--input $inval --start $startDate --end $endDate --sex $thesex --race $therace --include $incGrp --age $theage --output ${toutdir}\""
+    fi
 }
 

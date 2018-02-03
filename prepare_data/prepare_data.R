@@ -6,6 +6,8 @@ source("../import_files.R")
 library(optparse)
 option_list <- list(
     make_option("--input", type="character", default=NA, help="directory to load data from"),
+    make_option("--start", type="character", default="2013-01-01", help="start date"),
+    make_option("--end", type="character", default="2018-01-01", help="end date"),
     make_option("--output", type="character", default="/scratch/leeschro_armis/patnatha/prepared_data/", help="filepath output"),
     make_option("--name", type="character", default="", help="name of this set analysis"),
     make_option("--age", type="character", default=NA, help="enter range of ages separate by _"),
@@ -204,10 +206,38 @@ if(!is.na(input_val)){
     stop()
 }
 
+#PArse the start date
+startDate = NA
+if(!is.na(args[['start']]) && !is.null(args[['start']])){
+    startDate = as.Date(args[['start']], optional = TRUE)
+    if(is.na(startDate)){
+        print("ERROR: Start Date is invalid")
+        stop()
+    } else {
+        startDate = unclass(startDate)
+    }
+} else {
+    print("ERROR: Start Date is invalid")
+    stop()
+}
+
+#Parse the end date
+endDate = NA
+if(!is.na(args[['end']]) && !is.null(args[['start']])){
+    endDate = as.Date(args[['end']], optional = TRUE)
+    if(is.na(endDate)){
+        print("ERROR: End Date is invalid")
+        stop()
+    } else {
+        endDate = unclass(endDate)
+    }
+} else {
+    print("ERROR: End Date is invalid")
+    stop()
+}
+
 #Load up the lab values data set
 print("Loading Lab Values")
-startDate = unclass(as.Date("2013-01-01"))
-endDate = unclass(as.Date("2018-01-01"))
 labValues = import_lab_values(input_val, startDate, endDate)
 
 #Load up the Patient Info
