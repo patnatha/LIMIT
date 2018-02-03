@@ -1,6 +1,6 @@
 source ../basedir.sh
 
-tolistpath="${limitdir}alk_phos/outpatient/"
+tolistpath="${limitdir}mayo_alk_phos/outpatient/"
 cmd="./intersect_results.sh $tolistpath"
 eval $cmd
 cmd="Rscript exclude_combined.R --input ${tolistpath}"

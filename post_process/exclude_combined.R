@@ -95,10 +95,9 @@ print(paste("Unique Clean PIDs: ", length(uniquePIDs), sep=""))
 patient_bday = import_patient_bday(uniquePIDs)
 
 #Calculate icd offset
-icdPIDsExclude <- get_pid_with_icd(masterExcludeICD[c(1,2)], uniquePIDs)
+icdPIDsExclude <- get_pid_with_icd(masterExcludeICD, uniquePIDs)
 icdPIDsExclude = inner_join(icdPIDsExclude, patient_bday, by="PatientID")
 icdPIDsEncounters = import_encounter_encid(unique(icdPIDsExclude$EncounterID))
-save(icdPIDsExclude, icdPIDsEncounters, file="temp.Rdata")
 icdPIDsExclude = inner_join(icdPIDsExclude, icdPIDsEncounters, by=c("PatientID", "EncounterID"))
 icdPIDsExclude = icdPIDsExclude  %>% filter(AdmitDate != "")
 icdPIDsExclude = icdPIDsExclude %>% mutate(timeOffsetIcd = as.numeric(
@@ -132,7 +131,7 @@ for (tfile in filelist){
 
     #Get the abnormal meds and clear them out
     medCleanLabs = inner_join(medPIDsExclude, cleanLabValues, by="pid")
-    medCleanLabs = medcleanLabs %>% mutate(timeDiff = timeOffset - timeOffsetMed) %>% filter(timeDiff > (as.numeric(attr(parameters, "med_pre_offset")) * -1) && timeDiff < as.numeric(attr(parameters, "med_post_offset"))) %>% select(pid)
+    medCleanLabs = medCleanLabs %>% mutate(timeDiff = timeOffset - timeOffsetMed) %>% filter(timeDiff > (as.numeric(attr(parameters, "med_pre_offset")) * -1) && timeDiff < as.numeric(attr(parameters, "med_post_offset"))) %>% select(pid)
     medCleanLabs = unique(medCleanLabs$pid)
     cleanLabValues = cleanLabValues %>% filter(!pid %in% medCleanLabs)
 

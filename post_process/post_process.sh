@@ -18,4 +18,16 @@ then
     exit 0
 fi
 
-echo "COMMANDS: ALK, HGB, ELECTROLYTES"
+if [ "${torun}" == "BMP" ]
+then
+    ./process_bmp.sh
+    exit 0
+fi
+
+if [ "${torun}" == "BILI" ]
+then
+    ./process_bilirubin.sh
+    exit 0
+fi
+
+echo "COMMANDS: ALK, BMP, ELECTROLYTES, HGB"
