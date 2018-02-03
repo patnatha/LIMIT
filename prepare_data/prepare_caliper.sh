@@ -17,8 +17,8 @@ mkdir -p $outdir
 #Set basic variables
 incGrp="outpatient"
 therace="all"
-startDate="2018-01-01"
-endDate="2008-01-01"
+startDate="2008-01-01"
+endDate="2018-01-01"
 
 #Run Direct Bilirubin
 inval="DBIL"
