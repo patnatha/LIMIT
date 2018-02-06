@@ -18,6 +18,7 @@ lab_file = args[['lab']]
 
 #Load up the results from limit algorithm using Meds
 load(med_file)
+medRC = attr(parameters, "resultCode")
 medLabValues = cleanLabValues
 medPreTimeOffest = attr(parameters, "day_time_offset_pre")
 medPostTimeOffest = attr(parameters, "day_time_offset_post")
@@ -32,10 +33,13 @@ medPreQuantile = attr(parameters, "pre-limit_quantiles")
 medLabPost = nrow(cleanLabValues)
 medPostQuantile = as.numeric(quantile(cleanLabValues$l_val, c(0.025, 0.05, 0.95, 0.975), na.rm = TRUE))
 medExcludedPatients = excludedPatients
-excludedMeds = rbind(excludedICDs, excludedICDNames, excludedCounts, excludedPval)
+#excludedMeds = rbind(excludedICDs, excludedICDNames, excludedCounts, excludedPval)
+excludedMeds = rbind(excludedICDs, excludedICDNames, excludedPval)
+excludedMedLabs = excludedCounts
 
 #Load up the results from limit algorithm using ICDs
 icd_results = load(icd_file)
+icdRC = attr(parameters, "resultCode")
 icdPreTimeOffest = attr(parameters, "day_time_offset_pre")
 icdPostTimeOffest = attr(parameters, "day_time_offset_post")
 icdResultCode = attr(parameters, "resultCode")
@@ -50,10 +54,13 @@ icdPreQuantile = attr(parameters, "pre-limit_quantiles")
 icdLabPost = nrow(cleanLabValues)
 icdPostQuantile = as.numeric(quantile(cleanLabValues$l_val, c(0.025, 0.05, 0.95, 0.975), na.rm = TRUE))
 icdExcludedPatients = excludedPatients
-excludedICDS = rbind(excludedICDs, excludedICDNames, excludedCounts, excludedPval)
+#excludedICDS = rbind(excludedICDs, excludedICDNames, excludedCounts, excludedPval)
+excludedICDS = rbind(excludedICDs, excludedICDNames, excludedPval)
+excludedICDLabs = excludedCounts
 
 #Load up the results from limit algorithm using Other Labs
 lab_results = load(lab_file)
+labRC = attr(parameters, "resultCode")
 labPreTimeOffest = attr(parameters, "day_time_offset_pre")
 labPostTimeOffest = attr(parameters, "day_time_offset_post")
 labResultCode = attr(parameters, "resultCode")
@@ -68,7 +75,24 @@ labPreQuantile = attr(parameters, "pre-limit_quantiles")
 labLabPost = nrow(cleanLabValues)
 labPostQuantile = as.numeric(quantile(cleanLabValues$l_val, c(0.025, 0.05, 0.95, 0.975), na.rm = TRUE))
 labExcludedPatients = excludedPatients
-excludedLabs = rbind(excludedICDs, excludedICDNames, excludedCounts, excludedPval)
+#excludedLabs = rbind(excludedICDs, excludedICDNames, excludedCounts, excludedPval)
+excludedLabs = rbind(excludedICDs, excludedICDNames, excludedPval)
+excludedLabLabs = excludedCounts
+
+#Check for match input codes
+intersect_it = FALSE
+if(length(labRC) == length(icdRC) &&
+   length(intersect(labRC, icdRC)) == length(labRC) &&
+   length(labRC) == length(medRC) &&
+   length(intersect(labRC, medRC)) == length(labRC) &&
+   length(icdRC) == length(medRC) &&
+   length(intersect(icdRC, medRC) == length(icdRC))){
+    intersect_it = TRUE
+}
+if(!intersect_it){
+    print("ERROR: not matching input values")
+    stop()
+}
 
 #Join the results
 cleanLabValues=inner_join(icdLabValues, medLabValues, by=c("pid", "l_val", "timeOffset", "EncounterID"))
@@ -82,6 +106,8 @@ saving=paste(saving, "/", finName, sep="")
 
 #Save the results to disk
 parameters<-1:1
+attr(parameters, "resultCodes") <- icdRC
+
 attr(parameters, "med_file") <- med_file
 attr(parameters, "med_pre_offset") <- medPreTimeOffest
 attr(parameters, "med_post_offset") <- medPostTimeOffest
@@ -97,6 +123,7 @@ attr(parameters, "med_post_limit") <- medLabPost
 attr(parameters, "med_post_quantile") <- medPostQuantile 
 attr(parameters, "med_excluded") <- excludedMeds
 attr(parameters, "med_excluded_pid") <- medExcludedPatients
+attr(parameters, "med_excluded_labs") <- excludedMedLabs
 
 attr(parameters, "icd_file") <- icd_file
 attr(parameters, "icd_pre_offset") <- icdPreTimeOffest
@@ -113,6 +140,7 @@ attr(parameters, "icd_post_limit") <- icdLabPost
 attr(parameters, "icd_post_quantile") <- icdPostQuantile
 attr(parameters, "icd_excluded") <- excludedICDS
 attr(parameters, "icd_excluded_pid") <- icdExcludedPatients
+attr(parameters, "icd_excluded_labs") <- excludedICDLabs
 
 attr(parameters, "lab_file") <- lab_file
 attr(parameters, "lab_pre_offset") <- labPreTimeOffest
@@ -129,6 +157,7 @@ attr(parameters, "lab_post_limit") <- labLabPost
 attr(parameters, "lab_post_quantile") <- labPostQuantile
 attr(parameters, "lab_excluded") <- excludedLabs
 attr(parameters, "lab_excluded_pid") <- labExcludedPatients
+attr(parameters, "lab_excluded_labs") <- excludedLabLabs
 
 save(cleanLabValues, parameters, file=saving)
 

@@ -101,7 +101,7 @@ print(paste("Lab Values Parametric Quantiles: ", paste(round(((1 - refConf)/2.0)
 #Write the results to file if exists
 if(writeToFile){
     newLine = c(basename(inputData), 
-                attributes(parameters)$icd_result_code,
+                paste(attributes(parameters)$icd_result_code, collapse="_"),
                 gsub(",","_",attributes(parameters)$icd_group),
                 attributes(parameters)$icd_sex,
                 attributes(parameters)$icd_race,

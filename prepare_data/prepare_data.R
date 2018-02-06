@@ -367,8 +367,7 @@ if('HGB' %in% input_val || 'HGBN' %in% input_val){
     hctSimilarResultCodes = get_similar_lab_codes(c("HCT"))
     similarResultCodes = c(similarResultCodes, hctSimilarResultCodes)
     similarResultCodes = unique(similarResultCodes)
-}
-else if('CREAT' %in% input_val){
+} else if('CREAT' %in% input_val){
     egfrSimilarResultCodes = get_similar_lab_codes(c("EGFR"))
     similarResultCodes = c(similarResultCodes, egfrSimilarResultCodes)
 }

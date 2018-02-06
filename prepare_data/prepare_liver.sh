@@ -10,24 +10,28 @@ mkdir -p $outdir
 #Set basic variables
 incGrp="outpatient_and_never_inpatient"
 therace="all"
-theage="adult"
 
 #RUN ALT
-indir="alt_5_years"
+inval="ALT"
 thesex="both"
+theage="adult"
 run_em_prepare
 
 #RUN AST
-indir="ast_5_years"
+inval="AST"
 thesex="both"
+theage="0Y_1Y"
+run_em_prepare
+theage="1Y_12Y"
+run_em_prepare
+theage="12Y_150Y"
 run_em_prepare
 
 #Run GGTP
-indir="ggtp_5_years"
+inval="GGTP"
+theage="adult"
 thesex="male"
 run_em_prepare
-
-indir="ggtp_5_years"
 thesex="female"
 run_em_prepare
 

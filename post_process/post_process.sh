@@ -6,6 +6,12 @@ then
     exit 0
 fi
 
+if [ "${torun}" == "MAYO_ALK" ]
+then
+    ./process_mayo_alkphos.sh
+    exit 0
+fi
+
 if [ "${torun}" == "HGB" ]
 then
     ./process_hgb.sh
@@ -30,4 +36,4 @@ then
     exit 0
 fi
 
-echo "COMMANDS: ALK, BMP, ELECTROLYTES, HGB"
+echo "COMMANDS: ALK, BILI, BMP, ELECTROLYTES, HGB, MAYO_ALK"

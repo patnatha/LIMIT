@@ -16,7 +16,8 @@ thesex="both"
 inval="TBIL"
 theage="0D_30D"
 run_em_prepare
-
+theage="30D_365D"
+run_em_prepare
 theage="1Y_11Y"
 run_em_prepare
 

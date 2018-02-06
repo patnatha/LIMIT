@@ -1,12 +1,12 @@
 source ../basedir.sh
 
-tolistpath="${limitdir}other_electrolytes/outpatient_and_never_inpatient/"
+tolistpath="${limitdir}glucose_2_months/inpatient/"
 cmd="./intersect_results_undo.sh $tolistpath"
 eval $cmd
 cmd="./intersect_results.sh $tolistpath"
 eval $cmd
 cmd="Rscript exclude_combined.R --input ${tolistpath}"
-eval $cmd
+eval $cmd 
 cmd="./analyze_group.sh $tolistpath 2.5 newfile"
 eval $cmd
 

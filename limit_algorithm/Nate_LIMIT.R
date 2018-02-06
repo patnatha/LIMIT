@@ -14,6 +14,7 @@ library(optparse)
 library(dplyr)
 library(parallel)
 library(boot)
+library(data.table)
 
 #Create the options list
 option_list <- list(
@@ -346,35 +347,33 @@ while (!converged) {
 
                 if (pvalue > criticalP) {
                     converged = TRUE
-                    excludePID = numeric()
                 } else {
-                    # Removing ICD
+                    # Find the ICD code to be removed and its given name
                     DOI = as.character(ICDtable[which.min(fisherTestICD),]$icd)
-                    print(paste('CODE (', as.character(iteration), "): ", DOI, sep=""))
-
-                    #Find the ICD code for this given name
                     DOIName = unique(icdValues$icd_name[which(icdValues$icd == DOI)])
-                    print(paste('CODE NAME (', as.character(iteration), "): ", DOIName, sep=""))
+
+                    if(debug){
+                        print(paste('CODE (', as.character(iteration), "): ", DOI, sep=""))
+                        print(paste('CODE NAME (', as.character(iteration), "): ", DOIName, sep=""))
+                    }
 
                     # Find all patients who have the significant codes
                     excludePID = FindExclusions(DOI)
 
-                    #Keep track of which codes were excluded and their p-values at exclusion 
+                    # Keep track of which codes were excluded 
                     excludedICDs = c(excludedICDs, DOI)
                     excludedICDNames = c(excludedICDNames, DOIName)
                     excludedPatients = append(excludedPatients, excludePID)
-                    excludedCounts = c(excludedCounts, 
-                                        length(which(labValues$pid %in% excludePID)))
                     excludedPval = c(excludedPval, pvalue)
+                    excludedCounts = rbind(excludedCounts, data.table(icd=DOI, labValues %>% filter(pid %in% excludePID) %>% select(pid, l_val, timeOffset, EncounterID)))
+
+                    # Remove excluded patients from database
+                    includePatients = setdiff(unique(labValues$pid), excludePID)
+                    labValues = labValues[which(labValues$pid %in% includePatients), ] 
                 }
             } else {
-                excludePID = numeric()
                 converged = TRUE
             }
-          
-            # Remove excluded patients from data base
-            includePatients = setdiff(unique(labValues$pid), excludePID)
-            labValues = labValues[which(labValues$pid %in% includePatients), ]
         } else {
             converged = TRUE
         }
