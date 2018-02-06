@@ -1,4 +1,5 @@
 tolistpath=$1
+eval "mkdir -p ${tolistpath}graphs/"
 preplist=`ls -1 ${tolistpath}*.Rdata | sort | tr '\n' '\0' | xargs -0 -n 1 basename`
 
 optionalConfInt=$2

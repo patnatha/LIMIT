@@ -48,11 +48,11 @@ do
 done
 
 eval "mkdir -p ${tolistpath}med"
-eval "mv ${tolistpath}*med*.Rdata" "${tolistpath}med/." 
+eval "mv ${tolistpath}*med.Rdata" "${tolistpath}med/." 
 
 eval "mkdir -p ${tolistpath}icd"
-eval "mv ${tolistpath}*icd*.Rdata" "${tolistpath}icd/."
+eval "mv ${tolistpath}*icd.Rdata" "${tolistpath}icd/."
 
 eval "mkdir -p ${tolistpath}lab"
-eval "mv ${tolistpath}*lab*.Rdata" "${tolistpath}lab/."
+eval "mv ${tolistpath}*lab.Rdata" "${tolistpath}lab/."
 

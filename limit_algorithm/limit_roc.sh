@@ -69,7 +69,7 @@ run_that_file(){
                         for code in $(echo $codes | sed "s/,/ /g")
                         do
                             filename=$(echo $tfile | cut -d "." -f1)
-                            #echo "qsub Nate_LIMIT.sh --critical-hampel $criticalHampel --critical-p-value $criticalP --critical-proportion $criticalProp --day-time-offset-pre $dtoPre --day-time-offset-post $dtoPre --singular-value $singularValue --code $code --output $outpath --input $finfile --name ${filename}_H${criticalHampel}P${criticalP}Prop${criticalProp}PrePost${dtoPre}SV${singularValue}_${code}"
+                            echo "qsub Nate_LIMIT.sh --critical-hampel $criticalHampel --critical-p-value $criticalP --critical-proportion $criticalProp --day-time-offset-pre $dtoPre --day-time-offset-post $dtoPre --singular-value $singularValue --code $code --output $outpath --input $finfile --name ${filename}_H${criticalHampel}P${criticalP}Prop${criticalProp}PrePost${dtoPre}SV${singularValue}_${code}"
                             numberOfRuns=$((numberOfRuns + 1))
                         done
                     done

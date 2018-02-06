@@ -1,5 +1,6 @@
 library(optparse)
 library(dplyr)
+library(stringr)
 source('../import_files.R')
 
 #Create the options list
@@ -22,6 +23,7 @@ uniquePIDs = list()
 outfile=paste(input_dir, "/icd_med_lab_excludes.csv", sep="")
 write("input, type, code, name, excluded lab count, pre-limit count, percent removed", file=outfile, append=FALSE) 
 
+listToCombine = c()
 filelist = list.files(input_dir, pattern = ".Rdata", full.names = TRUE)
 for (tfile in filelist){
     #Load up the file
@@ -29,6 +31,11 @@ for (tfile in filelist){
 
     #Build the name code
     resultNameCode = paste(sort(attr(parameters, "resultCode")), collapse="_")
+    if(resultNameCode %in% listToCombine){
+        listToCombine[resultNameCode] = listToCombine[resultNameCode] + 1
+    } else {
+        listToCombine[resultNameCode] = 1
+    }
 
     #Create master exclusion list
     tempExclude = unique(c(attr(parameters, "lab_exclude_pid"), attr(parameters, "icd_excluded_pid"), attr(parameters, "med_excluded_pid")))
@@ -95,7 +102,12 @@ for (tfile in filelist){
 uniqueListToRun = unique(c(masterExcludeICD[1,], masterExcludeMED[1,], masterExcludeLAB[1,]))
 for(curResultCode in uniqueListToRun){
     #Get unique exclusion lists and print some info
-    print(paste("COMBINE EXCLUSION: ", curResultCode, sep=""))
+    print(paste("COMBINE EXCLUSION: ", curResultCode, " = ", listToCombine[resultNameCode], sep=""))
+    queryDbForPIDs = TRUE
+    if(listToCombine[resultNameCode] <= 1){
+        queryDbForPIDs = FALSE
+    }
+
     uniqueExcludeICD = unique(masterExcludeICD[2, which(masterExcludeICD[1,] == curResultCode)])
     uniqueExcludeMED = unique(masterExcludeMED[2, which(masterExcludeMED[1,] == curResultCode)])
     uniqueExcludeLAB = unique(masterExcludeLAB[2, which(masterExcludeLAB[1,] == curResultCode)])
@@ -113,7 +125,12 @@ for(curResultCode in uniqueListToRun){
     patient_bday = import_patient_bday(uniquePIDs)
 
     #Calculate icd offset
-    icdPIDsExclude <- get_pid_with_icd(uniqueExcludeICD, uniquePIDs)
+    if(queryDbForPIDs){
+        icdPIDsExclude = list()
+    } else {
+        icdPIDsExclude <- get_pid_with_icd(uniqueExcludeICD, uniquePIDs)
+    }
+   
     if(length(icdPIDsExclude) > 0){
         icdPIDsExclude = inner_join(icdPIDsExclude, patient_bday, by="PatientID")
         icdPIDsEncounters = import_encounter_encid(unique(icdPIDsExclude$EncounterID))
@@ -126,7 +143,12 @@ for(curResultCode in uniqueListToRun){
     }
 
     #Calculate med offset
-    medPIDsExclude <- get_pid_with_med(uniqueExcludeMED, uniquePIDs)
+    if(queryDbForPIDs){
+        medPIDsExclude = list()
+    } else {
+        medPIDsExclude <- get_pid_with_med(uniqueExcludeMED, uniquePIDs)
+    }
+
     if(length(medPIDsExclude) > 0){
         medPIDsExclude = inner_join(medPIDsExclude, patient_bday, by="PatientID")
         medPIDsExclude = medPIDsExclude %>% mutate(timeOffsetMed = as.numeric(
@@ -135,7 +157,12 @@ for(curResultCode in uniqueListToRun){
     }
 
     #Calculate lab offset
-    labPIDsExclude <- get_pid_with_result_hlnf(uniqueExcludeLAB, uniquePIDs)
+    if(queryDbForPIDs){
+        labPIDsExclude = list()
+    } else {
+        labPIDsExclude <- get_pid_with_result_hlnf(uniqueExcludeLAB, uniquePIDs)
+    }
+    
     if(length(labPIDsExclude) > 0){
         labPIDsExclude = inner_join(labPIDsExclude, patient_bday, by="PatientID")
         labPIDsExclude = labPIDsExclude %>% mutate(timeOffsetLab = as.numeric(
@@ -186,7 +213,7 @@ for(curResultCode in uniqueListToRun){
         #Save the update results
         print(paste(basename(tfile), " to filter: ", oldCleanLabValuesLen, " => ", nrow(cleanLabValues), sep=""))
         attr(parameters, "icd_med_lab_joined_count") = oldCleanLabValuesLen
-        save(cleanLabValues, parameters, file=tfile)
+        save(cleanLabValues, parameters, file=str_replace(tfile,"joined","combined"))
     }
 }
 

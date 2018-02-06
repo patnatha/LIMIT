@@ -45,11 +45,14 @@ run_outliers = function(theData){
     runs=1
     outliered = horn.outliers(theData)
     print(paste("Horn Outliers: ", runs, " (", nrow(theData), " - ", nrow(outliered), ")", sep=""))
+    print(paste("Lab Values Quartiles: ", paste(round(as.numeric(quantile(outliered$l_val, c(0.025, 0.05, 0.95, 0.975), na.rm = TRUE)), digits=2),collapse=" "), sep=""))
+
     while(nrow(outliered) != nrow(theData) & runs < 3){
         theData = outliered
         outliered = horn.outliers(theData)
         runs=runs+1
         print(paste("Horn Outliers: ", runs, " (", nrow(theData), " - ", nrow(outliered), ")", sep=""))
+        print(paste("Lab Values Quartiles: ", paste(round(as.numeric(quantile(outliered$l_val, c(0.025, 0.05, 0.95, 0.975), na.rm = TRUE)), digits=2),collapse=" "), sep=""))
     }
     theData = outliered
     return(theData)
@@ -76,7 +79,7 @@ cleanLabValues = run_outliers(cleanLabValues)
 postHornLabValuesCnt = length(cleanLabValues$l_val)
 print(paste("Lab Values Count: ", length(cleanLabValues$l_val)))
 print(paste("Unique Patient Count: ", length(unique(cleanLabValues$pid))))
-print(paste("Lab Values Quartiles: ", paste(round(as.numeric(quantile(cleanLabValues$l_val, c(0.025, 0.05, 0.50, 0.95, 0.975), na.rm = TRUE)), digits=2),collapse=" "), sep=""))
+print(paste("Lab Values Quartiles: ", paste(round(as.numeric(quantile(cleanLabValues$l_val, c(0.025, 0.05, 0.95, 0.975), na.rm = TRUE)), digits=2),collapse=" "), sep=""))
 
 #Run the boot parametric confidence interval
 bootresult = boot(data = cleanLabValues$l_val, statistic = nonparRI, refConf = refConf, R = 5000)
@@ -119,4 +122,27 @@ if(writeToFile){
                 lowerRefLowLimit, lowerRefUpperLimit, upperRefLowLimit, upperRefUpperLimit, refConf)
     write(newLine,ncolumns=length(newLine),sep=",",file=theResultFile, append=TRUE)
 }
+
+#Build the list of excluded lab values
+finalExluded=union(attr(parameters, "lab_excluded_labs") %>% select(pid, l_val, timeOffset, EncounterID), attr(parameters, "icd_excluded_labs") %>% select(pid, l_val, timeOffset, EncounterID), attr(parameters, "med_excluded_labs") %>% select(pid, l_val, timeOffset, EncounterID))
+originalSet=union(cleanLabValues %>% select(pid, l_val, timeOffset, EncounterID), finalExluded)
+
+#Find the max and min values
+theYMin=round(min(cleanLabValues$l_val, finalExluded$l_val, originalSet$l_val), digits=0) - 1
+theYMax=round(max(cleanLabValues$l_val, finalExluded$l_val, originalSet$l_val), digits=0) + 1
+theXMin=0
+theXMax=round(max(cleanLabValues$timeOffset, finalExluded$timeOffset, originalSet$timeOffset), digits=0) + 1
+
+#Build some plots
+jpeg(filename=paste(dirname(inputData), "/graphs/", tools::file_path_sans_ext(basename(inputData)), "_original_scatterplot.jpg", sep=""))
+origPlot=plot(originalSet$timeOffset, originalSet$l_val, main="Original Scatterplot", xlab="Time (Days)", ylab="Lab Value", col="red", xlim=c(theXMin, theXMax), ylim=c(theYMin, theYMax))
+dev.off()
+
+jpeg(filename=paste(dirname(inputData), "/graphs/", tools::file_path_sans_ext(basename(inputData)), "_limit_scatterplot.jpg",  sep=""))
+limitPlot=plot(cleanLabValues$timeOffset, cleanLabValues$l_val, main="Final Scatterplot", xlab="Time (Days)", ylab="Lab Value", col="red", xlim=c(theXMin, theXMax), ylim=c(theYMin, theYMax))
+dev.off()
+
+jpeg(filename=paste(dirname(inputData), "/graphs/", tools::file_path_sans_ext(basename(inputData)), "_excluded_scatterplot.jpg", sep=""))
+excPlot=plot(finalExluded$timeOffset, finalExluded$l_val, main="LIMIT Excluded Scatterplot", xlab="Time (Days)", ylab="Lab Value", col="green", xlim=c(theXMin, theXMax), ylim=c(theYMin, theYMax))
+dev.off()
 
