@@ -95,8 +95,12 @@ if(!intersect_it){
 }
 
 #Join the results
-cleanLabValues=inner_join(icdLabValues, medLabValues, by=c("pid", "l_val", "timeOffset", "EncounterID"))
-cleanLabValues=inner_join(cleanLabValues, labLabValues, by=c("pid", "l_val", "timeOffset", "EncounterID"))
+stime=Sys.time()
+#cleanLabValues=inner_join(icdLabValues, medLabValues, by=c("pid", "l_val", "timeOffset", "EncounterID"))
+#cleanLabValues=inner_join(cleanLabValues, labLabValues, by=c("pid", "l_val", "timeOffset", "EncounterID"))
+cleanLabValues=intersect(icdLabValues, intersect(medLabValues, labLabValues))
+print(Sys.time() - stime)
+stop()
 
 #Create the output directory name
 saving=dirname(med_file)

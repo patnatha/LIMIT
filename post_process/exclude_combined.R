@@ -125,7 +125,7 @@ for(curResultCode in uniqueListToRun){
     patient_bday = import_patient_bday(uniquePIDs)
 
     #Calculate icd offset
-    if(queryDbForPIDs){
+    if(!queryDbForPIDs){
         icdPIDsExclude = list()
     } else {
         icdPIDsExclude <- get_pid_with_icd(uniqueExcludeICD, uniquePIDs)
@@ -143,7 +143,7 @@ for(curResultCode in uniqueListToRun){
     }
 
     #Calculate med offset
-    if(queryDbForPIDs){
+    if(!queryDbForPIDs){
         medPIDsExclude = list()
     } else {
         medPIDsExclude <- get_pid_with_med(uniqueExcludeMED, uniquePIDs)
@@ -157,7 +157,7 @@ for(curResultCode in uniqueListToRun){
     }
 
     #Calculate lab offset
-    if(queryDbForPIDs){
+    if(!queryDbForPIDs){
         labPIDsExclude = list()
     } else {
         labPIDsExclude <- get_pid_with_result_hlnf(uniqueExcludeLAB, uniquePIDs)
