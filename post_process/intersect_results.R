@@ -33,7 +33,6 @@ medPreQuantile = attr(parameters, "pre-limit_quantiles")
 medLabPost = nrow(cleanLabValues)
 medPostQuantile = as.numeric(quantile(cleanLabValues$l_val, c(0.025, 0.05, 0.95, 0.975), na.rm = TRUE))
 medExcludedPatients = excludedPatients
-#excludedMeds = rbind(excludedICDs, excludedICDNames, excludedCounts, excludedPval)
 excludedMeds = rbind(excludedICDs, excludedICDNames, excludedPval)
 excludedMedLabs = excludedCounts
 
@@ -54,7 +53,6 @@ icdPreQuantile = attr(parameters, "pre-limit_quantiles")
 icdLabPost = nrow(cleanLabValues)
 icdPostQuantile = as.numeric(quantile(cleanLabValues$l_val, c(0.025, 0.05, 0.95, 0.975), na.rm = TRUE))
 icdExcludedPatients = excludedPatients
-#excludedICDS = rbind(excludedICDs, excludedICDNames, excludedCounts, excludedPval)
 excludedICDS = rbind(excludedICDs, excludedICDNames, excludedPval)
 excludedICDLabs = excludedCounts
 
@@ -75,7 +73,6 @@ labPreQuantile = attr(parameters, "pre-limit_quantiles")
 labLabPost = nrow(cleanLabValues)
 labPostQuantile = as.numeric(quantile(cleanLabValues$l_val, c(0.025, 0.05, 0.95, 0.975), na.rm = TRUE))
 labExcludedPatients = excludedPatients
-#excludedLabs = rbind(excludedICDs, excludedICDNames, excludedCounts, excludedPval)
 excludedLabs = rbind(excludedICDs, excludedICDNames, excludedPval)
 excludedLabLabs = excludedCounts
 
@@ -95,12 +92,7 @@ if(!intersect_it){
 }
 
 #Join the results
-stime=Sys.time()
-#cleanLabValues=inner_join(icdLabValues, medLabValues, by=c("pid", "l_val", "timeOffset", "EncounterID"))
-#cleanLabValues=inner_join(cleanLabValues, labLabValues, by=c("pid", "l_val", "timeOffset", "EncounterID"))
 cleanLabValues=intersect(icdLabValues, intersect(medLabValues, labLabValues))
-print(Sys.time() - stime)
-stop()
 
 #Create the output directory name
 saving=dirname(med_file)

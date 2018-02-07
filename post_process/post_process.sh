@@ -36,4 +36,10 @@ then
     exit 0
 fi
 
-echo "COMMANDS: ALK, BILI, BMP, ELECTROLYTES, HGB, MAYO_ALK"
+if [ "${torun}" == "LIVER" ]
+then
+    ./process_liver.sh
+    exit 0
+fi
+
+echo "COMMANDS: ALK, BILI, BMP, ELECTROLYTES, HGB, LIVER, MAYO_ALK"

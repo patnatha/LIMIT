@@ -130,7 +130,7 @@ originalSet=union(cleanLabValues %>% select(pid, l_val, timeOffset, EncounterID)
 #Find the max and min values
 theYMin=round(min(cleanLabValues$l_val, finalExluded$l_val, originalSet$l_val), digits=0) - 1
 theYMax=round(max(cleanLabValues$l_val, finalExluded$l_val, originalSet$l_val), digits=0) + 1
-theXMin=0
+theXMin=round(min(cleanLabValues$timeOffset, finalExluded$timeOffset, originalSet$timeOffset), digits=0) - 1
 theXMax=round(max(cleanLabValues$timeOffset, finalExluded$timeOffset, originalSet$timeOffset), digits=0) + 1
 
 #Build some plots

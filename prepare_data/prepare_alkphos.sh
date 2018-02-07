@@ -10,7 +10,7 @@ therace="all"
 inval="ALK"
 
 sed -i 's/ppn=[0-9]\+/ppn=4/' prepare_data.pbs
-sed -i 's/pmem=[0-9]\+gb/pmem=8gb/' prepare_data.pbs
+sed -i 's/pmem=[0-9]\+gb/pmem=4gb/' prepare_data.pbs
 thesex="male"
     theage="0D_14D"
     run_em_prepare
@@ -33,13 +33,13 @@ thesex="male"
     theage="17Y_19Y"
     run_em_prepare
 
-    sed -i 's/ppn=[0-9]\+/ppn=8/' prepare_data.pbs
-    sed -i 's/pmem=[0-9]\+gb/pmem=16gb/' prepare_data.pbs
+    sed -i 's/ppn=[0-9]\+/ppn=12/' prepare_data.pbs
+    sed -i 's/pmem=[0-9]\+gb/pmem=8gb/' prepare_data.pbs
     theage="19Y_150Y"
     run_em_prepare
 
 sed -i 's/ppn=[0-9]\+/ppn=4/' prepare_data.pbs
-sed -i 's/pmem=[0-9]\+gb/pmem=8gb/' prepare_data.pbs
+sed -i 's/pmem=[0-9]\+gb/pmem=4gb/' prepare_data.pbs
 thesex="female"
     theage="0D_14D"
     run_em_prepare
@@ -62,8 +62,8 @@ thesex="female"
     theage="17Y_19Y"
     run_em_prepare
 
-    sed -i 's/ppn=[0-9]\+/ppn=8/' prepare_data.pbs
-    sed -i 's/pmem=[0-9]\+gb/pmem=16gb/' prepare_data.pbs
+    sed -i 's/ppn=[0-9]\+/ppn=12/' prepare_data.pbs
+    sed -i 's/pmem=[0-9]\+gb/pmem=8gb/' prepare_data.pbs
     theage="19Y_150Y"
     run_em_prepare
 

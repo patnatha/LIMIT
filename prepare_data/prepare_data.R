@@ -285,7 +285,7 @@ if(!is.na(ageBias[[1]])){
 encountersAll = NA
 if(!is.na(toInclude)){
     #Down sampling code
-    pidSampleMax = 300000
+    pidSampleMax = 500000
     uniquePIDs = unique(labValues$PatientID)
     if(length(uniquePIDs) > pidSampleMax){
         print(paste("LV: Down Sample PIDs, ", length(uniquePIDs), " => ", format(pidSampleMax, scientific=FALSE), sep=""))
@@ -378,7 +378,6 @@ otherLabs = otherLabs %>% filter(!RESULT_CODE %in% similarResultCodes)
 print("Other Labs: Calculate Time-Offset")
 otherLabs = otherLabs %>% mutate(timeOffset = as.numeric(
                                  as.Date(COLLECTION_DATE) - as.Date(DOB)))
-glimpse(otherLabs)
 otherLabs = otherLabs %>% rename(pid = PatientID)
 otherLabs = otherLabs %>% mutate(icd = paste(HILONORMAL_FLAG, "_", RESULT_CODE, sep=""))
 otherLabs = otherLabs %>% mutate(icd_name = paste(HILONORMAL_COMMENT, "_", RESULT_NAME, sep=""))

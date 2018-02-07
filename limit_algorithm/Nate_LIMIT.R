@@ -26,8 +26,7 @@ option_list <- list(
   make_option("--critical-p-value", type="double", default=NA, help="critical p-value for fisher's test cutoff"),
   make_option("--critical-hampel", type="integer", default=NA, help="hampel algorithm cutoff"),
   make_option("--day-time-offset-post", type="integer", default=NA, help="Offset in days from lab values to include values"),
-  make_option("--day-time-offset-pre", type="integer", default=NA, help="Offset in days from lab values to include values"),
-  make_option("--singular-value", type="character", default=NA, help="How to choose the patients value")
+  make_option("--day-time-offset-pre", type="integer", default=NA, help="Offset in days from lab values to include values")
 )
 
 #Parse the incoming options
@@ -39,7 +38,6 @@ outputDir = args[['output']]
 outputName = args[['name']]
 inputData = args[['input']]
 codeType = args[['codes']]
-singular_value = args[['singular-value']]
 versioning = '1.3'
 
 # Parse the incoming critical proportion
@@ -89,16 +87,6 @@ if(file.exists(saving)){
     stop()
 } 
 
-# Parse the singular_value parameter
-if(is.na(singular_value)){
-    singular_value = "all"
-} else if(singular_value != "random" && singular_value != "most_recent"){
-    print("ERROR: incorrect singular_value")
-    stop()
-} else {
-    singular_value = singular_value
-}
-
 #Load RData from disk
 if(is.na(inputData) || !file.exists(inputData)){
     print("ERROR: The input file path doesn't exist")
@@ -123,6 +111,7 @@ if(!is.na(codeType)){
         print("ERROR: Input code type is not valid")
         stop()
     }
+    print(paste("Running: ", codeType, sep=""))
 }else{
     print("ERROR: A code type has not been selected [icd|med|lab]")
     stop()
@@ -142,7 +131,6 @@ attr(parameters, "day_time_offset_post") <- day_time_offset_post
 attr(parameters, "codeType") <- codeType
 attr(parameters, "versioning") <- versioning
 attr(parameters, "inputData") <- inputData
-attr(parameters, "singular_value") <- singular_value
 
 #Run the hampel outlier detection
 hampel = function(x, t = 3, RemoveNAs = TRUE) {
@@ -215,19 +203,6 @@ labValues = labValues %>% filter(!is.na(pid) & !is.null(pid) & !pid == "")
 labValues = labValues %>% filter(!is.na(l_val))
 labValues$l_val = as.numeric(labValues$l_val)
 labValues = labValues  %>% filter(!is.na(l_val))
-
-# Obtain only one value for each PID
-if(singular_value == "most_recent"){
-    # Find the most recent value for a grouping of PIDs
-    mostRecentLabValues = labValues %>% group_by(pid) %>% summarise(timeOffset=max(timeOffset))
-
-    # Get the lab values for the first day for each PID, pick a random value on the first day
-    labValues = labValues %>% inner_join(mostRecentLabValues, by=c("pid", "timeOffset") %>% group_by(pid) %>% sample_n(1))
-    remove(mostRecentLabValues)
-} else if(singular_value == "random"){
-    # Get a list of random values for each PID
-    labValues = labValues %>% group_by(pid) %>% sample_n(1) %>% select(pid, l_val, EncounterID, timeOffset)
-}
 
 # Write down the pre-limit length algorithm
 attr(parameters, "pre-limit_quantiles") = as.numeric(quantile(labValues$l_val, c(0.025, 0.05, 0.95, 0.975), na.rm = TRUE))

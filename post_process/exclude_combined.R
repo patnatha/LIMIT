@@ -20,7 +20,7 @@ masterExcludeLAB = list()
 uniquePIDs = list()
 
 #Write the first line in the output file
-outfile=paste(input_dir, "/icd_med_lab_excludes.csv", sep="")
+outfile=paste(input_dir, "/limit_excludes.csv", sep="")
 write("input, type, code, name, excluded lab count, pre-limit count, percent removed", file=outfile, append=FALSE) 
 
 listToCombine = c()
@@ -31,7 +31,7 @@ for (tfile in filelist){
 
     #Build the name code
     resultNameCode = paste(sort(attr(parameters, "resultCode")), collapse="_")
-    if(resultNameCode %in% listToCombine){
+    if(resultNameCode %in% names(listToCombine)){
         listToCombine[resultNameCode] = listToCombine[resultNameCode] + 1
     } else {
         listToCombine[resultNameCode] = 1
