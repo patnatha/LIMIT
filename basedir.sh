@@ -48,13 +48,85 @@ run_em_prepare(){
 }
 
 run_em_select(){
-    sed -i 's/ppn=[0-9]\+/ppn=1/' prepare_selection.pbs
-    sed -i 's/pmem=[0-9]\+gb/pmem=4gb/' prepare_selection.pbs
-
-    preplist=`ls -1 ${tolistpath} | tr '\n' '\0' | xargs -0 -n 1 basename | grep --invert-match selected`
+    preplist=`find ${tolistpath} -maxdepth 3 | grep Rdata | grep --invert-match selected`
     for tfile in $preplist;
     do
-        eval "qsub prepare_selection.pbs -F \"--input ${tolistpath}${tfile} --singular-value ${singularValue}\""
-        #echo "Rscript prepare_selection.R --input ${tolistpath}${tfile} --singular-value ${singularValue}"
+        #Create the output directory
+        outdir=`dirname ${tfile}`
+        eval "rm -rf ${outdir}/*selected.Rdata"
+        outdir="${outdir}/${singularValue}/"
+        mkdir -p $outdir
+
+        parameters="--input ${tfile} --singular-value ${singularValue} --output ${outdir}"        
+        eval "qsub prepare_selection.pbs -F \"${parameters}\""
+        #echo "Rscript prepare_selection.R ${parameters}"
     done
 }
+
+switch_input(){
+    if [[ -z $toswitch ]]
+    then
+        echo "ERROR: ALK, ALK_MAYO, BILI, BMP, CALIPER, ELEC, HGB, PLT, ROC, TEST, WBC"
+        exit
+    fi
+
+    if [ "${toswitch}" == "ALK" ]
+    then
+        preparedir="${preparedir}alk_phos/"
+    fi
+    
+    if [ "${toswitch}" == "ALK_MAYO" ]
+    then
+        preparedir="${preparedir}alk_phos_mayo/"
+    fi 
+
+    if [ "${toswitch}" == "BILI" ]
+    then
+        preparedir="${preparedir}bilirubin/"
+    fi
+
+    if [ "${toswitch}" == "BMP" ]
+    then
+        preparedir="${preparedir}basic_metabolic_panel/"
+    fi
+
+    if [ "${toswitch}" == "ELEC" ]
+    then
+        preparedir="${preparedir}other_electrolytes/"
+    fi
+
+    if [ "${toswitch}" == "HGB" ]
+    then
+        preparedir="${preparedir}HGB_HGBN"
+    fi
+
+    if [ "${toswitch}" == "LIVER" ]
+    then
+        preparedir="${preparedir}liver_enzymes"
+    fi
+
+    if [ "${toswitch}" == "PLT" ]
+    then
+        preparedir="${preparedir}platelet/"
+    fi
+
+    if [ "${toswitch}" == "ROC" ]
+    then
+        preparedir="${preparedir}roc"
+    fi
+
+    if [ "${toswitch}" == "TEST" ]
+    then
+        preparedir="${preparedir}glucose_2_months"
+    fi
+
+    if [ "${toswitch}" == "WBC" ]
+    then
+        preparedir="${preparedir}white_blood_cell"
+    fi
+
+    limitdir=${preparedir/"prepared_data"/"limit_results"}
+    mkdir -p $preparedir
+    mkdir -p $limitdir
+}
+

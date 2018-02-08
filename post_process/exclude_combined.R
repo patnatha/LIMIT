@@ -30,7 +30,7 @@ for (tfile in filelist){
     load(tfile)
 
     #Build the name code
-    resultNameCode = paste(sort(attr(parameters, "resultCode")), collapse="_")
+    resultNameCode = paste(sort(attr(parameters, "resultCodes")), collapse="_")
     if(resultNameCode %in% names(listToCombine)){
         listToCombine[resultNameCode] = listToCombine[resultNameCode] + 1
     } else {
@@ -178,7 +178,7 @@ for(curResultCode in uniqueListToRun){
         load(tfile)
         
         #Check to see if the current file needs to be excluded for the current code
-        resultNameCode = paste(sort(attr(parameters, "resultCode")), collapse="_")
+        resultNameCode = paste(sort(attr(parameters, "resultCodes")), collapse="_")
         if(resultNameCode != curResultCode){
             next
         } 

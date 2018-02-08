@@ -1,8 +1,6 @@
 source ../basedir.sh
-
-#Set the output directory
-outdir="${preparedir}alk_phos/"
-mkdir -p $outdir
+toswitch="ALK"
+switch_input
 
 #Set basic variables
 incGrp="outpatient"
