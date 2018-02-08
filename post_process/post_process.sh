@@ -6,7 +6,7 @@ tolistpath=$limitdir
 
 run_that_stuff(){
     eval $cmd
-    echo $cmd
+    #echo $cmd
 }
 
 cmd="./post_process_undo.sh $tolistpath"
@@ -15,8 +15,6 @@ cmd="./intersect_group.sh $tolistpath"
 run_that_stuff
 cmd="./exclude_combined.sh $tolistpath"
 run_that_stuff
-cmd="./analyze_group.sh $tolistpath 2.5 newfile"
-run_that_stuff
-cmd="./analyze_group.sh $tolistpath 5.0 appendfile"
+cmd="./analyze_group.sh $tolistpath"
 run_that_stuff
 

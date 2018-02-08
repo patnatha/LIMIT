@@ -1,58 +1,63 @@
+source ../basedir.sh
 tolistpath=$1
-preplist=`ls -1 ${tolistpath}*.Rdata | tr '\n' '\0' | xargs -0 -n 1 basename`
+post_process_dir
 
-echo "=====Run these files?====="
-theCnt=0
-finarricd=()
-finarrmed=()
-finarrlab=()
-for tfile in $preplist;
+for tdir in $prepdirs
 do
-    echo $tfile
-    if [[ $tfile == *"icd"* ]];
-    then
-        finarricd+="${tfile}|"
-    fi
-
-    if [[ $tfile == *"med"* ]];
-    then
-        finarrmed+="${tfile}|"
-    fi
-
-    if [[ $tfile == *"lab"* ]];
-    then
-        finarrlab+="${tfile}|"
-    fi
-done
-
-for tfile in $(echo $finarricd | tr "|" "\n");
-do
-    basefname=`basename ${tfile} | sed 's/\(.*\)_.*/\1/'`
-    for tfile2 in $(echo $finarrmed | tr "|" "\n");
+    echo "=====Run these files?====="
+    theCnt=0
+    finarricd=()
+    finarrmed=()
+    finarrlab=()
+    preplist=`find ${tdir} | grep -P 'selected.*Rdata'`
+    for tfile in $preplist;
     do
-        basefname2=`basename ${tfile2} | sed 's/\(.*\)_.*/\1/'`
-        if [ $tfile != $tfile2 ] && [ $basefname == $basefname2 ];
+        echo `basename $tfile`
+        if [[ $tfile == *"icd"* ]];
         then
-            for tfile3 in $(echo $finarrlab | tr "|" "\n");
-            do
-                basefname3=`basename ${tfile3} | sed 's/\(.*\)_.*/\1/'`
-                if [ $tfile != $tfile3 ] && [ $basefname == $basefname3 ];
-                then
-                    thecmd="Rscript intersect_results.R --icd $tolistpath$tfile --med $tolistpath$tfile2 --lab $tolistpath$tfile3"
-                    echo $thecmd
-                    eval $thecmd
-                fi
-            done
+            finarricd+="${tfile}|"
+        fi
+
+        if [[ $tfile == *"med"* ]];
+        then
+            finarrmed+="${tfile}|"
+        fi
+
+        if [[ $tfile == *"lab"* ]];
+        then
+            finarrlab+="${tfile}|"
         fi
     done
+
+    eval "mkdir -p ${tdir}/med"
+    eval "mkdir -p ${tdir}/icd"
+    eval "mkdir -p ${tdir}/lab"
+
+    for tfile in $(echo $finarricd | tr "|" "\n");
+    do
+        basefname=`basename ${tfile} | sed 's/\(.*\)_.*/\1/'`
+        for tfile2 in $(echo $finarrmed | tr "|" "\n");
+        do
+            basefname2=`basename ${tfile2} | sed 's/\(.*\)_.*/\1/'`
+            if [ $tfile != $tfile2 ] && [ $basefname == $basefname2 ];
+            then
+                for tfile3 in $(echo $finarrlab | tr "|" "\n");
+                do
+                    basefname3=`basename ${tfile3} | sed 's/\(.*\)_.*/\1/'`
+                    if [ $tfile != $tfile3 ] && [ $basefname == $basefname3 ];
+                    then
+                        thecmd="Rscript intersect_results.R --icd $tfile --med $tfile2 --lab $tfile3"
+                        #echo $thecmd
+                        eval $thecmd
+
+                        #Move the file to appropiate directory
+                        eval `mv $tfile ${tdir}/icd/.`
+                        eval `mv $tfile2 ${tdir}/med/.`
+                        eval `mv $tfile3 ${tdir}/lab/.`
+                    fi
+                done
+            fi
+        done
+    done
 done
-
-eval "mkdir -p ${tolistpath}med"
-eval "mv ${tolistpath}*med.Rdata" "${tolistpath}med/." 
-
-eval "mkdir -p ${tolistpath}icd"
-eval "mv ${tolistpath}*icd.Rdata" "${tolistpath}icd/."
-
-eval "mkdir -p ${tolistpath}lab"
-eval "mv ${tolistpath}*lab.Rdata" "${tolistpath}lab/."
 

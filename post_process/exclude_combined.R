@@ -24,7 +24,7 @@ outfile=paste(input_dir, "/limit_excludes.csv", sep="")
 write("input, type, code, name, excluded lab count, pre-limit count, percent removed", file=outfile, append=FALSE) 
 
 listToCombine = c()
-filelist = list.files(input_dir, pattern = ".Rdata", full.names = TRUE)
+filelist = list.files(input_dir, pattern = "joined.Rdata", full.names = TRUE)
 for (tfile in filelist){
     #Load up the file
     load(tfile)

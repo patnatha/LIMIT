@@ -132,33 +132,51 @@ run_booty <- function(refConf){
     if(is.null(upperRefUpperLimit)){ upperRefUpperLimit = "NA" }
 
     print(paste("Lab Values Parametric Quantiles: ", paste(round(((1 - refConf)/2.0)*100, digits=1), "% <=CI=> ", round(100-(((1 - refConf)/2.0)*100), digits=1),"%: (", lowerRefLowLimit, "-", lowerRefUpperLimit, ") <=> (", upperRefLowLimit, "-", upperRefUpperLimit, ")", sep="")), sep="")
-
-    #Write the results to file if exists
-    if(writeToFile){
-        newLine = c(basename(inputData), 
-                    paste(attributes(parameters)$icd_result_code, collapse="_"),
-                    gsub(",","_",attributes(parameters)$icd_group),
-                    attributes(parameters)$icd_sex,
-                    attributes(parameters)$icd_race,
-                    attributes(parameters)$icd_start_time,
-                    attributes(parameters)$icd_end_time,
-                    attributes(parameters)$icd_pre_limit, 
-                    attr(parameters, "icd_post_limit"),
-                    attr(parameters, "med_post_limit"), 
-                    attr(parameters, "lab_post_limit"),
-                    postJoinedLabValuesCnt,
-                    postCombinedLabValuesCnt,
-                    postHornLabValuesCnt,
-                    attr(parameters, "icd_pre_quantiles"),
-                    as.numeric(quantile(cleanLabValues$l_val, c(0.025, 0.05, 0.95, 0.975), na.rm = TRUE)),
-                    lowerRefLowLimit, lowerRefUpperLimit, upperRefLowLimit, upperRefUpperLimit, refConf)
-        write(newLine,ncolumns=length(newLine),sep=",",file=theResultFile, append=TRUE)
-    }
+    
+    results<-1:1
+    attr(results, "lowerRefLowLimit") = lowerRefLowLimit
+    attr(results, "lowerRefUpperLimit") = lowerRefUpperLimit
+    attr(results, "upperRefLowLimit") = upperRefLowLimit
+    attr(results, "upperRefUpperLimit") = upperRefUpperLimit
+    return(results)
 }
 
 #Run the boot parametric confidence interval
-run_booty(0.95)
-run_booty(0.90)
+results=run_booty(0.95)
+lowerRefLowLimit95 = attr(results, "lowerRefLowLimit")
+lowerRefUpperLimit95 = attr(results, "lowerRefUpperLimit")
+upperRefLowLimit95 = attr(results, "upperRefLowLimit")
+upperRefUpperLimit95 = attr(results, "upperRefUpperLimit")
+results=run_booty(0.90)
+lowerRefLowLimit90 = attr(results, "lowerRefLowLimit")
+lowerRefUpperLimit90 = attr(results, "lowerRefUpperLimit")
+upperRefLowLimit90 = attr(results, "upperRefLowLimit")
+upperRefUpperLimit90 = attr(results, "upperRefUpperLimit")
+
+#Write the results to file if exists
+if(writeToFile){
+    newLine = c(basename(inputData),
+                paste(attributes(parameters)$icd_result_code, collapse="_"),
+                gsub(",","_",attributes(parameters)$icd_group),
+                attributes(parameters)$icd_sex,
+                attributes(parameters)$icd_race,
+                attributes(parameters)$icd_start_time,
+                attributes(parameters)$icd_end_time,
+                attributes(parameters)$icd_selection,
+                attributes(parameters)$icd_pre_limit,
+                attr(parameters, "icd_post_limit"),
+                attr(parameters, "med_post_limit"),
+                attr(parameters, "lab_post_limit"),
+                postJoinedLabValuesCnt,
+                postCombinedLabValuesCnt,
+                postHornLabValuesCnt,
+                attr(parameters, "icd_pre_quantiles"),
+                as.numeric(quantile(cleanLabValues$l_val, c(0.025, 0.05, 0.95, 0.975), na.rm = TRUE)),
+                lowerRefLowLimit95, lowerRefUpperLimit95, upperRefLowLimit95, upperRefUpperLimit95,
+                lowerRefLowLimit90, lowerRefUpperLimit90, upperRefLowLimit90, upperRefUpperLimit90)
+    write(newLine,ncolumns=length(newLine),sep=",",file=theResultFile, append=TRUE)
+}
+
 
 #Find the max and min values
 theYMin=round(min(originalSet$l_val), digits=0) - 1

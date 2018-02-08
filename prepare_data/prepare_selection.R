@@ -44,8 +44,8 @@ attr(parameters, "singular_value") <- singular_value
 oldLabValuesLen = nrow(labValues)
 if(singular_value == "most_recent"){
     print("SELECT THE MOST RECENT LAB VALUE AS A REP FOR EACH PID")
-    mostRecentLabValues = labValues %>% group_by(pid) %>% summarise(timeOffset=max(timeOffset))
-    labValues = labValues %>% inner_join(mostRecentLabValues, by=c("pid", "timeOffset") %>% group_by(pid) %>% sample_n(1))
+    mostRecentLabValues = labValues %>% group_by(pid) %>% summarise(timeOffset=min(timeOffset))
+    labValues = labValues %>% inner_join(mostRecentLabValues, by=c("pid", "timeOffset")) %>% group_by(pid) %>% sample_n(1)
     remove(mostRecentLabValues)
 } else if(singular_value == "random"){
     print("SELECT RANDOM LAB VALUES AS REP FOR EACH PID")

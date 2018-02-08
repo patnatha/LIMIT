@@ -1,13 +1,19 @@
+source ../basedir.sh
 tolistpath=$1
+post_process_dir
+for tdir in $prepdirs
+do
+    echo "CLEANING: ${tdir}"
 
-#Remove the post processed files
-eval "rm ${tolistpath}*joined.Rdata"
-eval "rm -rf ${tolistpath}joined/"
-eval "rm -rf ${tolistpath}*combined.Rdata"
-eval "rm -rf ${tolistpath}graphs/"
+    #Remove the post processed files
+    eval "rm -f ${tdir}/*joined.Rdata"
+    eval "rm -rf ${tdir}/joined/"
+    eval "rm -rf ${tdir}/*combined.Rdata"
+    eval "rm -rf ${tdir}/graphs/"
 
-#Move original data back to base directory
-eval "mv ${tolistpath}med/*med.Rdata" "${tolistpath}."
-eval "mv ${tolistpath}icd/*icd.Rdata" "${tolistpath}."
-eval "mv ${tolistpath}lab/*lab.Rdata" "${tolistpath}."
+    #Move original data back to base directory
+    eval "mv ${tdir}/med/*med.Rdata" "${tdir}/."
+    eval "mv ${tdir}/icd/*icd.Rdata" "${tdir}/."
+    eval "mv ${tdir}/lab/*lab.Rdata" "${tdir}/."
+done
 

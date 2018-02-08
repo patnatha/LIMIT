@@ -13,7 +13,6 @@ run_dir_limit(){
     preplist=`find ${tolistpath} | grep selected`
     for tfile in $preplist;
     do
-        echo $tfile
         run_em_limit
     done
 }
@@ -32,11 +31,11 @@ run_em_limit(){
     eval "qsub Nate_LIMIT.pbs -F \"${paramsone}\""
     eval "qsub Nate_LIMIT.pbs -F \"${paramstwo}\""
     eval "qsub Nate_LIMIT.pbs -F \"${paramsthree}\""
-    echo "Rscript Nate_LIMIT.R ${paramsone}"
+    #echo "Rscript Nate_LIMIT.R ${paramsone}"
 }
 
 run_em_prepare(){
-    toutdir="${outdir}${incGrp}/"
+    toutdir="${preparedir}${incGrp}/"
     mkdir -p $toutdir
 
     if [[ -z $startDate ]] | [[ -z $endDate ]]
@@ -133,3 +132,16 @@ switch_input(){
     mkdir -p $limitdir
 }
 
+post_process_dir(){
+    prepdirstemp=`find ${tolistpath} -maxdepth 2 -type d`
+    prepdirs=""
+    for tdir in $prepdirstemp
+    do
+        if [[ $tdir == *"random" ]] || [[ $tdir == *"most_recent" ]]
+        then
+            prepdirs+="${tdir}|"
+        fi
+    done
+   
+    prepdirs=`echo $prepdirs | tr "|" "\n"` 
+}

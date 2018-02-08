@@ -19,6 +19,7 @@ lab_file = args[['lab']]
 #Load up the results from limit algorithm using Meds
 load(med_file)
 medRC = attr(parameters, "resultCode")
+medSelection = attr(parameters, "singular_value")
 medLabValues = cleanLabValues
 medPreTimeOffest = attr(parameters, "day_time_offset_pre")
 medPostTimeOffest = attr(parameters, "day_time_offset_post")
@@ -39,6 +40,7 @@ excludedMedLabs = excludedCounts
 #Load up the results from limit algorithm using ICDs
 icd_results = load(icd_file)
 icdRC = attr(parameters, "resultCode")
+icdSelection = attr(parameters, "singular_value")
 icdPreTimeOffest = attr(parameters, "day_time_offset_pre")
 icdPostTimeOffest = attr(parameters, "day_time_offset_post")
 icdResultCode = attr(parameters, "resultCode")
@@ -59,6 +61,7 @@ excludedICDLabs = excludedCounts
 #Load up the results from limit algorithm using Other Labs
 lab_results = load(lab_file)
 labRC = attr(parameters, "resultCode")
+labSelection = attr(parameters, "singular_value")
 labPreTimeOffest = attr(parameters, "day_time_offset_pre")
 labPostTimeOffest = attr(parameters, "day_time_offset_post")
 labResultCode = attr(parameters, "resultCode")
@@ -92,7 +95,9 @@ if(!intersect_it){
 }
 
 #Join the results
+print(paste("Joining: ", basename(icd_file), " <=> ", basename(med_file), " <=> ", basename(lab_file), sep=""))
 cleanLabValues=intersect(icdLabValues, intersect(medLabValues, labLabValues))
+print(paste("INTERSECTIONL ", nrow(icdLabValues), "(ICD) + ", nrow(medLabValues), "(MED) + ", nrow(labLabValues), "(LAB) = ", nrow(cleanLabValues), sep=""))
 
 #Create the output directory name
 saving=dirname(med_file)
@@ -105,6 +110,7 @@ parameters<-1:1
 attr(parameters, "resultCodes") <- icdRC
 
 attr(parameters, "med_file") <- med_file
+attr(parameters, "med_selection") <- medSelection
 attr(parameters, "med_pre_offset") <- medPreTimeOffest
 attr(parameters, "med_post_offset") <- medPostTimeOffest
 attr(parameters, "med_result_code") <- medResultCode
@@ -122,6 +128,7 @@ attr(parameters, "med_excluded_pid") <- medExcludedPatients
 attr(parameters, "med_excluded_labs") <- excludedMedLabs
 
 attr(parameters, "icd_file") <- icd_file
+attr(parameters, "icd_selection") <- icdSelection
 attr(parameters, "icd_pre_offset") <- icdPreTimeOffest
 attr(parameters, "icd_post_offset") <- icdPostTimeOffest
 attr(parameters, "icd_result_code") <- icdResultCode
@@ -139,6 +146,7 @@ attr(parameters, "icd_excluded_pid") <- icdExcludedPatients
 attr(parameters, "icd_excluded_labs") <- excludedICDLabs
 
 attr(parameters, "lab_file") <- lab_file
+attr(parameters, "lab_selection") <- labSelection
 attr(parameters, "lab_pre_offset") <- labPreTimeOffest
 attr(parameters, "lab_post_offset") <- labPostTimeOffest
 attr(parameters, "lab_result_code") <- labResultCode
