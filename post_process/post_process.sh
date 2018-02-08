@@ -1,45 +1,22 @@
-torun=$1
+source ../basedir.sh
+toswitch=$1
+switch_input
 
-if [ "${torun}" == "ALK" ]
-then
-    ./process_alkphos.sh
-    exit 0
-fi
+tolistpath=$limitdir
 
-if [ "${torun}" == "MAYO_ALK" ]
-then
-    ./process_mayo_alkphos.sh
-    exit 0
-fi
+run_that_stuff(){
+    eval $cmd
+    echo $cmd
+}
 
-if [ "${torun}" == "HGB" ]
-then
-    ./process_hgb.sh
-    exit 0
-fi
+cmd="./post_process_undo.sh $tolistpath"
+run_that_stuff
+cmd="./intersect_group.sh $tolistpath"
+run_that_stuff
+cmd="./exclude_combined.sh $tolistpath"
+run_that_stuff
+cmd="./analyze_group.sh $tolistpath 2.5 newfile"
+run_that_stuff
+cmd="./analyze_group.sh $tolistpath 5.0 appendfile"
+run_that_stuff
 
-if [ "${torun}" == "ELECTROLYTES" ]
-then
-    ./process_electrolytes.sh
-    exit 0
-fi
-
-if [ "${torun}" == "BMP" ]
-then
-    ./process_bmp.sh
-    exit 0
-fi
-
-if [ "${torun}" == "BILI" ]
-then
-    ./process_bilirubin.sh
-    exit 0
-fi
-
-if [ "${torun}" == "LIVER" ]
-then
-    ./process_liver.sh
-    exit 0
-fi
-
-echo "COMMANDS: ALK, BILI, BMP, ELECTROLYTES, HGB, LIVER, MAYO_ALK"

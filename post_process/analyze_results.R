@@ -4,9 +4,7 @@ library(boot)
 
 #Create the options list
 option_list <- list(
-  make_option("--input", type="character", default=NA, help="file to load Rdata"),
-  make_option("--graph", action="store_true", default=FALSE),
-  make_option("--ref-interval", type="character", default="2.5", help="reference interval")
+  make_option("--input", type="character", default=NA, help="file to load Rdata")
 )
 
 #Parse the incoming options
@@ -15,11 +13,44 @@ args <- parse_args(parser)
 
 #Load input data
 inputData = args[['input']]
+print(paste("LOADING: ", inputData, sep=""))
 load(inputData)
 
-#Parse input arguments
-toGraph = args[['graph']]
-refConf = 1 - ((as.numeric(args[['ref-interval']]) * 2) / 100.0)
+#Build the list of excluded lab values
+finalExludedTone=list()
+if(length(attr(parameters, "lab_excluded_labs")) == 0){
+    attr(parameters, "lab_excluded_labs") <- data.frame(
+                 pid=character(),
+                 l_val=numeric(),
+                 timeOffset=numeric(),
+                 EncounterID=character(),
+                 stringsAsFactors=FALSE)
+}
+
+if(length(attr(parameters, "med_excluded_labs")) == 0){
+    attr(parameters, "med_excluded_labs") <- data.frame(
+                 pid=character(),
+                 l_val=numeric(),
+                 timeOffset=numeric(),
+                 EncounterID=character(),
+                 stringsAsFactors=FALSE)
+}
+
+if(length(attr(parameters, "icd_excluded_labs")) == 0){
+    attr(parameters, "icd_excluded_labs") <- data.frame(
+                 pid=character(),
+                 l_val=numeric(),
+                 timeOffset=numeric(),
+                 EncounterID=character(),
+                 stringsAsFactors=FALSE)
+}
+
+#Combine the excluded list with the cleaned lab values
+finalExluded=union(
+    attr(parameters, "icd_excluded_labs") %>% select(pid, l_val, timeOffset, EncounterID), 
+    attr(parameters, "med_excluded_labs") %>% select(pid, l_val, timeOffset, EncounterID), 
+    attr(parameters, "lab_excluded_labs") %>% select(pid, l_val, timeOffset, EncounterID))
+originalSet=union(cleanLabValues %>% select(pid, l_val, timeOffset, EncounterID), finalExluded)
 
 #Build the output file name
 theResultFile = paste(dirname(inputData), "analysis_results.csv", sep="/")
@@ -40,19 +71,18 @@ horn.outliers = function(data){
     return(data %>% filter(l_val > min(lineInSand$subset) & l_val < max(lineInSand$subset)))
 }
 
-run_outliers = function(theData){
+run_outliers = function(theData, runsCnt){
     #Iterated the horn outliers algorithm
     runs=1
     outliered = horn.outliers(theData)
-    print(paste("Horn Outliers: ", runs, " (", nrow(theData), " - ", nrow(outliered), ")", sep=""))
+
+    while(nrow(outliered) != nrow(theData) & runs < runsCnt){
+        print(paste("Horn Outliers: ", runs, " (", nrow(theData), " - ", nrow(outliered), ")", sep=""))
     print(paste("Lab Values Quartiles: ", paste(round(as.numeric(quantile(outliered$l_val, c(0.025, 0.05, 0.95, 0.975), na.rm = TRUE)), digits=2),collapse=" "), sep=""))
 
-    while(nrow(outliered) != nrow(theData) & runs < 3){
         theData = outliered
         outliered = horn.outliers(theData)
         runs=runs+1
-        print(paste("Horn Outliers: ", runs, " (", nrow(theData), " - ", nrow(outliered), ")", sep=""))
-        print(paste("Lab Values Quartiles: ", paste(round(as.numeric(quantile(outliered$l_val, c(0.025, 0.05, 0.95, 0.975), na.rm = TRUE)), digits=2),collapse=" "), sep=""))
     }
     theData = outliered
     return(theData)
@@ -67,71 +97,74 @@ nonparRI = function (data, indices = 1:length(data), refConf = 0.95)
     return(results)
 }
 
-postJoinedLabValuesCnt = attr(parameters, "icd_med_lab_joined_count")
-postCombinedLabValuesCnt = length(cleanLabValues$l_val)
 print(paste("Lab Values Count: ", length(cleanLabValues$l_val)))
 print(paste("Unique Patient Count: ", length(unique(cleanLabValues$pid))))
 print(paste("Lab Values Quantiles: ", paste(round(as.numeric(quantile(cleanLabValues$l_val, c(0.025, 0.05, 0.95, 0.975), na.rm = TRUE)), digits=2),collapse=" "), sep=""))
 
 #Run the outlier detection
-cleanLabValues = run_outliers(cleanLabValues)
-
+postJoinedLabValuesCnt = attr(parameters, "icd_med_lab_joined_count")
+postCombinedLabValuesCnt = length(cleanLabValues$l_val)
+cleanLabValues = run_outliers(cleanLabValues, 3)
 postHornLabValuesCnt = length(cleanLabValues$l_val)
+
 print(paste("Lab Values Count: ", length(cleanLabValues$l_val)))
 print(paste("Unique Patient Count: ", length(unique(cleanLabValues$pid))))
 print(paste("Lab Values Quartiles: ", paste(round(as.numeric(quantile(cleanLabValues$l_val, c(0.025, 0.05, 0.95, 0.975), na.rm = TRUE)), digits=2),collapse=" "), sep=""))
 
-#Run the boot parametric confidence interval
-bootresult = boot(data = cleanLabValues$l_val, statistic = nonparRI, refConf = refConf, R = 5000)
+#Define the boot non-parametric function
+run_booty <- function(refConf){
+    bootresult = boot(data = cleanLabValues$l_val, 
+                      statistic = nonparRI, refConf = refConf, R = 5000)
 
-#get the confidence intervals from the boot result
-limitConf = 0.95
-bootresultlower = boot.ci(bootresult, conf = limitConf, type = "basic", index = 1)
-bootresultupper = boot.ci(bootresult, conf = limitConf, type = "basic", index = 2)
+    #get the confidence intervals from the boot result
+    limitConf = 0.90
+    bootresultlower = boot.ci(bootresult, conf = limitConf, type = "basic", index = 1)
+    bootresultupper = boot.ci(bootresult, conf = limitConf, type = "basic", index = 2)
 
-#Get the upper and lower limits for limits for displaying
-lowerRefLowLimit = bootresultlower$basic[4]
-if(is.null(lowerRefLowLimit)){ lowerRefLowLimit = "NA" }
-lowerRefUpperLimit = bootresultlower$basic[5]
-if(is.null(lowerRefUpperLimit)){ lowerRefUpperLimit = "NA" }
-upperRefLowLimit = bootresultupper$basic[4]
-if(is.null(upperRefLowLimit)){ upperRefLowLimit = "NA" }
-upperRefUpperLimit = bootresultupper$basic[5]
-if(is.null(upperRefUpperLimit)){ upperRefUpperLimit = "NA" }
+    #Get the upper and lower limits for limits for displaying
+    lowerRefLowLimit = bootresultlower$basic[4]
+    if(is.null(lowerRefLowLimit)){ lowerRefLowLimit = "NA" }
+    lowerRefUpperLimit = bootresultlower$basic[5]
+    if(is.null(lowerRefUpperLimit)){ lowerRefUpperLimit = "NA" }
+    upperRefLowLimit = bootresultupper$basic[4]
+    if(is.null(upperRefLowLimit)){ upperRefLowLimit = "NA" }
+    upperRefUpperLimit = bootresultupper$basic[5]
+    if(is.null(upperRefUpperLimit)){ upperRefUpperLimit = "NA" }
 
-print(paste("Lab Values Parametric Quantiles: ", paste(round(((1 - refConf)/2.0)*100, digits=1), "% <=CI=> ", round(100-(((1 - refConf)/2.0)*100), digits=1),"%: (", lowerRefLowLimit, "-", lowerRefUpperLimit, ") <=> (", upperRefLowLimit, "-", upperRefUpperLimit, ")", sep="")), sep="")
+    print(paste("Lab Values Parametric Quantiles: ", paste(round(((1 - refConf)/2.0)*100, digits=1), "% <=CI=> ", round(100-(((1 - refConf)/2.0)*100), digits=1),"%: (", lowerRefLowLimit, "-", lowerRefUpperLimit, ") <=> (", upperRefLowLimit, "-", upperRefUpperLimit, ")", sep="")), sep="")
 
-#Write the results to file if exists
-if(writeToFile){
-    newLine = c(basename(inputData), 
-                paste(attributes(parameters)$icd_result_code, collapse="_"),
-                gsub(",","_",attributes(parameters)$icd_group),
-                attributes(parameters)$icd_sex,
-                attributes(parameters)$icd_race,
-                attributes(parameters)$icd_start_time,
-                attributes(parameters)$icd_end_time,
-                attributes(parameters)$icd_pre_limit, 
-                attr(parameters, "icd_post_limit"),
-                attr(parameters, "med_post_limit"), 
-                attr(parameters, "lab_post_limit"),
-                postJoinedLabValuesCnt,
-                postCombinedLabValuesCnt,
-                postHornLabValuesCnt,
-                attr(parameters, "icd_pre_quantiles"),
-                as.numeric(quantile(cleanLabValues$l_val, c(0.025, 0.05, 0.95, 0.975), na.rm = TRUE)),
-                lowerRefLowLimit, lowerRefUpperLimit, upperRefLowLimit, upperRefUpperLimit, refConf)
-    write(newLine,ncolumns=length(newLine),sep=",",file=theResultFile, append=TRUE)
+    #Write the results to file if exists
+    if(writeToFile){
+        newLine = c(basename(inputData), 
+                    paste(attributes(parameters)$icd_result_code, collapse="_"),
+                    gsub(",","_",attributes(parameters)$icd_group),
+                    attributes(parameters)$icd_sex,
+                    attributes(parameters)$icd_race,
+                    attributes(parameters)$icd_start_time,
+                    attributes(parameters)$icd_end_time,
+                    attributes(parameters)$icd_pre_limit, 
+                    attr(parameters, "icd_post_limit"),
+                    attr(parameters, "med_post_limit"), 
+                    attr(parameters, "lab_post_limit"),
+                    postJoinedLabValuesCnt,
+                    postCombinedLabValuesCnt,
+                    postHornLabValuesCnt,
+                    attr(parameters, "icd_pre_quantiles"),
+                    as.numeric(quantile(cleanLabValues$l_val, c(0.025, 0.05, 0.95, 0.975), na.rm = TRUE)),
+                    lowerRefLowLimit, lowerRefUpperLimit, upperRefLowLimit, upperRefUpperLimit, refConf)
+        write(newLine,ncolumns=length(newLine),sep=",",file=theResultFile, append=TRUE)
+    }
 }
 
-#Build the list of excluded lab values
-finalExluded=union(attr(parameters, "lab_excluded_labs") %>% select(pid, l_val, timeOffset, EncounterID), attr(parameters, "icd_excluded_labs") %>% select(pid, l_val, timeOffset, EncounterID), attr(parameters, "med_excluded_labs") %>% select(pid, l_val, timeOffset, EncounterID))
-originalSet=union(cleanLabValues %>% select(pid, l_val, timeOffset, EncounterID), finalExluded)
+#Run the boot parametric confidence interval
+run_booty(0.95)
+run_booty(0.90)
 
 #Find the max and min values
-theYMin=round(min(cleanLabValues$l_val, finalExluded$l_val, originalSet$l_val), digits=0) - 1
-theYMax=round(max(cleanLabValues$l_val, finalExluded$l_val, originalSet$l_val), digits=0) + 1
-theXMin=round(min(cleanLabValues$timeOffset, finalExluded$timeOffset, originalSet$timeOffset), digits=0) - 1
-theXMax=round(max(cleanLabValues$timeOffset, finalExluded$timeOffset, originalSet$timeOffset), digits=0) + 1
+theYMin=round(min(originalSet$l_val), digits=0) - 1
+theYMax=round(max(originalSet$l_val), digits=0) + 1
+theXMin=round(min(originalSet$timeOffset), digits=0) - 1
+theXMax=round(max(originalSet$timeOffset), digits=0) + 1
 
 #Build some plots
 jpeg(filename=paste(dirname(inputData), "/graphs/", tools::file_path_sans_ext(basename(inputData)), "_original_scatterplot.jpg", sep=""))
