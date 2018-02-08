@@ -1,8 +1,6 @@
 source ../basedir.sh
-
-#Set the output directory
-outdir="${preparedir}glucose_2_months/"
-mkdir -p $outdir
+toswitch="TEST"
+switch_input
 
 #Set basic variables
 incGrp="inpatient"

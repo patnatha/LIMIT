@@ -1,15 +1,14 @@
 source ../basedir.sh
+toswitch="HGB"
+switch_input
 
 #Set the input directory
 inval="HGB,HGBN"
 
 #Set the output directories
-indir=`echo $inval | sed -e 's/,/_/g'`
-toutdir="${preparedir}${indir}/"
-mkdir -p $toutdir
-toutdirtwogrps="${toutdir}${indir}_2_groups/"
+toutdirtwogrps="${preparedir}two_groups/"
 mkdir -p $toutdirtwogrps
-toutdirtengrps="${toutdir}${indir}_10_y_range/"
+toutdirtengrps="${preparedir}decade_ranges/"
 mkdir -p $toutdirtengrps
 
 #Set the include grp
@@ -18,20 +17,20 @@ incGrp="outpatient_and_never_inpatient"
 #White Male
 thesex="male"
 therace="white"
-    sed -i 's/ppn=[0-9]\+/ppn=8/' prepare_data.pbs
-    sed -i 's/pmem=[0-9]\+gb/pmem=16gb/' prepare_data.pbs
-
     #2 Grps
+    sed -i 's/ppn=[0-9]\+/ppn=8/' prepare_data.pbs
+    sed -i 's/pmem=[0-9]\+gb/pmem=8gb/' prepare_data.pbs
+
     outdir=$toutdirtwogrps
     theage="20Y_60Y"
     run_em_prepare
     theage="60Y_120Y"
     run_em_prepare
 
+    #Decade Range
     sed -i 's/ppn=[0-9]\+/ppn=4/' prepare_data.pbs
     sed -i 's/pmem=[0-9]\+gb/pmem=8gb/' prepare_data.pbs
 
-    #Decade Range
     outdir=$toutdirtengrps
     theage="20Y_30Y"
     run_em_prepare
@@ -51,20 +50,20 @@ therace="white"
 #White Female
 thesex="female"
 therace="white"
-    sed -i 's/ppn=[0-9]\+/ppn=8/' prepare_data.pbs
-    sed -i 's/pmem=[0-9]\+gb/pmem=16gb/' prepare_data.pbs
-
     #2 Grps
+    sed -i 's/ppn=[0-9]\+/ppn=8/' prepare_data.pbs
+    sed -i 's/pmem=[0-9]\+gb/pmem=8gb/' prepare_data.pbs
+
     outdir=$toutdirtwogrps
     theage="20Y_50Y"
     run_em_prepare
     theage="50Y_120Y"
     run_em_prepare
 
+    #Decade Range
     sed -i 's/ppn=[0-9]\+/ppn=4/' prepare_data.pbs
     sed -i 's/pmem=[0-9]\+gb/pmem=8gb/' prepare_data.pbs
 
-    #Decade Range
     outdir=$toutdirtengrps
     theage="20Y_30Y"
     run_em_prepare
@@ -84,20 +83,20 @@ therace="white"
 #Black Male
 thesex="male"
 therace="black"
-    sed -i 's/ppn=[0-9]\+/ppn=8/' prepare_data.pbs
-    sed -i 's/pmem=[0-9]\+gb/pmem=16gb/' prepare_data.pbs
-
     #2 Grps
+    sed -i 's/ppn=[0-9]\+/ppn=8/' prepare_data.pbs
+    sed -i 's/pmem=[0-9]\+gb/pmem=8gb/' prepare_data.pbs
+
     outdir=$toutdirtwogrps
     theage="20Y_60Y"
     run_em_prepare
     theage="60Y_120Y"
     run_em_prepare
 
+    #Decade Range
     sed -i 's/ppn=[0-9]\+/ppn=4/' prepare_data.pbs
     sed -i 's/pmem=[0-9]\+gb/pmem=8gb/' prepare_data.pbs
 
-    #Decade Range
     outdir=$toutdirtengrps
     theage="20Y_30Y"
     run_em_prepare
@@ -115,20 +114,20 @@ therace="black"
 #Black Female
 thesex="female"
 therace="black"
-    sed -i 's/ppn=[0-9]\+/ppn=8/' prepare_data.pbs
-    sed -i 's/pmem=[0-9]\+gb/pmem=16gb/' prepare_data.pbs
-
     #2 Grps
+    sed -i 's/ppn=[0-9]\+/ppn=8/' prepare_data.pbs
+    sed -i 's/pmem=[0-9]\+gb/pmem=8gb/' prepare_data.pbs
+
     outdir=$toutdirtwogrps
     theage="20Y_50Y"
     run_em_prepare
     theage="50Y_120Y"
     run_em_prepare
 
+    #Decade Range
     sed -i 's/ppn=[0-9]\+/ppn=4/' prepare_data.pbs
     sed -i 's/pmem=[0-9]\+gb/pmem=8gb/' prepare_data.pbs
 
-    #Decade Range
     outdir=$toutdirtengrps
     theage="20Y_30Y"
     run_em_prepare

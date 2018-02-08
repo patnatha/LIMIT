@@ -1,8 +1,6 @@
 source ../basedir.sh
-
-#Set the output directory
-outdir="${preparedir}mayo_alk_phos/"
-mkdir -p $outdir
+toswitch="ALK_MAYO"
+switch_input
 
 #Set basic variables
 incGrp="outpatient"
@@ -44,7 +42,7 @@ thesex="male"
     run_em_prepare
 
     sed -i 's/ppn=[0-9]\+/ppn=8/' prepare_data.pbs
-    sed -i 's/pmem=[0-9]\+gb/pmem=16gb/' prepare_data.pbs
+    sed -i 's/pmem=[0-9]\+gb/pmem=8gb/' prepare_data.pbs
     theage="19Y_150Y"
     run_em_prepare 
    
@@ -91,7 +89,7 @@ thesex="female"
     run_em_prepare
 
     sed -i 's/ppn=[0-9]\+/ppn=8/' prepare_data.pbs
-    sed -i 's/pmem=[0-9]\+gb/pmem=16gb/' prepare_data.pbs
+    sed -i 's/pmem=[0-9]\+gb/pmem=8gb/' prepare_data.pbs
     theage="66Y_150Y"
     run_em_prepare
 

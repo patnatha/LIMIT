@@ -10,41 +10,44 @@ limitdir="${homedir}limit_results/"
 mkdir -p "${limitdir}"
 
 run_dir_limit(){
-    preplist=`ls -1 ${tolistpath} | tr '\n' '\0' | xargs -0 -n 1 basename | grep selected`
+    preplist=`find ${tolistpath} | grep selected`
     for tfile in $preplist;
     do
+        echo $tfile
         run_em_limit
     done
 }
 
 run_em_limit(){
-    outpath=${tolistpath/"prepared_data"/"limit_results"}
-    mkdir -p $outpath
+    #Create the output path
+    toutdir=`dirname $tfile`
+    toutdir=${toutdir/"prepared_data"/"limit_results"}
+    mkdir -p $toutdir
 
-    finfile="$tolistpath$tfile"
+    #Build the params to send
+    paramsone="--input $tfile --code icd --output $toutdir"
+    paramstwo="--input $tfile --code med --output $toutdir"
+    paramsthree="--input $tfile --code lab --output $toutdir"
 
-    thecmd="qsub Nate_LIMIT.pbs -F \"--input $finfile --code icd --output $outpath \""
-    eval $thecmd
-
-    thecmd="qsub Nate_LIMIT.pbs -F \"--input $finfile --code med --output $outpath \""
-    eval $thecmd
-
-    thecmd="qsub Nate_LIMIT.pbs -F \"--input $finfile --code lab --output $outpath \""
-    eval $thecmd
+    eval "qsub Nate_LIMIT.pbs -F \"${paramsone}\""
+    eval "qsub Nate_LIMIT.pbs -F \"${paramstwo}\""
+    eval "qsub Nate_LIMIT.pbs -F \"${paramsthree}\""
+    echo "Rscript Nate_LIMIT.R ${paramsone}"
 }
 
 run_em_prepare(){
     toutdir="${outdir}${incGrp}/"
     mkdir -p $toutdir
 
-    if [[ -z $startDate ]] & [[ -z $endDate ]]
+    if [[ -z $startDate ]] | [[ -z $endDate ]]
     then
-        eval "qsub prepare_data.pbs -F \"--input $inval --sex $thesex --race $therace --include $incGrp --age $theage --output ${toutdir}\""
-        echo "Rscript prepare_data.R --input $inval --sex $thesex --race $therace --include $incGrp --age $theage --output ${toutdir}\""
+        parameters="--input $inval --sex $thesex --race $therace --include $incGrp --age $theage --output ${toutdir}"
     else
-        eval "qsub prepare_data.pbs -F \"--input $inval --start $startDate --end $endDate --sex $thesex --race $therace --include $incGrp --age $theage --output ${toutdir}\""
-        echo "Rscript prepare_data.R --input $inval --start $startDate --end $endDate --sex $thesex --race $therace --include $incGrp --age $theage --output ${toutdir}\""
+        parameters="--input $inval --start $startDate --end $endDate --sex $thesex --race $therace --include $incGrp --age $theage --output ${toutdir}"
     fi
+
+    eval "qsub prepare_data.pbs -F \"${parameters}\""
+    #echo "Rscript prepare_data.R ${parameters}"
 }
 
 run_em_select(){
@@ -66,7 +69,7 @@ run_em_select(){
 switch_input(){
     if [[ -z $toswitch ]]
     then
-        echo "ERROR: ALK, ALK_MAYO, BILI, BMP, CALIPER, ELEC, HGB, PLT, ROC, TEST, WBC"
+        echo "ERROR: ALK, ALK_MAYO, BILI, BMP, CALIPER, ELEC, HGB, LIVER, PLT, ROC, TEST, WBC"
         exit
     fi
 
@@ -97,12 +100,12 @@ switch_input(){
 
     if [ "${toswitch}" == "HGB" ]
     then
-        preparedir="${preparedir}HGB_HGBN"
+        preparedir="${preparedir}HGB_HGBN/"
     fi
 
     if [ "${toswitch}" == "LIVER" ]
     then
-        preparedir="${preparedir}liver_enzymes"
+        preparedir="${preparedir}liver_enzymes/"
     fi
 
     if [ "${toswitch}" == "PLT" ]
@@ -112,17 +115,17 @@ switch_input(){
 
     if [ "${toswitch}" == "ROC" ]
     then
-        preparedir="${preparedir}roc"
+        preparedir="${preparedir}roc/"
     fi
 
     if [ "${toswitch}" == "TEST" ]
     then
-        preparedir="${preparedir}glucose_2_months"
+        preparedir="${preparedir}glucose_2_months/"
     fi
 
     if [ "${toswitch}" == "WBC" ]
     then
-        preparedir="${preparedir}white_blood_cell"
+        preparedir="${preparedir}white_blood_cell/"
     fi
 
     limitdir=${preparedir/"prepared_data"/"limit_results"}

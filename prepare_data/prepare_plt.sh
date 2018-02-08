@@ -1,11 +1,9 @@
 source ../basedir.sh
+toswitch="PLT"
+switch_input
 
 sed -i 's/ppn=[0-9]\+/ppn=8/' prepare_data.pbs
 sed -i 's/pmem=[0-9]\+gb/pmem=8gb/' prepare_data.pbs
-
-#Set the output directory
-outdir="${preparedir}platelet/"
-mkdir -p $outdir
 
 #Set the include grp
 incGrp="outpatient_and_never_inpatient"

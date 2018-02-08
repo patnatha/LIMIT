@@ -1,4 +1,6 @@
 source ../basedir.sh
+toswitch="CALIPER"
+switch_input
 
 sed -i 's/ppn=[0-9]\+/ppn=4/' prepare_data.pbs
 sed -i 's/pmem=[0-9]\+gb/pmem=8gb/' prepare_data.pbs
@@ -9,10 +11,6 @@ run_male_female(){
     thesex="female"
     run_em_prepare
 }
-
-#Set the output directory
-outdir="${preparedir}caliper/"
-mkdir -p $outdir
 
 #Set basic variables
 incGrp="outpatient"

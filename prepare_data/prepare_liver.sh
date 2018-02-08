@@ -1,11 +1,9 @@
 source ../basedir.sh
+toswitch="LIVER"
+switch_input
 
 sed -i 's/ppn=[0-9]\+/ppn=8/' prepare_data.pbs
-sed -i 's/pmem=[0-9]\+gb/pmem=32gb/' prepare_data.pbs
-
-#Set the output directory
-outdir="${preparedir}liver_enzymes/"
-mkdir -p $outdir
+sed -i 's/pmem=[0-9]\+gb/pmem=8gb/' prepare_data.pbs
 
 #Set basic variables
 incGrp="outpatient_and_never_inpatient"
