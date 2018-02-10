@@ -15,6 +15,7 @@ library(dplyr)
 library(parallel)
 library(boot)
 library(data.table)
+library(stringr)
 
 #Create the options list
 option_list <- list(
@@ -82,7 +83,8 @@ saving = gsub('//', '/', paste(outputDir, outputName, sep="/"))
 saving = paste(saving, '.Rdata', sep="")
 
 #Check to see if the file exists
-if(file.exists(saving)){
+allFilesList = basename(list.files(outputDir, recursive=T))
+if(file.exists(saving) || basename(saving) %in% allFilesList){
     print("ERROR: File Already Exists")
     stop()
 } 
@@ -327,24 +329,26 @@ while (!converged) {
                     DOI = as.character(ICDtable[which.min(fisherTestICD),]$icd)
                     DOIName = unique(icdValues$icd_name[which(icdValues$icd == DOI)])
 
-                    if(debug){
-                        print(paste('CODE (', as.character(iteration), "): ", DOI, sep=""))
-                        print(paste('CODE NAME (', as.character(iteration), "): ", DOIName, sep=""))
-                    }
-
                     # Find all patients who have the significant codes
                     excludePID = FindExclusions(DOI)
+                    excludedLabValues = data.table(icd=DOI, labValues %>% filter(pid %in% excludePID) %>% select(pid, l_val, timeOffset, EncounterID))
 
                     # Keep track of which codes were excluded 
                     excludedICDs = c(excludedICDs, DOI)
                     excludedICDNames = c(excludedICDNames, DOIName)
                     excludedPatients = append(excludedPatients, excludePID)
                     excludedPval = c(excludedPval, pvalue)
-                    excludedCounts = rbind(excludedCounts, data.table(icd=DOI, labValues %>% filter(pid %in% excludePID) %>% select(pid, l_val, timeOffset, EncounterID)))
+                    excludedCounts = rbind(excludedCounts, excludedLabValues)
 
                     # Remove excluded patients from database
                     includePatients = setdiff(unique(labValues$pid), excludePID)
-                    labValues = labValues[which(labValues$pid %in% includePatients), ] 
+                    labValues = labValues[which(labValues$pid %in% includePatients), ]
+
+                    if(debug){
+                        print(paste('CODE (', as.character(iteration), "): ", DOI, sep=""))
+                        print(paste('CODE NAME (', as.character(iteration), "): ", DOIName, sep=""))
+                        print(paste('LAB COUNT (', as.character(iteration), "): ", nrow(excludedLabValues), sep=""))
+                    }
                 }
             } else {
                 converged = TRUE

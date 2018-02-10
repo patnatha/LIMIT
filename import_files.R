@@ -1,5 +1,4 @@
 library(readr)
-#library(plyr)
 library(dplyr)
 library(data.table)
 source('../lab_results_wrapper.R')
@@ -8,33 +7,7 @@ source('../diagnoses_wrapper.R')
 source('../medadmin_wrapper.R')
 source('../demographics_wrapper.R')
 source('../patientinfo_wrapper.R')
-
-import_csv <- function(path_to_file){
-    dat <- fread(path_to_file, sep="|", fill=TRUE, data.table=FALSE, blank.lines.skip = TRUE, quote="")
-    return(tbl_df(dat))
-}
-
-import_txt <- function(path_to_file){
-    dat <- fread(path_to_file, sep="\t", fill=TRUE, data.table=FALSE, blank.lines.skip = TRUE, quote="")
-    return(tbl_df(dat))
-}
-
-import_files_fxn <- function(path_to_file){
-    path_to_file = gsub('//', '/', path_to_file)
-    csv_path = paste(path_to_file, ".csv", sep="")
-    txt_path = paste(path_to_file, ".txt", sep="")
-
-    if(file.exists(csv_path)){
-        return(import_csv(csv_path))
-    }
-    else if(file.exists(txt_path)){
-        return(import_txt(txt_path))
-    }
-    else{
-        print("Unable to load file")
-        return(NULL)
-    }
-}
+source('../reference_interval_wrapper.R')
 
 start_timer <-function(){
     return(Sys.time())
@@ -55,8 +28,6 @@ import_lab_values <- function(resultCodes, startEpoch, endEpoch){
     return(labsAll)
 }
 
-#import_lab_values <- function(input_dir){ return(import_files_fxn(file.path(input_dir, "LabResults"))) }
-
 import_demo_info <- function(pids){
     stime = start_timer()
     demoAll = get_demographics(unique(pids))
@@ -65,8 +36,6 @@ import_demo_info <- function(pids){
     print(paste("Downloading Demographics: ", import_timeout(stime), sep=""))
     return(demoAll)
 }
-
-#import_demo_info <- function(input_dir){ return(import_files_fxn(file.path(input_dir, "DemographicInfo"))) }
 
 import_patient_bday <- function(pids){
     stime = start_timer()
@@ -77,8 +46,6 @@ import_patient_bday <- function(pids){
     return(pinfoAll)
 }
 
-#import_patient_bday <- function(input_dir){ return(import_files_fxn(file.path(input_dir, "PatientInfo"))) }
-
 import_diagnoses <- function(pids){
     stime = start_timer()
     diagAll = get_diagnoses(unique(pids))
@@ -87,8 +54,6 @@ import_diagnoses <- function(pids){
     print(paste("Downloading Diagnoses: ", import_timeout(stime), sep=""))
     return(diagAll)
 }
-
-#import_diagnoses <- function(input_dir){ return(import_files_fxn(file.path(input_dir, "DiagnosesComprehensive"))) }
 
 import_other_abnormal_labs <- function(pids){
     stime = start_timer()
@@ -125,9 +90,6 @@ import_encounter_encid <- function(encids){
     return(encounters)
 }
 
-# Depreciated function
-#import_encounter_location <- function(input_dir){ return(import_files_fxn(file.path(input_dir, "EncounterLocations"))) }
-
 import_med_admin <- function(pids){
     stime = start_timer()
     medsAll = get_meds(unique(pids))
@@ -137,6 +99,7 @@ import_med_admin <- function(pids){
     return(medsAll)
 }
 
-# Depreciated function
-#import_med_admin <- function(input_dir){ return(import_files_fxn(file.path(input_dir, "MedicationAdministrationsComprehensive"))) }
+import_reference_range <- function(result_code, sex, race, low_age, high_age, tsource){
+    return(query_reference_interval(result_code, sex, race, low_age, high_age, tsource)) 
+}
 

@@ -68,7 +68,7 @@ run_em_select(){
 switch_input(){
     if [[ -z $toswitch ]]
     then
-        echo "ERROR: ALK, ALK_MAYO, BILI, BMP, CALIPER, ELEC, HGB, LIVER, PLT, ROC, TEST, WBC"
+        echo "ERROR: ALK, ALK_MAYO, BILI, BMP, CALIPER, ELEC, HGB, LIVER, PLT, TEST, TUNEUP, WBC"
         exit
     fi
 
@@ -112,9 +112,9 @@ switch_input(){
         preparedir="${preparedir}platelet/"
     fi
 
-    if [ "${toswitch}" == "ROC" ]
+    if [ "${toswitch}" == "TUNEUP" ]
     then
-        preparedir="${preparedir}roc/"
+        preparedir="${preparedir}tune_up/"
     fi
 
     if [ "${toswitch}" == "TEST" ]
@@ -133,7 +133,7 @@ switch_input(){
 }
 
 post_process_dir(){
-    prepdirstemp=`find ${tolistpath} -maxdepth 2 -type d`
+    prepdirstemp=`find ${tolistpath} -maxdepth 3 -type d`
     prepdirs=""
     for tdir in $prepdirstemp
     do
@@ -142,6 +142,6 @@ post_process_dir(){
             prepdirs+="${tdir}|"
         fi
     done
-   
+    
     prepdirs=`echo $prepdirs | tr "|" "\n"` 
 }

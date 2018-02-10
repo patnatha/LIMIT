@@ -192,7 +192,7 @@ if(args[["name"]] == ""){
 
 #Check the output file for existence
 output_filename = paste(output_filename, '.Rdata', sep="")
-print(output_filename)
+print(paste("Output File: ", output_filename, sep=""))
 if(file.exists(output_filename)){
     print(paste("ERROR: The output filename already exists: ", output_filename, sep=""))
     stop()
