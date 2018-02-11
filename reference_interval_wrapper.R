@@ -14,22 +14,26 @@ query_reference_interval <- function(result_code, sex, race, low_age, high_age, 
             con = connect_sqlite_ref()
             myQuery = dbGetQuery(con, sql)
             dbDisconnect(con)
-            lowerLimit=NULL
-            upperLimit=NULL
-            for(i in 1:nrow(myQuery)){
-                if(myQuery[i,]$limit_type == 'lower'){
-                    lowerLimit = myQuery[i,]$limit_value
-                } else if(myQuery[i,]$limit_type == 'upper'){
-                    upperLimit = myQuery[i,]$limit_value
+            
+            lowerLimit=NA
+            upperLimit=NA
+            if(nrow(myQuery) > 0){
+                for(i in 1:nrow(myQuery)){
+                    if(myQuery[i,]$limit_type == 'lower'){
+                        lowerLimit = myQuery[i,]$limit_value
+                    } else if(myQuery[i,]$limit_type == 'upper'){
+                        upperLimit = myQuery[i,]$limit_value
+                    }
                 }
             }
+            
             return(c(lowerLimit, upperLimit))
         } else {
-            return(c(NULL,NULL))
+            return(c(NA, NA))
         }
     ,error=function(cond) {
             message(cond)
-            return(c(NULL,NULL))
+            return(c(NA, NA))
         }
     )
 }

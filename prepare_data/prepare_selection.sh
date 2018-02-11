@@ -8,15 +8,17 @@ sed -i 's/ppn=[0-9]\+/ppn=1/' prepare_selection.pbs
 sed -i 's/pmem=[0-9]\+gb/pmem=8gb/' prepare_selection.pbs
 
 #Set the selection value
+errStmt="ERROR: must enter valid selection method [most_recent|random|all|latest]"
 if [ -z $2 ]
 then
-    singularValue="random"
+    echo $errStmt
+    exit
 else
-    if [ $2 == "random" ] || [ $2 == "most_recent" ]
+    if [ $2 == "random" ] || [ $2 == "most_recent" ] || [[ $2 == "all" ]] || [[ $2 == "latest" ]]
     then
         singularValue=$2
     else
-        echo "ERROR: must enter valid selection method [most_recent|random]"
+        echo $errStmt
         exit
     fi
 fi

@@ -32,7 +32,8 @@ print(output_filename)
 singular_value = args[['singular-value']]
 if(is.na(singular_value)){
     singular_value = "all"
-} else if(singular_value != "random" && singular_value != "most_recent"){
+} else if(singular_value != "random" && singular_value != "most_recent" && 
+          singular_value != "all" && singular_value != "latest"){
     print("ERROR: incorrect singular_value")
     stop()
 } else {
@@ -43,8 +44,13 @@ attr(parameters, "singular_value") <- singular_value
 # Obtain only one value for each PID
 oldLabValuesLen = nrow(labValues)
 if(singular_value == "most_recent"){
-    print("SELECT THE MOST RECENT LAB VALUE AS A REP FOR EACH PID")
+    print("SELECT THE FIRST LAB VALUE AS A REP FOR EACH PID") #OXYMORON for most_recent
     mostRecentLabValues = labValues %>% group_by(pid) %>% summarise(timeOffset=min(timeOffset))
+    labValues = labValues %>% inner_join(mostRecentLabValues, by=c("pid", "timeOffset")) %>% group_by(pid) %>% sample_n(1)
+    remove(mostRecentLabValues)
+} else if(singular_value == "latest"){
+    print("SELECT THE LATEST VALUE AS A REP FOR EACH PID")
+    mostRecentLabValues = labValues %>% group_by(pid) %>% summarise(timeOffset=max(timeOffset))
     labValues = labValues %>% inner_join(mostRecentLabValues, by=c("pid", "timeOffset")) %>% group_by(pid) %>% sample_n(1)
     remove(mostRecentLabValues)
 } else if(singular_value == "random"){

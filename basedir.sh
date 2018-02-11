@@ -55,7 +55,6 @@ run_em_select(){
     do
         #Create the output directory
         outdir=`dirname ${tfile}`
-        eval "rm -rf ${outdir}/*selected.Rdata"
         outdir="${outdir}/${singularValue}/"
         mkdir -p $outdir
 
@@ -145,3 +144,4 @@ post_process_dir(){
     
     prepdirs=`echo $prepdirs | tr "|" "\n"` 
 }
+

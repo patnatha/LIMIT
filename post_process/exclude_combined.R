@@ -3,6 +3,37 @@ library(dplyr)
 library(stringr)
 source('../import_files.R')
 
+start_excluded_results <- function(outfile){
+    write("input, type, code, name, excluded lab count, pre-limit count, percent removed", file=outfile, append=FALSE)
+}
+
+write_excluded_results <- function(parameters, theType, tfile, outfile){
+    curind = 1
+    totalExludeLabCnt = 0
+
+    exclusionList = attr(parameters, paste(theType, "_excluded",sep=""))
+    for(x in exclusionList[1,]){
+        code = exclusionList[1,curind]
+        name = exclusionList[2,curind]
+        tcnt = nrow(attr(parameters, paste(theType, "_excluded_labs",sep="")) %>% filter(icd == code))
+        totalExludeLabCnt = totalExludeLabCnt + tcnt
+        plcnt = attr(parameters,paste(theType, "_pre_limit",sep=""))
+        remperct = paste(as.character((as.numeric(tcnt) / as.numeric(plcnt)) * 100), "%", sep="")
+        curind = curind + 1
+        write(paste(basename(tfile), theType, code, gsub(',','',name), tcnt, plcnt, remperct, sep=","), file=outfile, append=TRUE)
+    }
+
+    return(totalExludeLabCnt)
+}
+
+append_master_list <- function(parameters, theType, resultCode, masterList){
+    excludeList = attr(parameters, paste(theType, "_excluded", sep=""))[1,]
+    if(length(excludeList) > 0){
+        masterList = cbind(masterList, rbind(resultCode, excludeList))
+    }
+    return(masterList)
+}
+
 #Create the options list
 option_list <- list(
   make_option("--input", type="character", default=NA, help="file to load Rdata")
@@ -13,15 +44,14 @@ args <- parse_args(parser)
 input_dir = args[['input']]
 
 #Variables for keeping track during iterations
-masterExcludePidList = list()
 masterExcludeICD = list()
 masterExcludeMED = list()
 masterExcludeLAB = list()
-uniquePIDs = list()
+cleanPIDs = list()
 
 #Write the first line in the output file
 outfile=paste(input_dir, "/limit_excludes.csv", sep="")
-write("input, type, code, name, excluded lab count, pre-limit count, percent removed", file=outfile, append=FALSE) 
+start_excluded_results(outfile)
 
 listToCombine = c()
 filelist = list.files(input_dir, pattern = "joined.Rdata", full.names = TRUE)
@@ -37,77 +67,36 @@ for (tfile in filelist){
         listToCombine[resultNameCode] = 1
     }
 
-    #Create master exclusion list
-    tempExclude = unique(c(attr(parameters, "lab_exclude_pid"), attr(parameters, "icd_excluded_pid"), attr(parameters, "med_excluded_pid")))
-    print(paste(basename(tfile), " excluded ", length(tempExclude), " pids", sep=""))
-    masterExcludePidList = c(masterExcludePidList, tempExclude)
+    #Writeout all excluded codes to text file
+    totalExludeLabCnt = write_excluded_results(parameters, "icd", tfile, outfile)
+    totalExludeLabCnt = totalExludeLabCnt + 
+                        write_excluded_results(parameters, "lab", tfile, outfile) 
+    totalExludeLabCnt = totalExludeLabCnt + 
+                        write_excluded_results(parameters, "meb", tfile, outfile)
+   
+    #Append to master list all the codes
+    masterExcludeICD = append_master_list(parameters, "icd", resultNameCode, masterExcludeICD)
+    masterExcludeLAB = append_master_list(parameters, "lab", resultNameCode, masterExcludeLAB)
+    masterExcludeMED = append_master_list(parameters, "med", resultNameCode, masterExcludeMED)
 
-    #Writeout all the icds
-    curind = 1
-    for(x in attr(parameters, "icd_excluded")[1,]){
-        code = (attr(parameters, "icd_excluded")[1,curind])
-        name = (attr(parameters, "icd_excluded")[2,curind])
-        #tcnt = (attr(parameters, "icd_excluded")[3,curind])
-        tcnt = nrow(attr(parameters, "icd_excluded_labs") %>% filter(icd == code))
-        plcnt = attr(parameters,"icd_pre_limit")
-        remperct = paste(as.character((as.numeric(tcnt) / as.numeric(plcnt)) * 100), "%", sep="")
-        curind = curind + 1
-        write(paste(basename(tfile), "icd", code, gsub(',','',name), tcnt, plcnt, remperct, sep=","), file=outfile, append=TRUE)
-    }
+    #Keep track of total unique clean PIDs
+    cleanPIDs = cbind(cleanPIDs, rbind(resultNameCode, cleanLabValues$pid))
 
-    #Write out all the labs
-    curind = 1
-    for(x in attr(parameters, "lab_excluded")[1,]){
-        code = (attr(parameters, "lab_excluded")[1,curind])
-        name = (attr(parameters, "lab_excluded")[2,curind])
-        #tcnt = (attr(parameters, "lab_excluded")[3,curind])
-        tcnt = nrow(attr(parameters, "lab_excluded_labs") %>% filter(icd == code))
-        plcnt = attr(parameters,"lab_pre_limit")
-        remperct = paste(as.character((as.numeric(tcnt) / as.numeric(plcnt)) * 100), "%", sep="")
-        curind = curind + 1
-        write(paste(basename(tfile), "lab", code, gsub(',','',name), tcnt, plcnt, remperct, sep=","), file=outfile, append=TRUE)
-    }
-
-    #Write out all the meds
-    curind = 1
-    for(x in attr(parameters, "med_excluded")[1,]){
-        code = (attr(parameters, "med_excluded")[1,curind])
-        name = (attr(parameters, "med_excluded")[2,curind])
-        #tcnt = (attr(parameters, "med_excluded")[3,curind])
-        tcnt = nrow(attr(parameters, "med_excluded_labs") %>% filter(icd == code))
-        plcnt = attr(parameters,"med_pre_limit")
-        remperct = paste(as.character((as.numeric(tcnt) / as.numeric(plcnt)) * 100), "%", sep="")
-        curind = curind + 1
-        write(paste(basename(tfile), "med", code, gsub(',','',name), tcnt, plcnt, remperct, sep=","), file=outfile, append=TRUE)
-    }
-
-    #Append to master lists
-    if(length(attr(parameters, "icd_excluded")[1,]) > 0){
-        masterExcludeICD = cbind(masterExcludeICD, rbind(resultNameCode, attr(parameters, "icd_excluded")[1,]))
-    }
-
-    if(length(attr(parameters, "med_excluded")[1,]) > 0){
-        masterExcludeMED = cbind(masterExcludeMED, rbind(resultNameCode, attr(parameters, "med_excluded")[1,]))
-    }
-
-    if(length(attr(parameters, "lab_excluded")[1,]) > 0){
-        masterExcludeLAB = cbind(masterExcludeLAB, rbind(resultNameCode, attr(parameters, "lab_excluded")[1,]))
-    }
-
-    #Keep track of total unique PIDs
-    uniquePIDs = c(uniquePIDs, cleanLabValues$pid)
+    #Write some output
+    print(paste(basename(tfile), ": ", totalExludeLabCnt, " excluded labs", sep=""))
 }
 
 #Run each result code seperately
-uniqueListToRun = unique(c(masterExcludeICD[1,], masterExcludeMED[1,], masterExcludeLAB[1,]))
-for(curResultCode in uniqueListToRun){
+for(curResultCode in names(listToCombine)){
     #Get unique exclusion lists and print some info
-    print(paste("COMBINE EXCLUSION: ", curResultCode, " = ", listToCombine[resultNameCode], sep=""))
+    print(paste("COMBINE EXCLUSION: ", curResultCode, " = ", 
+                listToCombine[curResultCode], sep=""))
     queryDbForPIDs = TRUE
-    if(listToCombine[resultNameCode] <= 1){
+    if(listToCombine[curResultCode] <= 1){
         queryDbForPIDs = FALSE
     }
 
+    #Query unique exclusions codes
     uniqueExcludeICD = unique(masterExcludeICD[2, which(masterExcludeICD[1,] == curResultCode)])
     uniqueExcludeMED = unique(masterExcludeMED[2, which(masterExcludeMED[1,] == curResultCode)])
     uniqueExcludeLAB = unique(masterExcludeLAB[2, which(masterExcludeLAB[1,] == curResultCode)])
@@ -116,13 +105,13 @@ for(curResultCode in uniqueListToRun){
     print(paste("Unique Labs to Exclude: ", length(uniqueExcludeLAB), sep=""))
 
     #Get unique lists of PIDs excluded vs included
-    masterExcludePidList = unique(masterExcludePidList)
-    print(paste("Unique Excluded PIDs: ", length(masterExcludePidList), sep=""))
-    uniquePIDs = unique(uniquePIDs)
+    uniquePIDs = unique(cleanPIDs[2, which(cleanPIDs[1,] == curResultCode)])
     print(paste("Unique Clean PIDs: ", length(uniquePIDs), sep=""))
 
     #Get list of patients b-days
-    patient_bday = import_patient_bday(uniquePIDs)
+    if(queryDbForPIDs){
+        patient_bday = import_patient_bday(uniquePIDs)
+    }
 
     #Calculate icd offset
     if(!queryDbForPIDs){
@@ -171,7 +160,9 @@ for(curResultCode in uniqueListToRun){
     }
 
     #Clean up data
-    remove(patient_bday)
+    if(queryDbForPIDs){
+        remove(patient_bday)
+    }
 
     for (tfile in filelist){
         #Load up the file
@@ -184,7 +175,7 @@ for(curResultCode in uniqueListToRun){
         } 
 
         #Print out some baseline characteristics
-        oldCleanLabValuesLen = nrow(cleanLabValues)
+        oldCleanLabValues = cleanLabValues
 
         #Get the abnormal meds and clear them out
         if(length(medPIDsExclude) > 0){
@@ -210,9 +201,12 @@ for(curResultCode in uniqueListToRun){
             cleanLabValues = cleanLabValues %>% filter(!pid %in% icdCleanLabs)
         }
 
-        #Save the update results
-        print(paste(basename(tfile), " to filter: ", oldCleanLabValuesLen, " => ", nrow(cleanLabValues), sep=""))
-        attr(parameters, "icd_med_lab_joined_count") = oldCleanLabValuesLen
+        #Update some info
+        attr(parameters, "combined_excluded_labs") = setdiff(oldCleanLabValues, cleanLabValues)
+        attr(parameters, "combined_count") = nrow(cleanLabValues)
+        
+        #Save the results
+        print(paste(basename(tfile), " to filter: ", nrow(oldCleanLabValues), " => ", nrow(cleanLabValues), sep=""))
         save(cleanLabValues, parameters, file=str_replace(tfile,"joined","combined"))
     }
 }
