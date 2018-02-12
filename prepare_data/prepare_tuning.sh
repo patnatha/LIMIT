@@ -1,5 +1,19 @@
 source ../basedir.sh
-toswitch="TUNEUP"
+timing="1"
+if [[ $timing == "1" ]]
+then
+    toswitch="TUNEUP1"
+    startDate="2016-01-01"
+    endDate="2017-01-01"
+elif [[ $timing == "5" ]]
+then
+    toswitch="TUNEUP5"
+    startDate="2013-01-01"
+    endDate="2018-01-01"
+else
+    exit
+fi
+
 switch_input
 
 sed -i 's/ppn=[0-9]\+/ppn=8/' prepare_data.pbs

@@ -7,6 +7,6 @@ tolistpath=$limitdir
 cmd="qsub post_process.pbs -F \"${tolistpath}\""
 eval $cmd
 
-#cmd="Rscript post_process_pipe.sh ${tolistpath}"
+#cmd="./post_process_pipe.sh ${tolistpath}"
 #echo $cmd
 

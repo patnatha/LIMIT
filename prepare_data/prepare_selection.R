@@ -14,6 +14,7 @@ args <- parse_args(parser)
 
 #Load the prepared data
 input_val = args[['input']]
+print(paste("Loading Data: ", input_val, sep=""))
 load(input_val)
  
 #Parse the output directory and create if doesn't exists

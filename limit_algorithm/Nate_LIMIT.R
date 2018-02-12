@@ -206,8 +206,7 @@ labValues = labValues %>% filter(!is.na(l_val))
 labValues$l_val = as.numeric(labValues$l_val)
 labValues = labValues  %>% filter(!is.na(l_val))
 
-# Write down the pre-limit length algorithm
-attr(parameters, "pre-limit_quantiles") = as.numeric(quantile(labValues$l_val, c(0.025, 0.05, 0.95, 0.975), na.rm = TRUE))
+# Write down the pre-limit length
 attr(parameters, "pre-limit_count") = nrow(labValues) 
 
 #Print the original results

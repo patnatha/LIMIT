@@ -31,9 +31,7 @@ medSex = attr(parameters, "sex")
 medStartTime = attr(parameters, "age")[1]
 medEndTime = attr(parameters, "age")[2]
 medLabPre = attr(parameters, "pre-limit_count")
-medPreQuantile = attr(parameters, "pre-limit_quantiles")
 medLabPost = nrow(cleanLabValues)
-medPostQuantile = as.numeric(quantile(cleanLabValues$l_val, c(0.025, 0.05, 0.95, 0.975), na.rm = TRUE))
 medExcludedPatients = excludedPatients
 excludedMeds = rbind(excludedICDs, excludedICDNames, excludedPval)
 excludedMedLabs = excludedCounts
@@ -52,9 +50,7 @@ icdStartTime = attr(parameters, "age")[1]
 icdEndTime = attr(parameters, "age")[2]
 icdLabValues = cleanLabValues
 icdLabPre = attr(parameters, "pre-limit_count")
-icdPreQuantile = attr(parameters, "pre-limit_quantiles")
 icdLabPost = nrow(cleanLabValues)
-icdPostQuantile = as.numeric(quantile(cleanLabValues$l_val, c(0.025, 0.05, 0.95, 0.975), na.rm = TRUE))
 icdExcludedPatients = excludedPatients
 excludedICDS = rbind(excludedICDs, excludedICDNames, excludedPval)
 excludedICDLabs = excludedCounts
@@ -73,9 +69,7 @@ labStartTime = attr(parameters, "age")[1]
 labEndTime = attr(parameters, "age")[2]
 labLabValues = cleanLabValues
 labLabPre = attr(parameters, "pre-limit_count")
-labPreQuantile = attr(parameters, "pre-limit_quantiles")
 labLabPost = nrow(cleanLabValues)
-labPostQuantile = as.numeric(quantile(cleanLabValues$l_val, c(0.025, 0.05, 0.95, 0.975), na.rm = TRUE))
 labExcludedPatients = excludedPatients
 excludedLabs = rbind(excludedICDs, excludedICDNames, excludedPval)
 excludedLabLabs = excludedCounts
@@ -122,9 +116,7 @@ attr(parameters, "med_group") <- medGroup
 attr(parameters, "med_start_time") <- medStartTime
 attr(parameters, "med_end_time") <- medEndTime 
 attr(parameters, "med_pre_limit") <- medLabPre 
-attr(parameters, "med_pre_quantile") <- icdPreQuantile
 attr(parameters, "med_post_limit") <- medLabPost
-attr(parameters, "med_post_quantile") <- medPostQuantile 
 attr(parameters, "med_excluded") <- excludedMeds
 attr(parameters, "med_excluded_pid") <- medExcludedPatients
 attr(parameters, "med_excluded_labs") <- excludedMedLabs
@@ -140,9 +132,7 @@ attr(parameters, "icd_group") <- icdGroup
 attr(parameters, "icd_start_time") <- icdStartTime
 attr(parameters, "icd_end_time") <- icdEndTime
 attr(parameters, "icd_pre_limit") <- icdLabPre
-attr(parameters, "icd_pre_quantiles") <- icdPreQuantile
 attr(parameters, "icd_post_limit") <- icdLabPost
-attr(parameters, "icd_post_quantile") <- icdPostQuantile
 attr(parameters, "icd_excluded") <- excludedICDS
 attr(parameters, "icd_excluded_pid") <- icdExcludedPatients
 attr(parameters, "icd_excluded_labs") <- excludedICDLabs
@@ -158,9 +148,7 @@ attr(parameters, "lab_group") <- labGroup
 attr(parameters, "lab_start_time") <- medStartTime
 attr(parameters, "lab_end_time") <- medEndTime
 attr(parameters, "lab_pre_limit") <- labLabPre
-attr(parameters, "lab_pre_quantiles") <- labPreQuantile
 attr(parameters, "lab_post_limit") <- labLabPost
-attr(parameters, "lab_post_quantile") <- labPostQuantile
 attr(parameters, "lab_excluded") <- excludedLabs
 attr(parameters, "lab_excluded_pid") <- labExcludedPatients
 attr(parameters, "lab_excluded_labs") <- excludedLabLabs

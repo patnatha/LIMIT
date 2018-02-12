@@ -65,65 +65,50 @@ run_em_select(){
 }
 
 switch_input(){
+    errStmt="ERROR: ALK, ALK_MAYO, BILI, BMP, CALIPER, ELEC, HGB, LIVER, PLT, TEST, TUNEUP1, TUNEUP5, WBC"
     if [[ -z $toswitch ]]
     then
-        echo "ERROR: ALK, ALK_MAYO, BILI, BMP, CALIPER, ELEC, HGB, LIVER, PLT, TEST, TUNEUP, WBC"
+        echo $errStmt
         exit
-    fi
-
-    if [ "${toswitch}" == "ALK" ]
+    elif [ "${toswitch}" == "ALK" ]
     then
         preparedir="${preparedir}alk_phos/"
-    fi
-    
-    if [ "${toswitch}" == "ALK_MAYO" ]
+    elif [ "${toswitch}" == "ALK_MAYO" ]
     then
         preparedir="${preparedir}alk_phos_mayo/"
-    fi 
-
-    if [ "${toswitch}" == "BILI" ]
+    elif [ "${toswitch}" == "BILI" ]
     then
         preparedir="${preparedir}bilirubin/"
-    fi
-
-    if [ "${toswitch}" == "BMP" ]
+    elif [ "${toswitch}" == "BMP" ]
     then
         preparedir="${preparedir}basic_metabolic_panel/"
-    fi
-
-    if [ "${toswitch}" == "ELEC" ]
+    elif [ "${toswitch}" == "ELEC" ]
     then
         preparedir="${preparedir}other_electrolytes/"
-    fi
-
-    if [ "${toswitch}" == "HGB" ]
+    elif [ "${toswitch}" == "HGB" ]
     then
         preparedir="${preparedir}HGB_HGBN/"
-    fi
-
-    if [ "${toswitch}" == "LIVER" ]
+    elif [ "${toswitch}" == "LIVER" ]
     then
         preparedir="${preparedir}liver_enzymes/"
-    fi
-
-    if [ "${toswitch}" == "PLT" ]
+    elif [ "${toswitch}" == "PLT" ]
     then
         preparedir="${preparedir}platelet/"
-    fi
-
-    if [ "${toswitch}" == "TUNEUP" ]
+    elif [ "${toswitch}" == "TUNEUP1" ]
     then
-        preparedir="${preparedir}tune_up/"
-    fi
-
-    if [ "${toswitch}" == "TEST" ]
+        preparedir="${preparedir}tune_up_1_year/"
+    elif [ "${toswitch}" == "TUNEUP5" ]
+    then
+        preparedir="${preparedir}tune_up_5_year/"
+    elif [ "${toswitch}" == "TEST" ]
     then
         preparedir="${preparedir}glucose_2_months/"
-    fi
-
-    if [ "${toswitch}" == "WBC" ]
+    elif [ "${toswitch}" == "WBC" ]
     then
         preparedir="${preparedir}white_blood_cell/"
+    else
+        echo $errStmt
+        exit
     fi
 
     limitdir=${preparedir/"prepared_data"/"limit_results"}
@@ -136,7 +121,7 @@ post_process_dir(){
     prepdirs=""
     for tdir in $prepdirstemp
     do
-        if [[ $tdir == *"random" ]] || [[ $tdir == *"most_recent" ]]
+        if [[ $tdir == *"random" ]] || [[ $tdir == *"most_recent" ]] || [[ $tdir == *"all" ]] || [[ $tdir == *"latest" ]]
         then
             prepdirs+="${tdir}|"
         fi

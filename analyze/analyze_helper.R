@@ -27,7 +27,6 @@ combineExcludedLists <- function(excludedICDs, excludedLabs, excludedMeds){
         excludeLabLabs %>% select(pid, l_val, timeOffset, EncounterID), 
         excludeCombined %>% select(pid, l_val, timeOffset, EncounterID))
 
-    glimpse(finalExcluded)
     return(finalExcluded)
 }
 
@@ -201,10 +200,11 @@ write_line_append <- function(parameters, postHornCount, preLimitRef, refConfRes
     tEtime=attributes(parameters)$icd_end_time
 
     print(paste("Find Gold Standard Reference:", tResultCode, tSex, tRace, tStime, tEtime, sep=" "))
-    findReference=import_reference_range(tResultCode, tSex, tRace, tStime, tEtime, "MAYO")
+    findReference=import_reference_range(tResultCode, tSex, tRace, tStime, tEtime, c("MAYO", "UMICH"))
     goldStandardRefLow = findReference[[1]]
     goldStandardRefHigh = findReference[[2]]
-    print(paste("Gold Standard Reference: ", goldStandardRefLow, ' - ' , goldStandardRefHigh, sep=""))
+    goldStandardSource = findReference[[3]]
+    print(paste("Gold Standard Reference: ", goldStandardRefLow, ' - ' , goldStandardRefHigh, goldStandardSource, sep=""))
 
     newLine = c(basename(inputData),
                 paste(attributes(parameters)$icd_result_code, collapse="_"),
@@ -229,7 +229,7 @@ write_line_append <- function(parameters, postHornCount, preLimitRef, refConfRes
                 attr(refConfResults, "upperRefUpperLimit"),
                 attr(refConfResults, "confInterval"),
                 attr(refConfResults, "confInterval_Method"),
-                goldStandardRefLow, goldStandardRefHigh)
+                goldStandardRefLow, goldStandardRefHigh, goldStandardSource)
 
     write(newLine,ncolumns=length(newLine),sep=",",file=theResultFile, append=TRUE)
 }
