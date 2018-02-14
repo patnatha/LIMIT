@@ -25,14 +25,14 @@ async_query_labs <- function(epochRange){
 
 async_query_abnormal_labs <- function(pids){
     out <- tryCatch(
-        if(length(pids) > 0){
+        if(length(pids) >= 0){
             #Build the query and execute
             sql = paste('SELECT PatientID, EncounterID, COLLECTION_DATE, ACCESSION_NUMBER, ORDER_CODE, RESULT_CODE, RESULT_NAME, VALUE, HILONORMAL_FLAG, HILONORMAL_COMMENT FROM LabResults WHERE PatientID IN ("', paste(pids, collapse="\",\""), '") AND HILONORMAL_FLAG != "N" AND HILONORMAL_FLAG != ""', sep="")
             con = connect_sqlite_lab()
             myQuery = dbGetQuery(con, sql)
             dbDisconnect(con)
             return(myQuery)
-        }
+        } 
     ,error=function(cond) {
             message(paste("async_query_abnormal_labs: ", cond, sep=""))
             return(NA)
@@ -41,7 +41,7 @@ async_query_abnormal_labs <- function(pids){
 }
 
 get_abnormal_labs <- function(pids){
-    if(length(pids) > 0){
+    if(length(pids) >= 0){
         print(paste("Download Abnormal Labs: ", as.character(length(pids)), " pids",sep=""))
         return(parallelfxn_large(pids, async_query_abnormal_labs))
     }
@@ -78,15 +78,13 @@ get_similar_lab_codes <- function(resultCodes){
 }
 
 async_query_pid_rc_hlnf <- function(pids, rc, hlnf){
-    if(length(pids) > 0){
+    if(length(pids) >= 0){
         sql = paste("SELECT PatientID, RESULT_CODE, HILONORMAL_FLAG, COLLECTION_DATE FROM LabResults WHERE RESULT_CODE = \"", rc, "\" AND HILONORMAL_FLAG = \"", hlnf, "\" AND PatientID IN (\"", paste(pids, collapse="\",\""), "\")", sep="")
         con = connect_sqlite_lab()
         myQuery = dbGetQuery(con, sql)
         dbDisconnect(con)
         return(myQuery)
-    } else {
-        return(list())
-    }
+    } 
 }
 
 get_pid_with_result_hlnf <- function(rc_hlnfs, validPIDs){

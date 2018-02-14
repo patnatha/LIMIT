@@ -18,6 +18,7 @@ option_list <- list(
 parser <- OptionParser(usage="%prog [options] file", option_list=option_list)
 args <- parse_args(parser)
 input_val = args[['input']]
+input_val = str_replace(input_val, "\\?", "\\ ")
 
 #Parse the input race value
 race=tolower(args[['race']])
@@ -163,7 +164,7 @@ if(!is.na(toInclude) &
 #Parse the name from input if exists
 if(args[["name"]] == ""){
     #Build the filename
-    theBasename = basename(str_replace(input_val, ",", "_"))
+    theBasename = basename(str_replace(str_replace(input_val, ",", "_"),"\\ ", "_"))
 
     #Add the inclusion race
     if(!is.na(race)){
@@ -281,8 +282,31 @@ if(!is.na(ageBias[[1]])){
     labValues = labValues %>% filter(timeOffset >= ageBias[[1]] & timeOffset < ageBias[[2]])
 }
 
-#Exclude all the lab values that are not consistent with a grouping
 encountersAll = NA
+appendEncounters <- function(curEncList, newList){
+    if(typeof(curEncList) == "list"){
+        uniqueEncsToQuery = setdiff(unique(newList$EncounterID), unique(curEncList$EncounterID))
+        if(length(uniqueEncsToQuery) > 0){
+            tempEncounters = import_encounter_encid(uniqueEncsToQuery)
+            curEncList = union(curEncList, tempEncounters)
+            remove(tempEncounters)
+        }
+        remove(uniqueEncsToQuery)
+    } else {
+        curEncList = import_encounter_all(unique(newList$PatientID))
+    }
+    return(curEncList)
+}
+
+excludeValuesEncType <- function(listType, incGrp){
+    if(!is.na(toInclude)){
+        if(toInclude == "outpatient" || toInclude == "outpatient_and_never_inpatient"){
+            listType = listType %>% filter(PatientClassCode == "Outpatient")
+        }
+    }
+    return(listType)
+}
+
 if(!is.na(toInclude)){
     #Down sampling code
     pidSampleMax = 500000
@@ -299,12 +323,12 @@ if(!is.na(toInclude)){
     preFilLen = nrow(labValues)
 
     if(toInclude == "inpatient"){
-        encountersAll = import_encounter_all(labValues$PatientID)
+        encountersAll = appendEncounters(encountersAll, labValues)
         print("LV: Include Inpatients")
         labValues = inner_join(labValues, 
                                encountersAll %>% select("PatientID", "EncounterID", "PatientClassCode") %>% filter(PatientClassCode == "Inpatient"), by=c("PatientID", "EncounterID")) %>% select (-c(PatientClassCode)) 
     } else if(toInclude == "outpatient"){
-        encountersAll = import_encounter_all(labValues$PatientID)
+        encountersAll = appendEncounters(encountersAll, labValues)
         print("LV: Include Outpatients")
         labValues = inner_join(labValues, 
                                encountersAll %>% select("PatientID", "EncounterID", "PatientClassCode") %>% filter(PatientClassCode == "Outpatient"), by=c("PatientID", "EncounterID")) %>% select (-c(PatientClassCode)) 
@@ -321,7 +345,7 @@ if(!is.na(toInclude)){
 
         #Make sure that also the current lab value is not in the ED
         if(toInclude == "outpatient_and_never_inpatient"){
-            encountersAll = import_encounter_all(labValues$PatientID)
+            encountersAll = appendEncounters(encountersAll, labValues)
             print("LV: Include Outpatients")
             labValues = inner_join(labValues,
                                    encountersAll %>% select("PatientID", "EncounterID", "PatientClassCode") %>% filter(PatientClassCode == "Outpatient"), by=c("PatientID", "EncounterID")) %>% select (-c(PatientClassCode))
@@ -341,9 +365,9 @@ icdValues = import_diagnoses(unique(labValues$pid))
 icdValues = inner_join(icdValues, patient_bday, by="PatientID")
 
 print("DX: Combine with encounters")
-if(typeof(encountersAll) != "list"){ encountersAll = import_encounter_all(icdValues$PatientID) }
+encountersAll = appendEncounters(encountersAll, icdValues)
 icdValues = inner_join(icdValues, encountersAll %>% filter(AdmitDate != ""), by=c("PatientID", "EncounterID"))
-remove(encountersAll)
+icdValues = excludeValuesEncType(icdValues, toInclude)
 
 print("DX: Calculate Time-Offset")
 icdValues = icdValues %>% rename(pid = PatientID)
@@ -360,6 +384,11 @@ icdValues = icdValues %>% select(pid, icd, icd_name, timeOffset, EncounterID, Le
 print("Loading Other Labs")
 otherLabs = import_other_abnormal_labs(unique(labValues$pid))
 otherLabs = inner_join(otherLabs, patient_bday, by="PatientID")
+
+print("Other Labs: Combine with encounters")
+encountersAll = appendEncounters(encountersAll, otherLabs)
+otherLabs = inner_join(otherLabs, encountersAll %>% filter(AdmitDate != ""), by=c("PatientID", "EncounterID"))
+otherLabs = excludeValuesEncType(otherLabs, toInclude)
 
 print("Loading Results Codes: find similar result_codes to analyte")
 similarResultCodes = get_similar_lab_codes(input_val)
@@ -383,11 +412,16 @@ otherLabs = otherLabs %>% mutate(icd = paste(HILONORMAL_FLAG, "_", RESULT_CODE, 
 otherLabs = otherLabs %>% mutate(icd_name = paste(HILONORMAL_COMMENT, "_", RESULT_NAME, sep=""))
 
 print("Other Labs: Select columns for output")
-otherLabs<-otherLabs %>% select(pid, icd, icd_name, timeOffset)
+otherLabs<-otherLabs %>% select(pid, icd, icd_name, timeOffset, EncounterID)
 
 print("Loading Medications")
 medValues = import_med_admin(unique(labValues$pid))
 medValues = inner_join(medValues, patient_bday, by="PatientID")
+
+print("MED: Combine with encounters")
+encountersAll = appendEncounters(encountersAll, medValues)
+medValues = inner_join(medValues, encountersAll, by=c("PatientID", "EncounterID"))
+medValues = excludeValuesEncType(medValues, toInclude)
 
 print("MED: Calculate Time-Offset")
 medValues = medValues %>% mutate(timeOffset = as.numeric(
@@ -409,5 +443,5 @@ attr(parameters, "age") = ageBias
 attr(parameters, "sex") = sex
 attr(parameters, "group") = toInclude
 attr(parameters, "similarResultCodes") = similarResultCodes
-save(parameters, labValues, icdValues, medValues, otherLabs, file=output_filename)
+save(parameters, labValues, icdValues, medValues, otherLabs, encountersAll, file=output_filename)
 

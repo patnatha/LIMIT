@@ -1,90 +1,129 @@
 source ../basedir.sh
-timing="1"
-if [[ $timing == "1" ]]
-then
-    toswitch="TUNEUP1"
-    startDate="2016-01-01"
-    endDate="2017-01-01"
-elif [[ $timing == "5" ]]
-then
-    toswitch="TUNEUP5"
-    startDate="2013-01-01"
-    endDate="2018-01-01"
-else
-    exit
-fi
-
-switch_input
 
 sed -i 's/ppn=[0-9]\+/ppn=8/' prepare_data.pbs
 sed -i 's/pmem=[0-9]\+gb/pmem=8gb/' prepare_data.pbs
 
-incGrp="outpatient_and_never_inpatient"
+toswitch="TUNEUP"
+switch_input
 
-inval="HGB"
-therace="all"
-theage="16Y_140Y"
-thesex="male"
-run_em_prepare
-thesex="female"
-run_em_prepare
+run_male_female(){
+    thesex="male"
+    run_em_prepare
+    thesex="female"
+    run_em_prepare
+}
 
-inval="WBC"
-therace="all"
-theage="16Y_140Y"
-thesex="male"
-run_em_prepare
-thesex="female"
-run_em_prepare
+startDate="2013-01-01"
+endDate="2017-01-01"
 
+incGrp="outpatient"
+therace="all"
 
-inval="PLT"
-therace="all"
-thesex="both"
-theage="182D_51100D"
-run_em_prepare
+inval="LDH"
+theage="0D_15D"
+run_male_female
+theage="15D_365D"
+run_male_female
+theage="1Y_10Y"
+run_male_female
+theage="10Y_15Y"
+run_male_female
+theage="15Y_19Y"
+run_male_female
 
-inval="SOD"
-therace="all"
-thesex="both"
-theage="1Y_140Y"
-run_em_prepare
+inval="PAB"
+theage="0D_15D"
+run_male_female
+theage="15D_365D"
+run_male_female
+theage="1Y_5Y"
+run_male_female
+theage="5Y_13Y"
+run_male_female
+theage="13Y_16Y"
+run_male_female
+theage="16Y_19Y"
+run_male_female
 
-inval="POT"
-therace="all"
-thesex="both"
-theage="1Y_140Y"
-run_em_prepare
+inval="T PROTEIN"
+theage="0D_15D"
+run_male_female
+theage="15D_365D"
+run_male_female
+theage="1Y_6Y"
+run_male_female
+theage="6Y_9Y"
+run_male_female
+theage="9Y_19Y"
+run_male_female
 
-inval="CHLOR"
-therace="all"
-theage="18Y_140Y"
-thesex="both"
-run_em_prepare
+inval="URIC"
+theage="0D_15D"
+run_male_female
+theage="15D_365D"
+run_male_female
+theage="1Y_12Y"
+run_male_female
+theage="12Y_19Y"
+run_male_female
 
-inval="C02"
-therace="all"
-theage="18Y_140Y"
-therace="all"
-thesex="male"
-run_em_prepare
-theage="10Y_140Y"
-thesex="female"
-run_em_prepare
+inval="HPT"
+theage="0D_15D"
+run_male_female
+theage="15D_365D"
+run_male_female
+theage="1Y_12Y"
+run_male_female
+theage="12Y_19Y"
+run_male_female
 
-inval="UN"
-therace="all"
-theage="18Y_140Y"
-thesex="male"
-run_em_prepare
-thesex="female"
-run_em_prepare
+inval="IGM"
+theage="0D_15D"
+run_male_female
+theage="15D_91D" #13 weeks => 91 days
+run_male_female
+theage="91D_365D"
+run_male_female
+theage="1Y_19Y"
+run_male_female
 
-inval="CREAT"
-therace="all"
-theage="16Y_140Y"
-thesex="male"
-run_em_prepare
-thesex="female"
-run_em_prepare
+inval="DBIL"
+theage="0D_15D"
+run_male_female
+theage="15D_365D"
+run_male_female
+theage="1Y_9Y"
+run_male_female
+theage="9Y_13Y"
+run_male_female
+theage="13Y_19Y"
+run_male_female
+
+inval="PHOS"
+theage="0D_15D"
+run_male_female
+theage="15D_365D"
+run_male_female
+theage="1Y_5Y"
+run_male_female
+theage="5Y_13Y"
+run_male_female
+theage="13Y_16Y"
+run_male_female
+theage="16Y_19Y"
+run_male_female
+
+inval="LIP"
+theage="0Y_19Y"
+run_male_female
+
+inval="AMYL"
+theage="0D_15D"
+run_male_female
+theage="15D_91D" #13 weeks => 91 days
+run_male_female
+theage="91D_365D"
+run_male_female
+theage="1Y_19Y"
+run_male_female
 

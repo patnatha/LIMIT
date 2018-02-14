@@ -1,3 +1,5 @@
+allTime <- Sys.time()
+
 ## Default Arguments
 criticalProp = 0.005 # beta
 criticalP = 0.1 # alpha
@@ -82,7 +84,7 @@ if(is.na(outputName)){
 saving = gsub('//', '/', paste(outputDir, outputName, sep="/"))
 saving = paste(saving, '.Rdata', sep="")
 
-#Check to see if the file exists
+#Search to see if filename already exists
 allFilesList = basename(list.files(outputDir, recursive=T))
 if(file.exists(saving) || basename(saving) %in% allFilesList){
     print("ERROR: File Already Exists")
@@ -96,6 +98,17 @@ if(is.na(inputData) || !file.exists(inputData)){
 }
 print(paste("Loading Data: ", inputData, sep=""))
 load(inputData);
+
+#Down sampling code
+pidSampleMax = 500000
+uniquePIDs = unique(labValues$PatientID)
+if(length(uniquePIDs) > pidSampleMax){
+    print(paste("LV: Down Sample PIDs, ", length(uniquePIDs), " => ", format(pidSampleMax, scientific=FALSE), sep=""))
+    randomlySelectedPIDs = sample(uniquePIDs, pidSampleMax)
+    labValues = labValues %>% filter(PatientID %in% randomlySelectedPIDs)
+    remove(randomlySelectedPIDs)
+}
+remove(uniquePIDs)
 
 #Check to see if the code type had been selected
 if(!is.na(codeType)){
@@ -367,4 +380,8 @@ print(paste("Lab Values Quantiles: ", paste(as.numeric(quantile(labValues$l_val,
 #Save the updated labValues and excluded ICD values
 cleanLabValues = labValues %>% select(pid, l_val, timeOffset, EncounterID)
 save(parameters, cleanLabValues, excludedPatients, excludedICDs, excludedICDNames, excludedCounts, excludedPval, file=saving)
+
+#Print out some results
+time.taken <- as.numeric(Sys.time() - allTime, units="mins")
+print(paste("SAVING: ", time.taken, " minutes", sep=""))
 

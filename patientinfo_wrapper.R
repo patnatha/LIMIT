@@ -8,7 +8,7 @@ connect_sqlite_pinfo <- function(){
 
 async_query_pinfo <- function(pids){
     out <- tryCatch(
-        if(length(pids) > 0){
+        if(length(pids) >= 0){
             #Build the query and execute
             sql = paste('SELECT * FROM PatientInfo WHERE PatientID IN ("', paste(pids, collapse="\",\""), '")', sep="")
             con = connect_sqlite_pinfo()

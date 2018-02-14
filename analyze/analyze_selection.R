@@ -30,8 +30,9 @@ for(uniqueFile in unique(listToCombine$filename)){
     basefilename = str_replace(uniqueFile, "_selected", "")
     filelist = list.files(input_dir, pattern = basefilename, full.names = TRUE, recursive=TRUE)
     load(filelist[[1]])
-    orignalMean = mean(as.numeric(labValues$l_val), na.rm=TRUE)
-    print(paste(basefilename, ": ", orignalMean, sep=""))
+    originalMean = mean(as.numeric(labValues$l_val), na.rm=TRUE)
+    originalCnt = length(as.numeric(labValues$l_val))
+    print(paste(basefilename, ": ", originalMean, sep=""))
     remove(labValues)
 
     #Get the list of files to combine
@@ -64,7 +65,7 @@ for(uniqueFile in unique(listToCombine$filename)){
     tukeyData = tukeyData[order(tukeyData$group),]
     
     additionalCols = c() 
-    newLine = c(uniqueFile, orignalMean, aovFValue, aovPValue)
+    newLine = c(uniqueFile, originalCnt, originalMean, aovFValue, aovPValue)
     for(i in 1:nrow(tukeyData)){
         tGrp = tukeyData[i,]$group
         tDiff = tukeyData[i,]$diff
@@ -78,7 +79,7 @@ for(uniqueFile in unique(listToCombine$filename)){
 
     if(!writtenFirstList){
         #Write the first line   
-        firstLine = c("filename", "Original Mean", "ANOVA F Statistic", "ANOVA P-Value", additionalCols)
+        firstLine = c("filename", "Count", "Original Mean", "ANOVA F Statistic", "ANOVA P-Value", additionalCols)
         write(firstLine,ncolumns=length(firstLine),sep=",",file=theResultFile, append=FALSE)
         writtenFirstList = TRUE
     }
@@ -89,17 +90,9 @@ for(uniqueFile in unique(listToCombine$filename)){
     tRace=tolower(attributes(parameters)$icd_race)
     tStime=attributes(parameters)$icd_start_time
     tEtime=attributes(parameters)$icd_end_time
-    findReference=import_reference_range(tResultCode, tSex, tRace, tStime, tEtime, c("MAYO"))
-    goldStandardRefLow = findReference[[1]]
-    goldStandardRefHigh = findReference[[2]]
-    goldStandardSource = findReference[[3]]
     
     #Append the Gold Standard to the new line
-    newLine = c(newLine, 
-                goldStandardRefLow, 
-                (goldStandardRefLow + goldStandardRefHigh) / 2.0, #Boot leg mean
-                goldStandardRefHigh, 
-                goldStandardSource)
+    newLine = c(newLine) 
     write(newLine,ncolumns=length(newLine),sep=",",file=theResultFile, append=TRUE)
 }
 

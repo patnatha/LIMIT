@@ -8,7 +8,7 @@ connect_sqlite_demos <- function(){
 
 async_query_demos <- function(pids){
     out <- tryCatch(
-        if(length(pids) > 0){
+        if(length(pids) >= 0){
             #Build the query and execute
             sql = paste('SELECT * FROM Demographics WHERE PatientID IN ("', paste(pids, collapse="\",\""), '")', sep="")
             con = connect_sqlite_demos()
@@ -29,7 +29,7 @@ get_demographics <- function(pids){
         return(parallelfxn_small(pids, async_query_demos))
     }
     else{
-        return(NULL)
+        return(NA)
     }
 }
 

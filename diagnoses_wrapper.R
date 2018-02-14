@@ -8,7 +8,7 @@ connect_sqlite_diagnoses <- function(){
 
 async_query_diagnoses <- function(pids){
     out <- tryCatch(
-        if(length(pids) > 0){
+        if(length(pids) >= 0){
             #Build the query and execute
             sql = paste('SELECT PatientID, EncounterID, TermCodeMapped, TermNameMapped, Lexicon FROM DiagComp WHERE PatientID IN ("', paste(pids, collapse="\",\""), '")', sep="")
             con = connect_sqlite_diagnoses()
@@ -24,7 +24,7 @@ async_query_diagnoses <- function(pids){
 }
 
 get_diagnoses <- function(pids){
-    if(length(pids) > 0){
+    if(length(pids) >= 0){
         print(paste("Download Diagnoses: ", as.character(length(pids)), " pids",sep=""))
         return(parallelfxn_large(pids, async_query_diagnoses))
     }
@@ -34,7 +34,7 @@ get_diagnoses <- function(pids){
 }
 
 async_query_pid_icd <- function(pids, icd){
-    if(length(pids) > 0){
+    if(length(pids) >= 0){
         sql = paste("SELECT PatientID, EncounterID, TermCodeMapped FROM DiagComp WHERE TermCodeMapped = \"", icd, "\" AND PatientID IN (\"", paste(pids, collapse="\",\""), "\")", sep="")
         con = connect_sqlite_diagnoses()
         myQuery = dbGetQuery(con, sql)

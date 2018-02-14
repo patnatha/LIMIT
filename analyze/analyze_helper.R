@@ -49,6 +49,10 @@ run_outliers = function(theData, runsCnt){
     print(paste("Lab Values Count: ", length(cleanLabValues$l_val)))
     print(paste("Lab Values Quantiles: ", paste(round(as.double(quantile(cleanLabValues$l_val, c(0.025, 0.05, 0.95, 0.975), na.rm = TRUE)), digits=2),collapse=" "), sep=""))
 
+    if(length(cleanLabValues$l_val) <= 10){
+        return(cleanLabValues)
+    }
+
     runs=0
     while(runs < runsCnt){
         outliered = horn.outliers(theData)
@@ -66,11 +70,10 @@ run_outliers = function(theData, runsCnt){
 }
 
 #Run the boot parametric confidence interval
-nonparRI = function (data, indices = 1:length(data), refConf = 0.95)
+nonparRI = function (data, indices = 1:length(data), refConf)
 {
     d = data[indices]
-    results = c(quantile(d, (1 - refConf)/2, type = 6), quantile(d,
-    1 - ((1 - refConf)/2), type = 6))
+    results = c(quantile(d, (1 - refConf)/2, type = 6), quantile(d, 1 - ((1 - refConf)/2), type = 6))
     return(results)
 }
 
@@ -79,10 +82,10 @@ nonparRI = function (data, indices = 1:length(data), refConf = 0.95)
 #Define the boot non-parametric function
 run_intervals <- function(data, refConf, limitConf){
     #Set the reference interval
-    refInterval_Method = "parametric" # parametric, non_parametric
+    refInterval_Method = "non_parametric" # parametric, non_parametric
 
     #Set the confidence interval and type of interval to calculate
-    confInterval_Method = "parametric" # parametric, non_parametric, boot
+    confInterval_Method = "boot" # parametric, non_parametric, boot
 
     lowerRefLimit = NA
     upperRefLimit = NA
@@ -135,14 +138,8 @@ run_intervals <- function(data, refConf, limitConf){
         holder = nonparRI(data, indices = 1:length(data), refConf)
         lowerRefLimit = holder[1]
         upperRefLimit = holder[2]
-
-        #Confidence intervals can only be parametric if reference interval is as well
-        if (confInterval_Method == "parametric") {
-            confInterval_Method = "non_parametric"
-        }
     }
 
-    #Run non-parametric analysis
     if (confInterval_Method == "non_parametric") {
         if (length(data) < 120) {
             #Sample size too small for non-parametric CI, bootstrapping!

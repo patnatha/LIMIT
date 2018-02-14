@@ -35,14 +35,18 @@ run_em_limit(){
 }
 
 run_em_prepare(){
+    #Create the output directory
     toutdir="${preparedir}${incGrp}/"
     mkdir -p $toutdir
+   
+    #Space cannot be sent to the batch manager, so one must make them a single string 
+    inval=${inval/\ /\?}
 
     if [[ -z $startDate ]] | [[ -z $endDate ]]
     then
-        parameters="--input $inval --sex $thesex --race $therace --include $incGrp --age $theage --output ${toutdir}"
+        parameters="--input '$inval' --sex $thesex --race $therace --include $incGrp --age $theage --output ${toutdir}"
     else
-        parameters="--input $inval --start $startDate --end $endDate --sex $thesex --race $therace --include $incGrp --age $theage --output ${toutdir}"
+        parameters="--input '$inval' --start $startDate --end $endDate --sex $thesex --race $therace --include $incGrp --age $theage --output ${toutdir}"
     fi
 
     eval "qsub prepare_data.pbs -F \"${parameters}\""
@@ -65,7 +69,7 @@ run_em_select(){
 }
 
 switch_input(){
-    errStmt="ERROR: ALK, ALK_MAYO, BILI, BMP, CALIPER, ELEC, HGB, LIVER, PLT, TEST, TUNEUP1, TUNEUP5, WBC"
+    errStmt="ERROR: ALK, ALK_MAYO, BILI, BMP, CALIPER, ELEC, HGB, LIVER, PLT, TEST, TUNEUP, WBC"
     if [[ -z $toswitch ]]
     then
         echo $errStmt
@@ -94,18 +98,15 @@ switch_input(){
     elif [ "${toswitch}" == "PLT" ]
     then
         preparedir="${preparedir}platelet/"
-    elif [ "${toswitch}" == "TUNEUP1" ]
-    then
-        preparedir="${preparedir}tune_up_1_year/"
-    elif [ "${toswitch}" == "TUNEUP5" ]
-    then
-        preparedir="${preparedir}tune_up_5_year/"
     elif [ "${toswitch}" == "TEST" ]
     then
         preparedir="${preparedir}glucose_2_months/"
     elif [ "${toswitch}" == "WBC" ]
     then
         preparedir="${preparedir}white_blood_cell/"
+    elif [ "${toswitch}" == "TUNEUP" ]
+    then
+         preparedir="${preparedir}tune_up/"
     else
         echo $errStmt
         exit

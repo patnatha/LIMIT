@@ -23,6 +23,7 @@ finalExluded=combineExcludedLists(parameters)
 
 #Combine excluded list with post analysis set to obtain the original set
 originalSet=union(cleanLabValues %>% select(pid, l_val, timeOffset, EncounterID), finalExluded)
+originalSet=run_outliers(originalSet, 1)
 
 #Calculate some reference intervals from this badboy
 resultsFivePercent=run_intervals(originalSet$l_val, 0.95, 0.90)
@@ -35,21 +36,17 @@ preLimitReference = c(attr(resultsFivePercent, "lowerRefLimit"),
                       attr(resultsFivePercent, "refInterval_Method"))
 
 #Run the outlier detection
-cleanLabValues = run_outliers(cleanLabValues, 2)
+cleanLabValues = run_outliers(cleanLabValues, 1)
 postHornLabValuesCnt = length(cleanLabValues$l_val)
 
 #Run the 90% reference interval 
-refInterval =  0.95
-confInterval = 0.90
-results=run_intervals(cleanLabValues$l_val, refInterval, confInterval)
+results=run_intervals(cleanLabValues$l_val, 0.95, 0.90)
 if(writeToFile){
     write_line_append(parameters, postHornLabValuesCnt, preLimitReference, results)
 }
 
 #Run the 90% reference interval
-refInterval = 0.90
-confInterval = 0.90
-results=run_intervals(cleanLabValues$l_val, refInterval, confInterval)
+results=run_intervals(cleanLabValues$l_val, 0.90, 0.90)
 if(writeToFile){
     write_line_append(parameters, postHornLabValuesCnt, preLimitReference, results)
 }

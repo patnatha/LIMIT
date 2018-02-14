@@ -8,7 +8,7 @@ connect_sqlite_meds <- function(){
 
 async_query_meds <- function(pids){
     out <- tryCatch(
-        if(length(pids) > 0){
+        if(length(pids) >= 0){
             #Build the query and execute
             sql = paste('SELECT PatientID, EncounterID, MedicationTermID, MedicationName, DoseStartTime, MedicationStatus FROM MedAdmin WHERE PatientID IN ("', paste(pids, collapse="\",\""), '") AND MedicationStatus = "Given"', sep="")
             con = connect_sqlite_meds()
@@ -24,7 +24,7 @@ async_query_meds <- function(pids){
 }
 
 get_meds <- function(pids){
-    if(length(pids) > 0){
+    if(length(pids) >= 0){
         print(paste("Download Meds: ", as.character(length(pids)), " pids",sep=""))
         return(parallelfxn_large(pids, async_query_meds))
     }
@@ -34,7 +34,7 @@ get_meds <- function(pids){
 }
 
 async_query_pid_med <-function(pids, med){
-    if(length(pids) > 0){
+    if(length(pids) >= 0){
         sql = paste("SELECT PatientID, MedicationTermID, DoseStartTime FROM MedAdmin WHERE MedicationTermID = \"", med, "\" AND PatientID IN (\"", paste(pids, collapse="\",\""), "\")", sep="")
         con = connect_sqlite_meds()
         myQuery = dbGetQuery(con, sql)

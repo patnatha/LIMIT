@@ -29,6 +29,11 @@ partition_incoming <- function(pids, toChunk = 1000){
     if(length(tmpList) > 0){
         finalList[[length(finalList) + 1]] = tmpList
     }
+    
+    if(length(finalList) == 0){
+        #This is a place holder for nothingness (PatientID and EncounterID)
+        finalList = list("YASERTON")
+    }
 
     return(finalList)
 }
