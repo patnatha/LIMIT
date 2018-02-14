@@ -61,6 +61,17 @@ if(singular_value == "most_recent"){
     print("SELECT ALL LAB FOR EACH PID")
 }
 
+#Down sampling code
+pidSampleMax = 500000
+uniquePIDs = unique(labValues$pid)
+if(length(uniquePIDs) > pidSampleMax){
+    print(paste("LV: Down Sample PIDs, ", length(uniquePIDs), " => ", format(pidSampleMax, scientific=FALSE), sep=""))
+    randomlySelectedPIDs = sample(uniquePIDs, pidSampleMax)
+    labValues = labValues %>% filter(pid %in% randomlySelectedPIDs)
+    remove(randomlySelectedPIDs)
+}
+remove(uniquePIDs)
+
 print(paste("SELECTED: ", oldLabValuesLen, " => ", nrow(labValues), sep=""))
 save(parameters, labValues, icdValues, medValues, otherLabs, file=output_filename)
 

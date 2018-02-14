@@ -27,5 +27,6 @@ module load R/3.3.3
 
 #Submit the script 
 Rscript Nate_LIMIT.R $@
-date
+tDate=`date`
+echo "TIMING: $tDate"
 

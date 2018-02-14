@@ -41,7 +41,7 @@ outputDir = args[['output']]
 outputName = args[['name']]
 inputData = args[['input']]
 codeType = args[['codes']]
-versioning = '1.3'
+versioning = '2.0'
 
 # Parse the incoming critical proportion
 if(!is.na(args[['critical-proportion']])){
@@ -98,17 +98,6 @@ if(is.na(inputData) || !file.exists(inputData)){
 }
 print(paste("Loading Data: ", inputData, sep=""))
 load(inputData);
-
-#Down sampling code
-pidSampleMax = 500000
-uniquePIDs = unique(labValues$PatientID)
-if(length(uniquePIDs) > pidSampleMax){
-    print(paste("LV: Down Sample PIDs, ", length(uniquePIDs), " => ", format(pidSampleMax, scientific=FALSE), sep=""))
-    randomlySelectedPIDs = sample(uniquePIDs, pidSampleMax)
-    labValues = labValues %>% filter(PatientID %in% randomlySelectedPIDs)
-    remove(randomlySelectedPIDs)
-}
-remove(uniquePIDs)
 
 #Check to see if the code type had been selected
 if(!is.na(codeType)){

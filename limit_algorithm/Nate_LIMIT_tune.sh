@@ -85,11 +85,17 @@ do
 
                             #Submit the job
                             cmd="qsub Nate_LIMIT.pbs -F \"$parameters\""
-                            eval $cmd
+                            OUTPUT=`eval $cmd`
  
                             #Don't let the script submit more than necessary
                             theCounter=$((theCounter + 1))
-                            if [ $theCounter == $curOff ]
+                            if [ $theCounter -eq 0 ]
+                            then
+                                    echo "Submitted: ${theCounter} jobs"
+                            elif [ $theCounter -gt 0 ]
+                            then
+                                echo "\r\033[K    Submitted: ${theCounter} jobs"
+                            elif [ $theCounter -ge $curOff ]
                             then
                                 echo "Submitted max number of jobs: $theCounter"
                                 exit

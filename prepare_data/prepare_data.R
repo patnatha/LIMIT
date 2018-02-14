@@ -308,17 +308,6 @@ excludeValuesEncType <- function(listType, incGrp){
 }
 
 if(!is.na(toInclude)){
-    #Down sampling code
-    pidSampleMax = 500000
-    uniquePIDs = unique(labValues$PatientID)
-    if(length(uniquePIDs) > pidSampleMax){
-        print(paste("LV: Down Sample PIDs, ", length(uniquePIDs), " => ", format(pidSampleMax, scientific=FALSE), sep=""))
-        randomlySelectedPIDs = sample(uniquePIDs, pidSampleMax)
-        labValues = labValues %>% filter(PatientID %in% randomlySelectedPIDs)
-        remove(randomlySelectedPIDs)
-    }
-    remove(uniquePIDs)
-
     #Get count of lab values before inclusion groups
     preFilLen = nrow(labValues)
 
