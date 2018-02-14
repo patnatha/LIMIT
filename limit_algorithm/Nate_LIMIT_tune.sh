@@ -2,9 +2,6 @@ source ../basedir.sh
 toswitch="TUNEUP"
 switch_input
 
-sed -i 's/ppn=[0-9]\+/ppn=4/' Nate_LIMIT.pbs
-sed -i 's/pmem=[0-9]\+gb/pmem=4gb/' Nate_LIMIT.pbs
-
 declare -a criticalHampels=("0.5" "1.0" "2.0" "3.0")
 declare -a criticalPs=("0.05" "0.1" "0.2")
 declare -a criticalProps=("0" "0.005" "0.025" "0.05" "0.01")
@@ -33,6 +30,7 @@ then
     stopIt="TRUE"
 fi
 
+#Stop the script based on queue status
 if [ $stopIt == "TRUE" ]
 then
     exit
@@ -71,7 +69,7 @@ do
                             toutfilename="${outfilename}H${criticalHampels[$i]}_P${criticalPs[$j]}_PROP${criticalProps[$k]}_POST_${day_time_offset_posts[$l]}_PRE${day_time_offset_pres[$m]}_${code_switch[$h]}"
                            
                             #Check to see if the file already exists on disk
-                            fileExist=`find ${outdirname} | grep "${toutfilename}" | wc -l`
+                            fileExist=`find ${outdirname} | fgrep "${toutfilename}" | wc -l`
                             if [ $fileExist == "1" ]
                             then
                                 continue
@@ -79,6 +77,11 @@ do
                             
                             #Build all the parameters
                             parameters="--input ${tfile} --code ${code_switch[$h]} --output ${outdirname} --name ${toutfilename} --critical-hampel ${criticalHampels[$i]} --critical-p-value ${criticalPs[$j]} --critical-proportion ${criticalProps[$k]} --day-time-offset-post ${day_time_offset_posts[$l]} --day-time-offset-pre ${day_time_offset_pres[$m]}"
+
+                            #Set the parameters for the program
+                            sed -i 's/ppn=[0-9]\+/ppn=4/' Nate_LIMIT.pbs
+                            sed -i 's/pmem=[0-9]\+gb/pmem=4gb/' Nate_LIMIT.pbs
+                            sed -i 's/walltime=[0-9]\+\:[0-9]\+\:[0-9]\+/walltime=3:00:00/' Nate_LIMIT.pbs 
 
                             #Submit the job
                             cmd="qsub Nate_LIMIT.pbs -F \"$parameters\""
@@ -97,5 +100,11 @@ do
             done
         done
     done
+
+    if [ $theCounter -gt 0 ]
+    then
+        echo "Submitted all of current files job(s): $theCounter"
+        exit
+    fi
 done
 
