@@ -22,6 +22,9 @@ load(med_file)
 medRC = attr(parameters, "resultCode")
 medSelection = attr(parameters, "singular_value")
 medLabValues = cleanLabValues
+medCritProp = attr(parameters, "criticalProp")
+medCritP = attr(parameters, "criticalP")
+medCritH = attr(parameters, "criticalHampel")
 medPreTimeOffest = attr(parameters, "day_time_offset_pre")
 medPostTimeOffest = attr(parameters, "day_time_offset_post")
 medResultCode = attr(parameters, "resultCode")
@@ -40,6 +43,9 @@ excludedMedLabs = excludedCounts
 icd_results = load(icd_file)
 icdRC = attr(parameters, "resultCode")
 icdSelection = attr(parameters, "singular_value")
+icdCritProp = attr(parameters, "criticalProp")
+icdCritP = attr(parameters, "criticalP")
+icdCritH = attr(parameters, "criticalHampel")
 icdPreTimeOffest = attr(parameters, "day_time_offset_pre")
 icdPostTimeOffest = attr(parameters, "day_time_offset_post")
 icdResultCode = attr(parameters, "resultCode")
@@ -59,6 +65,9 @@ excludedICDLabs = excludedCounts
 lab_results = load(lab_file)
 labRC = attr(parameters, "resultCode")
 labSelection = attr(parameters, "singular_value")
+labCritProp = attr(parameters, "criticalProp")
+labCritP = attr(parameters, "criticalP")
+labCritH = attr(parameters, "criticalHampel")
 labPreTimeOffest = attr(parameters, "day_time_offset_pre")
 labPostTimeOffest = attr(parameters, "day_time_offset_post")
 labResultCode = attr(parameters, "resultCode")
@@ -75,17 +84,35 @@ excludedLabs = rbind(excludedICDs, excludedICDNames, excludedPval)
 excludedLabLabs = excludedCounts
 
 #Check for match input codes
-intersect_it = FALSE
-if(length(labRC) == length(icdRC) &&
-   length(intersect(labRC, icdRC)) == length(labRC) &&
-   length(labRC) == length(medRC) &&
-   length(intersect(labRC, medRC)) == length(labRC) &&
-   length(icdRC) == length(medRC) &&
-   length(intersect(icdRC, medRC) == length(icdRC))){
-    intersect_it = TRUE
+intersect_it = TRUE
+if(length(labRC) != length(icdRC) || length(intersect(labRC, icdRC)) != length(labRC) ||
+   length(labRC) != length(medRC) || length(intersect(labRC, medRC)) != length(labRC) ||
+   length(icdRC) != length(medRC) || length(intersect(icdRC, medRC)) != length(icdRC)){
+    intersect_it = FALSE
 }
+
+#Check matching partitions
+if(labSelection != medSelection || medSelection != icdSelection ||
+    labSex != medSex || medSex != icdSex || 
+    labRace != medRace || medRace != icdRace ||
+    labGroup != medGroup || medGroup != icdGroup ||
+    labStartTime != medStartTime || medStartTime != icdStartTime ||
+    labEndTime != medEndTime || medEndTime != icdEndTime){
+    intersect_it = FALSE
+}
+
+#Check for matching parameters
+if(medCritProp != labCritProp || labCritProp != icdCritProp ||
+   medCritP != labCritP || labCritP != icdCritP ||
+   medCritH != labCritH || labCritH != icdCritH ||
+   medPreTimeOffest != labPreTimeOffest || icdPreTimeOffest != labPreTimeOffest ||
+   medPostTimeOffest != labPostTimeOffest || labPostTimeOffest != icdPostTimeOffest){
+    intersect_it = FALSE
+}
+
+#Stop if not matching
 if(!intersect_it){
-    print("ERROR: not matching input values")
+    print("ERROR: not matching LIMIT parameters")
     stop()
 }
 
@@ -103,18 +130,20 @@ saving=paste(saving, "/", finName, sep="")
 #Save the results to disk
 parameters<-1:1
 attr(parameters, "resultCodes") <- icdRC
+attr(parameters, "selection") <- icdSelection
+attr(parameters, "group") <- icdGroup
+attr(parameters, "race") <- icdRace
+attr(parameters, "sex") <- icdSex
+attr(parameters, "start_time") <- icdStartTime
+attr(parameters, "end_time") <- icdEndTime
+attr(parameters, "criticalProp") <- icdCritProp
+attr(parameters, "criticalP") <- icdCritP
+attr(parameters, "criticalHampel") <- icdCritH
+attr(parameters, "pre_offset") <- icdPreTimeOffest
+attr(parameters, "post_offset") <- icdPostTimeOffest
 attr(parameters, "joined_count") = nrow(cleanLabValues)
 
 attr(parameters, "med_file") <- med_file
-attr(parameters, "med_selection") <- medSelection
-attr(parameters, "med_pre_offset") <- medPreTimeOffest
-attr(parameters, "med_post_offset") <- medPostTimeOffest
-attr(parameters, "med_result_code") <- medResultCode
-attr(parameters, "med_sex") <- medSex
-attr(parameters, "med_race") <- medRace
-attr(parameters, "med_group") <- medGroup
-attr(parameters, "med_start_time") <- medStartTime
-attr(parameters, "med_end_time") <- medEndTime 
 attr(parameters, "med_pre_limit") <- medLabPre 
 attr(parameters, "med_post_limit") <- medLabPost
 attr(parameters, "med_excluded") <- excludedMeds
@@ -122,15 +151,6 @@ attr(parameters, "med_excluded_pid") <- medExcludedPatients
 attr(parameters, "med_excluded_labs") <- excludedMedLabs
 
 attr(parameters, "icd_file") <- icd_file
-attr(parameters, "icd_selection") <- icdSelection
-attr(parameters, "icd_pre_offset") <- icdPreTimeOffest
-attr(parameters, "icd_post_offset") <- icdPostTimeOffest
-attr(parameters, "icd_result_code") <- icdResultCode
-attr(parameters, "icd_sex") <- icdSex
-attr(parameters, "icd_race") <- icdRace
-attr(parameters, "icd_group") <- icdGroup
-attr(parameters, "icd_start_time") <- icdStartTime
-attr(parameters, "icd_end_time") <- icdEndTime
 attr(parameters, "icd_pre_limit") <- icdLabPre
 attr(parameters, "icd_post_limit") <- icdLabPost
 attr(parameters, "icd_excluded") <- excludedICDS
@@ -138,20 +158,12 @@ attr(parameters, "icd_excluded_pid") <- icdExcludedPatients
 attr(parameters, "icd_excluded_labs") <- excludedICDLabs
 
 attr(parameters, "lab_file") <- lab_file
-attr(parameters, "lab_selection") <- labSelection
-attr(parameters, "lab_pre_offset") <- labPreTimeOffest
-attr(parameters, "lab_post_offset") <- labPostTimeOffest
-attr(parameters, "lab_result_code") <- labResultCode
-attr(parameters, "lab_sex") <- labSex
-attr(parameters, "lab_race") <- labRace
-attr(parameters, "lab_group") <- labGroup
-attr(parameters, "lab_start_time") <- medStartTime
-attr(parameters, "lab_end_time") <- medEndTime
 attr(parameters, "lab_pre_limit") <- labLabPre
 attr(parameters, "lab_post_limit") <- labLabPost
 attr(parameters, "lab_excluded") <- excludedLabs
 attr(parameters, "lab_excluded_pid") <- labExcludedPatients
 attr(parameters, "lab_excluded_labs") <- excludedLabLabs
 
+print(saving)
 save(cleanLabValues, parameters, file=saving)
 

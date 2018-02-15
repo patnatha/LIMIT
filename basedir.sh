@@ -118,7 +118,7 @@ switch_input(){
 }
 
 post_process_dir(){
-    prepdirstemp=`find ${tolistpath} -maxdepth 3 -type d`
+    prepdirstemp=`find ${tolistpath} -maxdepth 2 -type d`
     prepdirs=""
     for tdir in $prepdirstemp
     do

@@ -4,60 +4,46 @@ post_process_dir
 
 for tdir in $prepdirs
 do
-    echo "=====Run these files?====="
-    theCnt=0
-    finarricd=()
-    finarrmed=()
-    finarrlab=()
-    preplist=`find ${tdir} | grep -P 'selected.*Rdata'`
-    for tfile in $preplist;
-    do
-        echo `basename $tfile`
-        if [[ $tfile == *"icd"* ]];
-        then
-            finarricd+="${tfile}|"
-        fi
+    #Get the lists of them
+    dirListing=`find ${tdir} -maxdepth 1 -type f | grep -P 'selected.*Rdata'`
+    finarricd=`echo "$dirListing" | fgrep 'icd'`
+    finarrmed=`echo "$dirListing" | fgrep 'med'`
+    finarrlab=`echo "$dirListing" | fgrep 'lab'`
 
-        if [[ $tfile == *"med"* ]];
-        then
-            finarrmed+="${tfile}|"
-        fi
-
-        if [[ $tfile == *"lab"* ]];
-        then
-            finarrlab+="${tfile}|"
-        fi
-    done
-
+    #Make the output directories
     eval "mkdir -p ${tdir}/med"
     eval "mkdir -p ${tdir}/icd"
     eval "mkdir -p ${tdir}/lab"
 
-    for tfile in $(echo $finarricd | tr "|" "\n");
+    for icdfile in $finarricd;
     do
-        basefname=`basename ${tfile} | sed 's/\(.*\)_.*/\1/'`
-        for tfile2 in $(echo $finarrmed | tr "|" "\n");
-        do
-            basefname2=`basename ${tfile2} | sed 's/\(.*\)_.*/\1/'`
-            if [ $tfile != $tfile2 ] && [ $basefname == $basefname2 ];
-            then
-                for tfile3 in $(echo $finarrlab | tr "|" "\n");
-                do
-                    basefname3=`basename ${tfile3} | sed 's/\(.*\)_.*/\1/'`
-                    if [ $tfile != $tfile3 ] && [ $basefname == $basefname3 ];
-                    then
-                        thecmd="Rscript intersect_results.R --icd $tfile --med $tfile2 --lab $tfile3"
-                        #echo $thecmd
-                        eval $thecmd
+        #Get the icd file basename and dirname
+        basefname=`basename ${icdfile} | sed 's/\(.*\)_.*/\1/'`
+        basedirname=`dirname ${icdfile}`
+        
+        #Search the med and lab files for others like it
+        medfile=`echo $finarrmed | fgrep -o "${basefname}_med.Rdata"`
+        labfile=`echo $finarrlab | fgrep -o "${basefname}_lab.Rdata"`
 
-                        #Move the file to appropiate directory
-                        eval `mv $tfile ${tdir}/icd/.`
-                        eval `mv $tfile2 ${tdir}/med/.`
-                        eval `mv $tfile3 ${tdir}/lab/.`
-                    fi
-                done
-            fi
-        done
+        #If unable to find anything then skip it
+        if [[ ${#icdfile} == 0 ]] || [[ ${#medfile} == 0 ]] || [[ ${#labfile} == 0 ]]
+        then
+            continue
+        fi
+
+        #Add the dirname
+        medfile="${basedirname}/${medfile}"  
+        labfile="${basedirname}/${labfile}"
+ 
+        #Run the command 
+        thecmd="Rscript intersect_results.R --icd $icdfile --med $medfile --lab $labfile"
+        #echo $thecmd
+        eval $thecmd
+
+        #Move the file to appropiate directory
+        eval `mv $icdfile ${tdir}/icd/.`
+        eval `mv $medfile ${tdir}/med/.`
+        eval `mv $labfile ${tdir}/lab/.`
     done
 done
 

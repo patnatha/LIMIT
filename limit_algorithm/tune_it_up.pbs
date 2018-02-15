@@ -2,7 +2,7 @@
 
 #PBS -N tune_it_up
 #PBS -M patnatha@med.umich.edu
-#PBS -m a
+#PBS -m abe
 
 #PBS -A leeschro_armis
 #PBS -q armis

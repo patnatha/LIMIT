@@ -11,7 +11,6 @@ declare -a code_switch=("icd" "med" "lab")
 
 #Calculate number of permutations
 curOff=$((${#day_time_offset_pres[@]} * ${#day_time_offset_posts[@]} * ${#criticalProps[@]} * ${#criticalPs[@]} * ${#criticalHampels[@]} * ${#code_switch[@]}))
-echo "TO TUNE: "$curOff
 
 #Check to see how many jobs are queued at the moment
 queuedList=`qstat | grep \`whoami\` | grep Q | grep Nate_LIMIT | wc -l`
@@ -34,54 +33,78 @@ fi
 if [ $stopIt == "TRUE" ]
 then
     exit
+    #exi=1
 fi
+
+#Load up the already done files
+filesComplete="./files_complete.txt"
+resultsComplete=`cat ${filesComplete}`
 
 theCounter=0
 for tfile in `find ${preparedir} | grep selected | sort`
-do  
-    #Get the base filename
+do
+    #Set the parameters for the program
+    sed -i 's/ppn=[0-9]\+/ppn=4/' Nate_LIMIT.pbs
+    sed -i 's/pmem=[0-9]\+gb/pmem=4gb/' Nate_LIMIT.pbs
+    sed -i 's/walltime=[0-9]\+\:[0-9]\+\:[0-9]\+/walltime=3:00:00/' Nate_LIMIT.pbs
+
+    #For this file build the basename for output
     tfbase=`basename $tfile`
-    echo $tfbase
-    fileCnt=$((fileCnt + 1))
+    tfbase=${tfbase/".Rdata"/"_"}
+    outfilename="${tfbase}"
+
+    #Get the base filename and check to make sure not already done
+    tfBaseDone=`echo $resultsComplete | grep $tfbase | wc -l`
+    if [ $tfBaseDone == "1" ]
+    then
+        echo "DONE: ${tfbase}*"
+        continue
+    else
+        echo "RUNNING: ${tfbase}*"
+    fi
 
     #Get and build the output directry
     outdirname=`dirname $tfile`
     outdirname=${outdirname/"prepared_data"/"limit_results"}
     mkdir -p ${outdirname}
 
-    #For this file build the basename for output
-    tfbase=${tfbase/".Rdata"/"_"}
-    outfilename="${tfbase}"
+    #Keep track of skip cnt
+    skipCnt=0
 
-    for (( h=0; h<${#code_switch[@]}; h++ ));
+    for (( i=0; i<${#criticalHampels[@]}; i++ ));
     do
-        for (( i=0; i<${#criticalHampels[@]}; i++ ));
+        for (( j=0; j<${#criticalPs[@]}; j++ ));
         do
-            for (( j=0; j<${#criticalPs[@]}; j++ ));
+            for (( k=0; k<${#criticalProps[@]}; k++ ));
             do
-                for (( k=0; k<${#criticalProps[@]}; k++ ));
+                for (( l=0; l<${#day_time_offset_posts[@]}; l++ ));
                 do
-                    for (( l=0; l<${#day_time_offset_posts[@]}; l++ ));
+                    for (( m=0; m<${#day_time_offset_pres[@]}; m++ ));
                     do
-                        for (( m=0; m<${#day_time_offset_pres[@]}; m++ ));
+                        for (( h=0; h<${#code_switch[@]}; h++ ));
                         do
                             #build the output name
                             toutfilename="${outfilename}H${criticalHampels[$i]}_P${criticalPs[$j]}_PROP${criticalProps[$k]}_POST_${day_time_offset_posts[$l]}_PRE${day_time_offset_pres[$m]}_${code_switch[$h]}"
-                           
+                            
                             #Check to see if the file already exists on disk
-                            fileExist=`find ${outdirname} | fgrep "${toutfilename}" | wc -l`
-                            if [ $fileExist == "1" ]
+                            checkFile="find ${outdirname}/${toutfilename}* -type f 2> /dev/null | wc -l"
+                            fileExists=`eval $checkFile`
+                            if [[ $fileExists != "0" ]]
                             then
+                                skipCnt=$((skipCnt + 1))
+                                if [[ $skipCnt == 1 ]]
+                                then
+                                    echo -en "Skipped: ${skipCnt}"
+                                fi
+                                if [[ $((skipCnt % 100)) == 0 ]] || [[ $skipCnt == $curOff ]]
+                                then
+                                    echo -en "\rSkipped: ${skipCnt}"
+                                fi
                                 continue
                             fi
-                            
+                             
                             #Build all the parameters
                             parameters="--input ${tfile} --code ${code_switch[$h]} --output ${outdirname} --name ${toutfilename} --critical-hampel ${criticalHampels[$i]} --critical-p-value ${criticalPs[$j]} --critical-proportion ${criticalProps[$k]} --day-time-offset-post ${day_time_offset_posts[$l]} --day-time-offset-pre ${day_time_offset_pres[$m]}"
-
-                            #Set the parameters for the program
-                            sed -i 's/ppn=[0-9]\+/ppn=4/' Nate_LIMIT.pbs
-                            sed -i 's/pmem=[0-9]\+gb/pmem=4gb/' Nate_LIMIT.pbs
-                            sed -i 's/walltime=[0-9]\+\:[0-9]\+\:[0-9]\+/walltime=3:00:00/' Nate_LIMIT.pbs 
 
                             #Submit the job
                             cmd="qsub Nate_LIMIT.pbs -F \"$parameters\""
@@ -89,15 +112,15 @@ do
  
                             #Don't let the script submit more than necessary
                             theCounter=$((theCounter + 1))
-                            if [ $theCounter -eq 0 ]
+                            if [[ $theCounter == 0 ]]
                             then
-                                    echo "Submitted: ${theCounter} jobs"
-                            elif [ $theCounter -gt 0 ]
+                                echo -en "Submitted: ${theCounter} jobs"
+                            elif [[ $theCounter > 0 ]]
                             then
-                                echo "\r\033[K    Submitted: ${theCounter} jobs"
-                            elif [ $theCounter -ge $curOff ]
+                                echo -en "\rSubmitted: ${theCounter} jobs"
+                            elif [[ $theCounter -ge $curOff ]]
                             then
-                                echo "Submitted max number of jobs: $theCounter"
+                                echo -e "\rSubmitted max number of jobs: ${theCounter}"
                                 exit
                             fi
                         done
@@ -107,10 +130,14 @@ do
         done
     done
 
-    if [ $theCounter -gt 0 ]
+    if [[ $theCounter > 0 ]]
     then
-        echo "Submitted all of current files job(s): $theCounter"
+        echo -e "\rSubmitted all of current files job(s): $theCounter"
         exit
+    elif [[ $theCounter == 0 ]]
+    then
+        echo -e "${resultsComplete}\n${tfbase}" > ${filesComplete}
+        echo -e "\nCOMPLETE: ${tfbase}"
     fi
 done
 

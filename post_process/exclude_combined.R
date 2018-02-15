@@ -180,7 +180,7 @@ for(curResultCode in names(listToCombine)){
         #Get the abnormal meds and clear them out
         if(length(medPIDsExclude) > 0){
             medCleanLabs = inner_join(medPIDsExclude, cleanLabValues, by="pid")
-            medCleanLabs = medCleanLabs %>% mutate(timeDiff = timeOffset - timeOffsetMed) %>% filter(timeDiff > (as.numeric(attr(parameters, "med_pre_offset")) * -1) && timeDiff < as.numeric(attr(parameters, "med_post_offset"))) %>% select(pid)
+            medCleanLabs = medCleanLabs %>% mutate(timeDiff = timeOffset - timeOffsetMed) %>% filter(timeDiff > (as.numeric(attr(parameters, "pre_offset")) * -1) && timeDiff < as.numeric(attr(parameters, "post_offset"))) %>% select(pid)
             medCleanLabs = unique(medCleanLabs$pid)
             cleanLabValues = cleanLabValues %>% filter(!pid %in% medCleanLabs)
         }
@@ -188,7 +188,7 @@ for(curResultCode in names(listToCombine)){
         if(length(labPIDsExclude) > 0){
             #Get the abnormal labs and clear them out
             labCleanLabs = inner_join(labPIDsExclude, cleanLabValues, by="pid")
-            labCleanLabs = labCleanLabs %>% mutate(timeDiff = timeOffset - timeOffsetLab) %>% filter(timeDiff > (as.numeric(attr(parameters, "lab_pre_offset")) * -1) && timeDiff < as.numeric(attr(parameters, "lab_post_offset"))) %>% select(pid)
+            labCleanLabs = labCleanLabs %>% mutate(timeDiff = timeOffset - timeOffsetLab) %>% filter(timeDiff > (as.numeric(attr(parameters, "pre_offset")) * -1) && timeDiff < as.numeric(attr(parameters, "post_offset"))) %>% select(pid)
             labCleanLabs = unique(labCleanLabs$pid)
             cleanLabValues = cleanLabValues %>% filter(!pid %in% labCleanLabs)
         }
@@ -196,7 +196,7 @@ for(curResultCode in names(listToCombine)){
         if(length(icdPIDsExclude) > 0){        
             #Get abnormal icdss and clear them out
             icdCleanLabs = inner_join(icdPIDsExclude, cleanLabValues, by="pid")
-            icdCleanLabs = icdCleanLabs %>% mutate(timeDiff = timeOffset - timeOffsetIcd) %>% filter(timeDiff > (as.numeric(attr(parameters, "icd_pre_offset")) * -1) && timeDiff < as.numeric(attr(parameters, "icd_post_offset"))) %>% select(pid)
+            icdCleanLabs = icdCleanLabs %>% mutate(timeDiff = timeOffset - timeOffsetIcd) %>% filter(timeDiff > (as.numeric(attr(parameters, "pre_offset")) * -1) && timeDiff < as.numeric(attr(parameters, "post_offset"))) %>% select(pid)
             icdCleanLabs = unique(icdCleanLabs$pid)
             cleanLabValues = cleanLabValues %>% filter(!pid %in% icdCleanLabs)
         }
