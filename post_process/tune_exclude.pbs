@@ -1,14 +1,14 @@
 #!/bin/sh
 
-#PBS -N prepare_data
+#PBS -N tune_exclude
 #PBS -M patnatha@med.umich.edu
-#PBS -m a
+#PBS -m abe
 
 #PBS -A leeschro_armis
 #PBS -q armis
 #PBS -l qos=armis
 
-# Change the number of cores, amount of memory, and walltime:
+# Change the number of cores (ppn=8), amount of memory, and walltime:
 #PBS -l nodes=1:ppn=8,pmem=8gb
 #PBS -l walltime=24:00:00
 #PBS -j oe
@@ -26,5 +26,5 @@ if [ -n "$PBS_O_WORKDIR" ]; then cd $PBS_O_WORKDIR; fi
 module load R/3.3.3
 
 #Submit the script 
-Rscript prepare_data.R $@
+./tune_exclude.sh
 

@@ -26,5 +26,11 @@ if [ -n "$PBS_O_WORKDIR" ]; then cd $PBS_O_WORKDIR; fi
 module load R/3.3.3
 
 #Submit the script 
-./post_process_pipe.sh $@
+thedir=$1
+cmd="./post_process_undo.sh $thedir"
+eval $cmd
+cmd="./intersect_group.sh $thedir"
+eval $cmd
+cmd="./exclude_combined.sh $thdir"
+eval $cmd
 

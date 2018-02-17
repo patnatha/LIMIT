@@ -87,16 +87,10 @@ run_male_female
 theage="1Y_19Y"
 run_male_female
 
-inval="DBIL"
-theage="0D_15D"
+inval="IRON"
+theage="0Y_14Y"
 run_male_female
-theage="15D_365D"
-run_male_female
-theage="1Y_9Y"
-run_male_female
-theage="9Y_13Y"
-run_male_female
-theage="13Y_19Y"
+theage="14Y_19Y"
 run_male_female
 
 inval="PHOS"
@@ -111,10 +105,6 @@ run_male_female
 theage="13Y_16Y"
 run_male_female
 theage="16Y_19Y"
-run_male_female
-
-inval="LIP"
-theage="0Y_19Y"
 run_male_female
 
 inval="AMYL"

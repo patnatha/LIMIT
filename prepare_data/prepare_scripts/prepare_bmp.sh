@@ -1,3 +1,4 @@
+pushd ../
 source ../basedir.sh
 toswitch="BMP"
 switch_input
@@ -29,4 +30,5 @@ thesex="male"
 run_em_prepare
 thesex="female"
 run_em_prepare
+popd
 

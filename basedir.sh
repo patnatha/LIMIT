@@ -9,6 +9,14 @@ mkdir -p "${preparedir}"
 limitdir="${homedir}limit_results/"
 mkdir -p "${limitdir}"
 
+#Variables for tuning
+declare -a criticalHampels=("0.5" "1.0" "2.0" "3.0")
+declare -a criticalPs=("0.05" "0.1" "0.2")
+declare -a criticalProps=("0" "0.005" "0.025" "0.05" "0.01")
+declare -a day_time_offset_posts=("360" "180" "120" "90" "60" "30" "5")
+declare -a day_time_offset_pres=("360" "180" "120" "90" "60" "30" "5")
+declare -a code_switch=("icd" "med" "lab")
+
 run_dir_limit(){
     preplist=`find ${tolistpath} | grep selected`
     for tfile in $preplist;

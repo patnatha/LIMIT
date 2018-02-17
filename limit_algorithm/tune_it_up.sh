@@ -1,7 +1,3 @@
-source ../basedir.sh
-toswitch="TUNEUP"
-switch_input
-
 iterWaitTime=$((60 * 5))
 
 while true
@@ -9,7 +5,7 @@ do
     #Time and run the function
     curTime=`date`
     SECONDS=0
-    ./Nate_LIMIT_tune.sh
+    ./tune_Nate_LIMIT.sh
     ../clean_dir.sh
     DURATION=$SECONDS 
     echo "TIMING: ${curTime}/${DURATION} secs"

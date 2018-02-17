@@ -54,36 +54,36 @@ theage="1Y_19Y"
 run_male_female
 
 #Run CO2
-inval="CO2"
-theage="0D_15D"
-run_male_female
-theage="15D_365D"
-run_male_female
-theage="1Y_5Y"
-run_male_female
-theage="5Y_15Y"
-run_male_female
-theage="15Y_19Y"
-run_male_female
+#inval="CO2"
+#theage="0D_15D"
+#run_male_female
+#theage="15D_365D"
+#run_male_female
+#theage="1Y_5Y"
+#run_male_female
+#theage="5Y_15Y"
+#run_male_female
+#theage="15Y_19Y"
+#run_male_female
 
 #Run Creatinine
-inval="CREAT" #Jaffe
-theage="0D_15D"
-run_male_female
-theage="15D_365D"
-run_male_female
-theage="1Y_4Y"
-run_male_female
-theage="4Y_7Y"
-run_male_female
-theage="7Y_12Y"
-run_male_female
-theage="12Y_15Y"
-run_male_female
-theage="15Y_17Y"
-run_male_female
-theage="17Y_19Y"
-run_male_female
+#inval="CREAT" #Jaffe
+#theage="0D_15D"
+#run_male_female
+#theage="15D_365D"
+#run_male_female
+#theage="1Y_4Y"
+#run_male_female
+#theage="4Y_7Y"
+#run_male_female
+#theage="7Y_12Y"
+#run_male_female
+#theage="12Y_15Y"
+#run_male_female
+#theage="15Y_17Y"
+#run_male_female
+#theage="17Y_19Y"
+#run_male_female
 
 #Run Iron
 inval="IRON"
@@ -93,13 +93,13 @@ theage="14Y_19Y"
 run_male_female
 
 #Magnesium
-inval="MAG"
-theage="0D_15D"
-run_male_female
-theage="15D_365D"
-run_male_female
-theage="1Y_19Y"
-run_male_female
+#inval="MAG"
+#theage="0D_15D"
+#run_male_female
+#theage="15D_365D"
+#run_male_female
+#theage="1Y_19Y"
+#run_male_female
 
 #Phosphate
 inval="PHOS"
@@ -173,24 +173,24 @@ run_male_female
 
 
 #Cholinesterase
-inval="PCHE"
-theage="0D_15D"
-run_male_female
-theage="15D_365D"
-run_male_female
-theage="1Y_17Y"
-run_male_female
-theage="17Y_19Y"
+#inval="PCHE"
+#theage="0D_15D"
+#run_male_female
+#theage="15D_365D"
+#run_male_female
+#theage="1Y_17Y"
+#run_male_female
+#theage="17Y_19Y"
 
 #GGP
-inval="GGTP"
-theage="0D_15D"
-run_male_female
-theage="15D_365D"
-run_male_female
-theage="1Y_11Y"
-run_male_female
-theage="11Y_19Y"
+#inval="GGTP"
+#theage="0D_15D"
+#run_male_female
+#theage="15D_365D"
+#run_male_female
+#theage="1Y_11Y"
+#run_male_female
+#theage="11Y_19Y"
 
 #LDH
 inval="LDH"
@@ -211,15 +211,15 @@ theage="0Y_19Y"
 run_male_female
 
 #Apo A1
-inval="APOA1"
-theage="0D_15D"
-run_male_female
-theage="15D_365D"
-run_male_female
-theage="1Y_14Y"
-run_male_female
-theage="14Y_19Y"
-run_male_female
+#inval="APOA1"
+#theage="0D_15D"
+#run_male_female
+#theage="15D_365D"
+#run_male_female
+#theage="1Y_14Y"
+#run_male_female
+#theage="14Y_19Y"
+#run_male_female
 
 #Apo B
 inval="APOB"
@@ -242,17 +242,17 @@ theage="1Y_19Y"
 run_male_female
 
 #Dirext, HDL
-inval="HDL"
-theage="0D_15D"
-run_male_female
-theage="15D_365D"
-run_male_female
-theage="1Y_4Y"
-run_male_female
-theage="4Y_13Y"
-run_male_female
-theage="13Y_19Y"
-run_male_female
+#inval="HDL"
+#theage="0D_15D"
+#run_male_female
+#theage="15D_365D"
+#run_male_female
+#theage="1Y_4Y"
+#run_male_female
+#theage="4Y_13Y"
+#run_male_female
+#theage="13Y_19Y"
+#run_male_female
 
 #Triglyceriades
 inval="TRIG"
@@ -277,15 +277,15 @@ theage="15Y_19Y"
 run_male_female
 
 #ASO
-inval="ASO,ASO O"
-theage="0D_183D" #6 months => 183 days
-run_male_female
-theage="183D_365D"
-run_male_female
-theage="1Y_6Y"
-run_male_female
-theage="6Y_19Y"
-run_male_female
+#inval="ASO,ASO O"
+#theage="0D_183D" #6 months => 183 days
+#run_male_female
+#theage="183D_365D"
+#run_male_female
+#theage="1Y_6Y"
+#run_male_female
+#theage="6Y_19Y"
+#run_male_female
 
 #C3
 inval="C3"
@@ -304,12 +304,12 @@ theage="1Y_19Y"
 run_male_female
 
 #Hs-CRP
-inval="HSCRP"
-theage="0D_15D"
-run_male_female
-theage="15D_5475D" #15 years => 5475D
-run_male_female
-theage="15Y_19Y"
+#inval="HSCRP"
+#theage="0D_15D"
+#run_male_female
+#theage="15D_5475D" #15 years => 5475D
+#run_male_female
+#theage="15Y_19Y"
 
 #Haptoglobin
 inval="HPT"
@@ -375,11 +375,11 @@ theage="16Y_19Y"
 run_male_female
 
 #Rheumatoid Factor
-inval="RF"
-theage="0D_15D"
-run_male_female
-theage="15D_6935D" #19 years => 6935 days
-run_male_female
+#inval="RF"
+#theage="0D_15D"
+#run_male_female
+#theage="15D_6935D" #19 years => 6935 days
+#run_male_female
 
 #Total Protein
 inval="T PROTEIN"
