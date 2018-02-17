@@ -15,3 +15,4 @@
 QueryMsSql/QuerySql.class
 *.jpg
 .nfs*
+*.csv

@@ -77,7 +77,7 @@ run_em_select(){
 }
 
 switch_input(){
-    errStmt="ERROR: ALK, ALK_MAYO, BILI, BMP, CALIPER, ELEC, HGB, LIVER, PLT, TEST, TUNEUP, WBC"
+    errStmt="ERROR: A1C, ALK, ALK_MAYO, BILI, BMP, CALIPER, ELEC, HGB, LIVER, PLT, TEST, TUNEUP, WBC"
     if [[ -z $toswitch ]]
     then
         echo $errStmt
@@ -114,7 +114,10 @@ switch_input(){
         preparedir="${preparedir}white_blood_cell/"
     elif [ "${toswitch}" == "TUNEUP" ]
     then
-         preparedir="${preparedir}tune_up/"
+        preparedir="${preparedir}tune_up/"
+    elif [ "${toswitch}" == "A1C" ]
+    then
+        preparedir="${preparedir}hgb_a1c/"
     else
         echo $errStmt
         exit

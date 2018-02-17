@@ -3,6 +3,7 @@ tolistpath=$1
 post_process_dir
 for tdir in $prepdirs
 do
+    echo $tdir
     #Execute the combination command
     thecmd="Rscript exclude_combined.R --input $tdir/"
     eval $thecmd

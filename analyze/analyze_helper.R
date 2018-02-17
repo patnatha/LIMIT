@@ -85,7 +85,7 @@ run_intervals <- function(data, refConf, limitConf){
     refInterval_Method = "non_parametric" # parametric, non_parametric
 
     #Set the confidence interval and type of interval to calculate
-    confInterval_Method = "boot" # parametric, non_parametric, boot
+    confInterval_Method = "non_parametric" # parametric, non_parametric, boot
 
     lowerRefLimit = NA
     upperRefLimit = NA
@@ -141,12 +141,14 @@ run_intervals <- function(data, refConf, limitConf){
     }
 
     if (confInterval_Method == "non_parametric") {
-        if (length(data) < 120) {
+        if (length(data) < 119) {
             #Sample size too small for non-parametric CI, bootstrapping!
             confInterval_Method = "boot"
         }
         else {
             methodCI = "Confidence Intervals calculated nonparametrically"
+            data = sort(data)
+            load("nonparRanks.Rdata")
             ranks = subset(nonparRanks, subset = (nonparRanks$SampleSize == length(data)))
             lowerRefLowLimit = data[ranks$Lower]
             lowerRefUpperLimit = data[ranks$Upper]
