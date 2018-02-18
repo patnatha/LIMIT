@@ -1,13 +1,13 @@
+pushd ../
 source ../basedir.sh
-toswitch="HGB"
+toswitch="HGB2"
 switch_input
 
 sed -i 's/ppn=[0-9]\+/ppn=8/' prepare_data.pbs
 sed -i 's/pmem=[0-9]\+gb/pmem=8gb/' prepare_data.pbs
 
 #Set the input directory
-inval="HGB,HGBN"
-preparedir="${preparedir::-1}_two_groups/"
+inval="HGB"
 
 #Set the include grp
 incGrp="outpatient_and_never_inpatient"
@@ -44,3 +44,4 @@ therace="black"
     theage="50Y_120Y"
     run_em_prepare
 
+popd

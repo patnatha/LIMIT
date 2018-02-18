@@ -216,7 +216,7 @@ for(codeType in codeTypes){
 
     PerformFishertestICD = function(ICD, icdValues, flaggedTable, totalFlagged, unflagged) { 
         if (!is.na(ICD)) {
-            # Find number of flagged patients with the code of interest, and calculate number without
+            # Find number of flagged patients with the code, and calculate number without
             numFlaggedWithCode = flaggedTable[which(flaggedTable$icd == ICD),]$freq
             numFlaggedWithoutCode = totalFlagged - numFlaggedWithCode
 

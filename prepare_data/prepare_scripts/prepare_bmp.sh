@@ -20,7 +20,7 @@ inval="CHLOR"
 run_em_prepare
 inval="CO2"
 run_em_prepare
-inval="POT,POTPL"
+inval="POT"
 run_em_prepare
 inval="SOD"
 run_em_prepare

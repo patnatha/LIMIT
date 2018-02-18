@@ -1,3 +1,4 @@
+pushd ../
 source ../basedir.sh
 toswitch="CALIPER"
 switch_input
@@ -6,6 +7,12 @@ sed -i 's/ppn=[0-9]\+/ppn=4/' prepare_data.pbs
 sed -i 's/pmem=[0-9]\+gb/pmem=8gb/' prepare_data.pbs
 
 run_male_female(){
+    #Skip values that are used for tuning
+    if [ "$inval" == "AMYL" ] || [ "$inval" == "HPT" ] || [ "$inval" == "IGM" ] || [ "$inval" == "IRON" ] || [ "$inval" == "LDH" ] || [ "$inval" == "PAB" ] || [ "$inval" == "PHOS" ] || [[ "$inval" == "T PROTEIN" ]] || [ $inval == "URIC" ]
+    then
+        return
+    fi
+
     thesex="male"
     run_em_prepare
     thesex="female"
@@ -15,7 +22,7 @@ run_male_female(){
 #Set basic variables
 incGrp="outpatient"
 therace="all"
-startDate="2008-01-01"
+startDate="2013-01-01"
 endDate="2018-01-01"
 
 #Run Direct Bilirubin
@@ -402,4 +409,4 @@ theage="63D_365D"
 run_male_female
 theage="1Y_19Y"
 run_male_female
-
+popd

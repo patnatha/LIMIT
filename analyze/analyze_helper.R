@@ -126,7 +126,8 @@ run_intervals <- function(data, refConf, limitConf){
 
         print(shap_output)
         print(ks_output)
-        #If sample data is nor normal then run it non-parametrically
+
+        #If sample data is not normal then run it non-parametrically
         if(shap_normalcy$p.value >= 0.05 && ks_normalcy$p.value >= 0.05){
             confInterval_Method = "non_parametric"
             refInterval_Method = "non_parametric"
@@ -145,16 +146,18 @@ run_intervals <- function(data, refConf, limitConf){
             #Sample size too small for non-parametric CI, bootstrapping!
             confInterval_Method = "boot"
         }
-        else {
+        else if (length(data) >= 119 && length(data) <= 1000){
             methodCI = "Confidence Intervals calculated nonparametrically"
             data = sort(data)
+
             load("nonparRanks.Rdata")
             ranks = subset(nonparRanks, subset = (nonparRanks$SampleSize == length(data)))
+   
             lowerRefLowLimit = data[ranks$Lower]
             lowerRefUpperLimit = data[ranks$Upper]
             upperRefLowLimit = data[(length(data) + 1) - ranks$Upper]
             upperRefUpperLimit = data[(length(data) + 1) - ranks$Lower]
-        }
+        } 
     }
 
     if (confInterval_Method == "boot" && refInterval_Method == "non_parametric"){

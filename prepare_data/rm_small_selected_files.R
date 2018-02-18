@@ -7,6 +7,11 @@ parser <- OptionParser(usage="%prog [options] file", option_list=option_list)
 args <- parse_args(parser)
 inputdir = args[['input']]
 
+if(is.na(inputdir)){
+    print("ERROR: must enter a directory")
+    stop()
+}
+
 filelist = list.files(inputdir, pattern="*selected.Rdata", full.names = TRUE, recursive=T)
 greatThanCnt =0 
 lessThanList = list()

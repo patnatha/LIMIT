@@ -1,3 +1,4 @@
+pushd ../
 source ../basedir.sh
 toswitch="ELEC"
 switch_input
@@ -21,4 +22,5 @@ run_em_prepare
 
 inval="PHOS"
 run_em_prepare
+popd
 

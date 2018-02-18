@@ -12,7 +12,7 @@ mkdir -p "${limitdir}"
 #Variables for tuning
 declare -a criticalHampels=("0.5" "1.0" "2.0" "3.0")
 declare -a criticalPs=("0.05" "0.1" "0.2")
-declare -a criticalProps=("0" "0.005" "0.025" "0.05" "0.01")
+declare -a criticalProps=("0" "0.005" "0.01" "0.025" "0.05")
 declare -a day_time_offset_posts=("360" "180" "120" "90" "60" "30" "5")
 declare -a day_time_offset_pres=("360" "180" "120" "90" "60" "30" "5")
 declare -a code_switch=("icd" "med" "lab")
@@ -77,7 +77,7 @@ run_em_select(){
 }
 
 switch_input(){
-    errStmt="ERROR: A1C, ALK, ALK_MAYO, BILI, BMP, CALIPER, ELEC, HGB, LIVER, PLT, TEST, TUNEUP, WBC"
+    errStmt="ERROR: A1C, ALK, ALK_MAYO, BILI, BMP, CALIPER, ELEC, HGB2, LIVER, PLT, TEST, TUNEUP, WBC"
     if [[ -z $toswitch ]]
     then
         echo $errStmt
@@ -97,9 +97,9 @@ switch_input(){
     elif [ "${toswitch}" == "ELEC" ]
     then
         preparedir="${preparedir}other_electrolytes/"
-    elif [ "${toswitch}" == "HGB" ]
+    elif [ "${toswitch}" == "HGB2" ]
     then
-        preparedir="${preparedir}HGB_HGBN/"
+        preparedir="${preparedir}HGB_two_groups/"
     elif [ "${toswitch}" == "LIVER" ]
     then
         preparedir="${preparedir}liver_enzymes/"
@@ -118,6 +118,9 @@ switch_input(){
     elif [ "${toswitch}" == "A1C" ]
     then
         preparedir="${preparedir}hgb_a1c/"
+    elif [ "${toswitch}" == "CALIPER" ]
+    then
+        preparedir="${preparedir}caliper/"
     else
         echo $errStmt
         exit
