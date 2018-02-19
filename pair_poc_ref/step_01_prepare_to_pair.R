@@ -66,6 +66,7 @@ attr(parameters, "race") = attr(cmdLineArgs, "race")
 attr(parameters, "age") = attr(cmdLineArgs, "age")
 attr(parameters, "sex") = attr(cmdLineArgs, "sex")
 attr(parameters, "group") = attr(cmdLineArgs, "include")
+attr(parameters, "name") = output_filename
 originalDataFilePath=paste(paired_pieces_output, basename(output_filename), sep="/")
 labValuesLength = nrow(labValues)
 save(labValuesLength, parameters, file=originalDataFilePath)

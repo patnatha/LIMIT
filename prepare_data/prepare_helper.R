@@ -399,7 +399,7 @@ prepare_diagnoses <- function(labValues, patient_bday, encountersAll, toInclude)
     return(icdValues)
 }
 
-prepare_other_labs <- function(labValues, patient_bday, encountersAll, toInclude){
+prepare_other_labs <- function(labValues, patient_bday, encountersAll, toInclude, input_val){
     print("Loading Other Labs")
     otherLabs = import_other_abnormal_labs(unique(labValues$pid))
     otherLabs = inner_join(otherLabs, patient_bday, by="PatientID")

@@ -42,12 +42,19 @@ labValues = labValues %>% rename(pid = PatientID)
 labValues = labValues %>% rename(l_val = VALUE)
 labValues = labValues %>% select(pid, l_val, timeOffset, EncounterID)
 
+#Load original parameters
+load(originalDataFilePath)
+input_val=attr(parameters, "resultCode")
+toInclude=attr(parameters, "group")
+output_filename=attr(parameters, "name")
+attr(parameters, "pair_original_length") = originalDataFilePath
+attr(parameters, "pair_diff_in_secs") = diff_in_secs 
+
 #Get ancillary data
 icdValues=prepare_diagnoses(labValues, patient_bday, encountersAll, toInclude)
-otherLabs=prepare_other_labs(labValues, patient_bday, encountersAll, toInclude)
-otherLabs=prepare_medications(labValues, patient_bday, encountersAll, toInclude)
+otherLabs=prepare_other_labs(labValues, patient_bday, encountersAll, toInclude, input_val)
+medValuess=prepare_medications(labValues, patient_bday, encountersAll, toInclude)
 
-load(originalDataFilePath)
-print(parameters)
-#save(labValues, icdValues, medValues, otherLabs, encountersAll, file=output_filename)
+#Save the final results
+save(parameters, labValues, icdValues, medValues, otherLabs, encountersAll, file=output_filename)
 
