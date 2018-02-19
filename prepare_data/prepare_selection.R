@@ -74,4 +74,4 @@ remove(uniquePIDs)
 
 print(paste("SELECTED: ", oldLabValuesLen, " => ", nrow(labValues), sep=""))
 save(parameters, labValues, icdValues, medValues, otherLabs, file=output_filename)
-
+print(paste("SAVED: ", output_filename, sep=""))

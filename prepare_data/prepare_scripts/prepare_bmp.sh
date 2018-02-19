@@ -14,8 +14,6 @@ thesex="both"
 therace="all"
 theage="adult"
 
-inval="UN"
-run_em_prepare
 inval="CHLOR"
 run_em_prepare
 inval="CO2"
@@ -23,6 +21,12 @@ run_em_prepare
 inval="POT"
 run_em_prepare
 inval="SOD"
+run_em_prepare
+
+inval="UN"
+thesex="male"
+run_em_prepare
+thesex="female"
 run_em_prepare
 
 inval="CREAT"

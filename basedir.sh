@@ -77,7 +77,7 @@ run_em_select(){
 }
 
 switch_input(){
-    errStmt="ERROR: A1C, ALK, ALK_MAYO, BILI, BMP, CALIPER, ELEC, HGB2, LIVER, PLT, TEST, TUNEUP, WBC"
+    errStmt="ERROR: A1C, ALK, ALK_MAYO, BILI, BMP, CALIPER, ELEC, HGB2, LIVER, PAIR_GLUC, PLT, TEST, TUNEUP, WBC"
     if [[ -z $toswitch ]]
     then
         echo $errStmt
@@ -121,6 +121,10 @@ switch_input(){
     elif [ "${toswitch}" == "CALIPER" ]
     then
         preparedir="${preparedir}caliper/"
+    elif [ "${toswitch}" == "PAIR_GLUC" ]
+    then
+        preparedir="${preparedir}paired_glucose/"
+        inval="GLUC,GLUC-WB"
     else
         echo $errStmt
         exit

@@ -1,7 +1,20 @@
 #Load up the paired glucose values
-source('../encounters_wrapper.R')
-source('glucose_paths.R')
-load(paired_glucoses_path)
+source('paired_paths.R')
+library(optparse)
+option_list <- list(
+    make_option("--input", type="character", default=NA, help="directory to load data from")
+)
+parser <- OptionParser(usage="%prog [options] file", option_list=option_list)
+args <- parse_args(parser)
+
+# Check to see that intput file exists
+input_val = args[['input']]
+if(!file.exists(args[['input']])){
+    print("The input file doesn't exist")
+    stop()
+}
+
+load(input_val)
 
 # Find the differences
 results$value_diff = results$one_value - results$two_value

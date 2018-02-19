@@ -4,3 +4,7 @@ rm -f ./prepare_selection.o*
 rm -f ./tune_it_up.o*
 rm -f ./intersect_tuneup.o*
 rm -f ./post_process.o*
+rm -f ./tune_intersect.o*
+rm -f ./prepare_to_pair.o*
+rm -f ./pair_values.o*
+rm -f ./combine_pairs.o*

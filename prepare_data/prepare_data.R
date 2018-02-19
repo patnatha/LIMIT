@@ -162,6 +162,7 @@ if(!is.na(toInclude) &
 }
 
 #Parse the name from input if exists
+output_filename = NA
 if(args[["name"]] == ""){
     #Build the filename
     theBasename = basename(str_replace(str_replace(input_val, ",", "_"),"\\ ", "_"))
@@ -384,11 +385,17 @@ similarResultCodes = get_similar_lab_codes(input_val)
 if('HGB' %in% input_val || 'HGBN' %in% input_val){
     hctSimilarResultCodes = get_similar_lab_codes(c("HCT"))
     similarResultCodes = c(similarResultCodes, hctSimilarResultCodes)
-    similarResultCodes = unique(similarResultCodes)
+    remove(hctSimilarResultCodes)
 } else if('CREAT' %in% input_val){
     egfrSimilarResultCodes = get_similar_lab_codes(c("EGFR"))
     similarResultCodes = c(similarResultCodes, egfrSimilarResultCodes)
+    remove(egfrSimilarResultCodes)
+} else if('ICAL' %in% input_val){
+    calSimilarResultCodes = get_similar_lab_codes(c("CAL"))
+    similarResultCodes = c(similarResultCodes, calSimilarResultCodes)
+    remove(calSimilarResultCodes)
 }
+similarResultCodes = unique(similarResultCodes)
 
 print("Other Labs: exclude similar result codes")
 otherLabs = otherLabs %>% filter(!RESULT_CODE %in% similarResultCodes)

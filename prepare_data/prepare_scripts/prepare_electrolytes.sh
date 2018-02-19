@@ -17,6 +17,9 @@ theage="adult"
 inval="CAL"
 run_em_prepare
 
+inval="ICAL"
+run_em_prepare
+
 inval="MAG"
 run_em_prepare
 

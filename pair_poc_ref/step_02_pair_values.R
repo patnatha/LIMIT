@@ -17,14 +17,15 @@ if(!file.exists(args[['input']])){
 #Parse input file path and create the output file path
 inputPath = args[['input']]
 outputPath = paste(dirname(inputPath), "/", 
-                   gsub(pattern = "bin", "pair",basename(inputPath)), sep="")
+                   gsub(pattern = "bin", "pair", basename(inputPath)), sep="")
 
 # Variable for how close to measure seconds
 diff_in_secs = (60 * 10) # Time in minutes on either side
 
 # Ordered Lab Results based on patient ID and then on Collection ID
 load(inputPath)
-ordglucdf <- records %>% arrange(PatientID, COLLECTION_DATE)
+ordglucdf <- records %>% filter(!is.na(VALUE)) %>% arrange(PatientID, COLLECTION_DATE)
+remove(records)
 
 # Date diff algorithm to get diff in seconds
 date_diff = function(time1, time2){
@@ -46,12 +47,14 @@ last_lab_coll_GLUCP = ''
 last_patient_id_GLUCP = ''
 last_lab_value_GLUCP = ''
 last_lab_access_GLUCP = ''
+last_enc_id_GLUCP = ''
 
 last_lab_code_GLUC = ''
 last_lab_coll_GLUC = ''
 last_patient_id_GLUC = ''
 last_lab_value_GLUC = ''
 last_lab_access_GLUC = ''
+last_enc_id_GLUC = ''
 
 # Iterate over each row in the table
 for(i in 1:nrow(ordglucdf)){
@@ -65,7 +68,8 @@ for(i in 1:nrow(ordglucdf)){
             secondsOff = date_diff(theData$COLLECTION_DATE, last_lab_coll_GLUC)
             if(secondsOff <= diff_in_secs){
                 rowToAdd = data.frame(
-                            pid=as.character(last_patient_id_GLUC),
+                            pid=(last_patient_id_GLUC),
+                            encid=(last_enc_id_GLUC),
                             one_code=as.character(theData$RESULT_CODE), 
                                 one_collect=as.character(theData$COLLECTION_DATE), 
                                 one_value=as.numeric(theData$VALUE),
@@ -84,6 +88,7 @@ for(i in 1:nrow(ordglucdf)){
         last_patient_id_GLUCP = theData$PatientID
         last_lab_value_GLUCP = theData$VALUE
         last_lab_access_GLUCP = theData$ACCESSION_NUMBER
+        last_enc_id_GLUCP = theData$EncounterID
     }
     # Does this row involve use of Central Lab Glucose
     else if(theData$RESULT_CODE == "GLUC"){
@@ -91,7 +96,8 @@ for(i in 1:nrow(ordglucdf)){
             secondsOff = date_diff(theData$COLLECTION_DATE, last_lab_coll_GLUCP)
             if(secondsOff <= diff_in_secs){
                 rowToAdd = data.frame(
-                            pid=as.character(last_patient_id_GLUCP),
+                            pid=(last_patient_id_GLUCP),
+                            encid=(last_enc_id_GLUCP),
                             one_code=as.character(last_lab_code_GLUCP),
                                 one_collect=as.character(last_lab_coll_GLUCP), 
                                 one_value=as.numeric(last_lab_value_GLUCP),
@@ -110,9 +116,10 @@ for(i in 1:nrow(ordglucdf)){
         last_patient_id_GLUC = theData$PatientID
         last_lab_value_GLUC = theData$VALUE
         last_lab_access_GLUC = theData$ACCESSION_NUMBER
+        last_enc_id_GLUC = theData$EncounterID
     }
 }
 
 #Save the output to an Rdata file
-save(results, file=outputPath)
+save(results, originalDataFilePath, diff_in_secs, file=outputPath)
 

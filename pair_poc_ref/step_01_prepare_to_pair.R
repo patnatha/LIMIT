@@ -1,10 +1,11 @@
 library(BBmisc)
+library(stringr)
+source("../import_files.R")
+source('paired_paths.R')
+source('../prepare_data/prepare_helper.R')
 
 # Bin pack algorithm
 binPack = function(x, capacity) {
-  #assertNumeric(x, min.len = 1L, lower = 0, any.missing = FALSE)
-  #assertNumber(capacity)
-
   too.big = which.first(x > capacity, use.names = FALSE)
   if (length(too.big))
     stopf("Capacity not sufficient. Item %i (x=%f) does not fit", too.big, x[too.big])
@@ -31,25 +32,46 @@ binPack = function(x, capacity) {
   grp
 }
 
-#The dirsource('glucose_paths.R')ectory from which to read
-source('glucose_paths.R')
+#Parse the incoming command line arguments
+cmdLineArgs = prepare_parse_args()
+input_val = attr(cmdLineArgs, "input")
+startDate = attr(cmdLineArgs, "start")
+endDate = attr(cmdLineArgs, "end")
+output_filename = attr(cmdLineArgs, "name")
 
-#Create the output directory
+#Create the output sub-directory
+paired_pieces_output=paired_pieces_path(dirname(output_filename))
 if(dir.exists(paired_pieces_output)){
     unlink(paired_pieces_output, recursive = TRUE)
 }
 dir.create(paired_pieces_output)
 
-# Import the data
-source("../import_files.R")
-selected_glucoses = import_lab_values(inputDir)
+# Import the Lab Values dataa
+labValues = import_lab_values(input_val, startDate, endDate)
 
-#Pick out the columns that we need for analyzing
-selected_glucoses = select(selected_glucoses, one_of(c('PatientID', 'ACCESSION_NUMBER', 'COLLECTION_DATE', 'RESULT_CODE', 'VALUE')))
+# Load the patient info
+patient_bday = import_patient_bday(labValues$PatientID)
+
+# Process the lab values to filter for queried results
+processedResult = process_lab_values(labValues, patient_bday, cmdLineArgs)
+labValues = attr(processedResult, "labValues")
+remove(processedResult)
+
+# Save the raw data to the output directory
+parameters<-1:1
+attr(parameters, "resultCode") = input_val
+attr(parameters, "resultStart") = as.Date(as.POSIXlt(startDate * 86400, origin="1970-01-01"))
+attr(parameters, "resultEnd") = as.Date(as.POSIXlt(endDate * 86400, origin="1970-01-01"))
+attr(parameters, "race") = attr(cmdLineArgs, "race")
+attr(parameters, "age") = attr(cmdLineArgs, "age")
+attr(parameters, "sex") = attr(cmdLineArgs, "sex")
+attr(parameters, "group") = attr(cmdLineArgs, "include")
+originalDataFilePath=paste(paired_pieces_output, basename(output_filename), sep="/")
+labValuesLength = nrow(labValues)
+save(labValuesLength, parameters, file=originalDataFilePath)
 
 #Get a count of the largest bin
-opidCnt = selected_glucoses %>% group_by(PatientID) %>% count() %>% filter(n > 1) 
-pidCnt = (tbl_df(opidCnt))
+pidCnt = labValues %>% group_by(PatientID) %>% count() %>% filter(n > 1) %>% as.data.frame()
 maxPtCnt = max(pidCnt$n)
 if(maxPtCnt < 100000){
     maxPtCnt = 100000
@@ -90,16 +112,13 @@ for(bin in splitBins){
 binCounter = 1
 for(bin in newSplitBins){
     # Get all the records
-    records = selected_glucoses %>% filter(PatientID %in% bin)
+    records = labValues %>% filter(PatientID %in% bin)
 
     # Create a bin to fill with data
     print(paste("Binning (", as.character(nrow(records)), "): ", as.character(binCounter), '/', as.character(length(splitBins)), sep=""))
 
-    # Get all the records 
-    records = selected_glucoses %>% filter(PatientID %in% bin)
-
     #Save the output file
-    save(records, file=paste(paired_pieces_output, as.character(binCounter), ".bin", sep=""))
+    save(records, originalDataFilePath, file=paste(paired_pieces_output, as.character(binCounter), ".bin", sep=""))
     binCounter = binCounter + 1
 }
 

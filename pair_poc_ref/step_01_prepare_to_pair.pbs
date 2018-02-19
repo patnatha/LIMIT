@@ -1,14 +1,16 @@
 #!/bin/sh
 
-#PBS -N pair_glucose_values_run
+#PBS -N prepare_to_pair
+#PBS -M patnatha@med.umich.edu
+#PBS -m abe
 
 #PBS -A leeschro_armis
 #PBS -q armis
 #PBS -l qos=armis
 
 # Change the number of cores (ppn=1), amount of memory, and walltime:
-#PBS -l nodes=1:ppn=1,pmem=4gb
-#PBS -l walltime=1:00:00
+#PBS -l nodes=1:ppn=8,pmem=12gb
+#PBS -l walltime=5:00:00
 #PBS -j oe
 #PBS -V
 
@@ -21,8 +23,8 @@ if [ -n "$PBS_NODEFILE" ]; then cat $PBS_NODEFILE; fi
 if [ -n "$PBS_O_WORKDIR" ]; then cd $PBS_O_WORKDIR; fi
 
 #Load the R module
-module load R/3.3.3 
+module load R 
 
 #Submit the script 
-Rscript pair_glucose_values_run.R --input $@
+Rscript step_01_prepare_to_pair.R $@
 
