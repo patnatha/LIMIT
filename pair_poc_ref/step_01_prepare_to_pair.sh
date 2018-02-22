@@ -8,6 +8,6 @@ then
     exit
 fi
 
-theCmd="qsub step_01_prepare_to_pair.pbs -F \"--input ${inval} --output ${preparedir} --start 2014-01-01 --end 2015-01-01\""
+theCmd="qsub step_01_prepare_to_pair.pbs -F \"--input ${inval} --output ${preparedir} --start 2014-01-01 --end 2018-01-01\""
 eval $theCmd
 

@@ -5,7 +5,7 @@ do
     #Time and run the function
     curTime=`date`
     SECONDS=0
-    ./tune_Nate_LIMIT.sh
+    ./tune_Nate_LIMIT.sh $@
     ../clean_dir.sh
     DURATION=$SECONDS 
     echo "TIMING: ${curTime}/${DURATION} secs"

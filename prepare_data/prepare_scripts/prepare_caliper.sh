@@ -8,10 +8,10 @@ sed -i 's/pmem=[0-9]\+gb/pmem=8gb/' prepare_data.pbs
 
 run_male_female(){
     #Skip values that are used for tuning
-    if [ "$inval" == "AMYL" ] || [ "$inval" == "HPT" ] || [ "$inval" == "IGM" ] || [ "$inval" == "IRON" ] || [ "$inval" == "LDH" ] || [ "$inval" == "PAB" ] || [ "$inval" == "PHOS" ] || [[ "$inval" == "T PROTEIN" ]] || [ $inval == "URIC" ]
-    then
-        return
-    fi
+#    if [ "$inval" == "AMYL" ] || [ "$inval" == "HPT" ] || [ "$inval" == "IGM" ] || [ "$inval" == "IRON" ] || [ "$inval" == "LDH" ] || [ "$inval" == "PAB" ] || [ "$inval" == "PHOS" ] || [[ "$inval" == "T PROTEIN" ]] || [ $inval == "URIC" ]
+#    then
+        #return
+#    fi
 
     thesex="male"
     run_em_prepare
@@ -20,7 +20,10 @@ run_male_female(){
 }
 
 #Set basic variables
-incGrp="outpatient"
+#incGrp="all"
+incGrp="inpatient"
+#incGrp="outpatient"
+#incGrp="outpatient_and_never_inpatient"
 therace="all"
 startDate="2013-01-01"
 endDate="2018-01-01"

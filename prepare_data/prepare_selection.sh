@@ -5,7 +5,7 @@ switch_input
 
 #Setup the resources required to run
 sed -i 's/ppn=[0-9]\+/ppn=1/' prepare_selection.pbs
-sed -i 's/pmem=[0-9]\+gb/pmem=12gb/' prepare_selection.pbs
+sed -i 's/pmem=[0-9]\+gb/pmem=8gb/' prepare_selection.pbs
 
 #Set the selection value
 errStmt="ERROR: must enter valid selection method [most_recent|random|all|latest]"
@@ -15,7 +15,7 @@ then
     #Set the default behaior
     singularValue="random"
 else
-    if [ $singularValue != "random" ] && [ $singularValue != "most_recent" ] && [[ $singularValue != "all" ]] || [[ $singularValue != "latest" ]]
+    if [[ "$singularValue" != "random" ]] && [[ "$singularValue" != "most_recent" ]] && [[ "$singularValue" != "all" ]] && [[ "$singularValue" != "latest" ]]
     then
         echo $errStmt
         exit

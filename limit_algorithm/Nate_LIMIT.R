@@ -1,3 +1,6 @@
+#Keep track of timing
+allTime <- Sys.time()
+
 ## Default Arguments
 criticalProp = 0.005 # beta
 criticalP = 0.1 # alpha
@@ -134,9 +137,6 @@ tempLabValues = labValues
 tempParameters = parameters
 
 for(codeType in codeTypes){
-    #Keep track of timing
-    allTime <- Sys.time()
-
     #Reset the values
     labValues = tempLabValues
     parameters = tempParameters
@@ -155,6 +155,9 @@ for(codeType in codeTypes){
         print(paste("ERROR: code type is invalid: ", codeType, sep=""))
         next
     }
+
+    #Sort the table on the important keys
+    icdValues = setkey(data.table(icdValues), "pid","icd")
 
     #Create the output file path
     if(is.na(outputName)){
@@ -178,15 +181,15 @@ for(codeType in codeTypes){
 
     #Run the hampel outlier detection
     hampel = function(x, t = 3, RemoveNAs = TRUE) {
-      #
-      #  This procedure returns an index of x values declared
-      #  outliers according to the Hampel detection rule, if any
-      #
-      mu = median(x, na.rm = RemoveNAs)
-      sig = mad(x, na.rm = RemoveNAs)
-      indx = which(abs(x - mu) > t * sig)
+        #
+        #  This procedure returns an index of x values declared
+        #  outliers according to the Hampel detection rule, if any
+        #
+        mu = median(x, na.rm = RemoveNAs)
+        sig = mad(x, na.rm = RemoveNAs)
+        indx = which(abs(x - mu) > t * sig)
       
-      return(indx)
+        return(indx)
     }
 
     FindICDs = function(pid, data, icdValues, day_time_offset_post, day_time_offset_pre) {
@@ -409,10 +412,9 @@ for(codeType in codeTypes){
     #Save the updated labValues and excluded ICD values
     cleanLabValues = labValues %>% select(pid, l_val, timeOffset, EncounterID)
     save(parameters, cleanLabValues, excludedPatients, excludedICDs, excludedICDNames, excludedCounts, excludedPval, file=saving)
-
-    #Print out some results
-    time.taken <- as.numeric(Sys.time() - allTime, units="mins")
-    print(paste("SAVING: ", time.taken, " minutes", sep=""))
 }
 
+#Print out some results
+time.taken <- as.numeric(Sys.time() - allTime, units="mins")
+print(paste("SAVING: ", time.taken, " minutes", sep=""))
 

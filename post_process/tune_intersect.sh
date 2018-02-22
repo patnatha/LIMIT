@@ -1,5 +1,5 @@
 source ../basedir.sh
-toswitch="TUNEUP"
+toswitch=$1
 switch_input
 
 ./intersect_group.sh ${limitdir}

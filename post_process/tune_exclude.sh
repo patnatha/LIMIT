@@ -1,5 +1,5 @@
 source ../basedir.sh
-toswitch="TUNEUP"
+toswitch=$1
 switch_input
 tolistpath=$limitdir
 post_process_dir

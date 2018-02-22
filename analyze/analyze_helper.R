@@ -157,10 +157,13 @@ run_intervals <- function(data, refConf, limitConf){
             lowerRefUpperLimit = data[ranks$Upper]
             upperRefLowLimit = data[(length(data) + 1) - ranks$Upper]
             upperRefUpperLimit = data[(length(data) + 1) - ranks$Lower]
+        } else {
+            confInterval_Method = "boot"
         } 
     }
 
     if (confInterval_Method == "boot" && refInterval_Method == "non_parametric"){
+        print("Bootstrapping confidence intervals")
         bootresult = boot(data = data, statistic = nonparRI, refConf = refConf, R = 5000)
 
         #get the confidence intervals from the boot result
@@ -195,24 +198,36 @@ run_intervals <- function(data, refConf, limitConf){
 }
 
 write_line_append <- function(parameters, postHornCount, preLimitRef, refConfResults){
-    tResultCode=toupper(attributes(parameters)$icd_result_code[[1]])
-    tSex=tolower(attributes(parameters)$icd_sex)
-    tRace=tolower(attributes(parameters)$icd_race)
-    tStime=attributes(parameters)$icd_start_time
-    tEtime=attributes(parameters)$icd_end_time
+    
+    tResultCode=toupper(attributes(parameters)$resultCodes[[1]])
+    print(tResultCode)
+    tSex=tolower(attributes(parameters)$sex)
+    tRace=tolower(attributes(parameters)$race)
+    tStime=attributes(parameters)$start_time
+    tEtime=attributes(parameters)$end_time
 
-    print(paste("Find Gold Standard Reference:", tResultCode, tSex, tRace, tStime, tEtime, sep=" "))
-    findReference=import_reference_range(tResultCode, tSex, tRace, tStime, tEtime, c("MAYO", "UMICH"))
-    goldStandardRefLow = findReference[[1]]
-    goldStandardRefHigh = findReference[[2]]
-    goldStandardSource = findReference[[3]]
-    print(paste("Gold Standard Reference: ", goldStandardRefLow, ' - ' , goldStandardRefHigh, goldStandardSource, sep=""))
+
+    #Get the Gold Standard Reference Ranges
+    findReference=import_reference_range(tResultCode, tSex, tRace, tStime, tEtime, c("CALIPER"))
+    goldStandRefLow = findReference[[1]]
+    goldStandRefHigh = findReference[[2]]
+    goldStandRefSource = findReference[[3]]
+    print(paste("Gold Standard Reference: ", goldStandRefLow, ' - ' , goldStandRefHigh, " (", goldStandRefSource, ")", sep=""))
+
+    #Get the Fold Standard Reference Ranges
+    findReference=import_confidence_range(tResultCode, tSex, tRace, tStime, tEtime, c("CALIPER"))
+    goldStanConfLowLow = findReference[[1]]
+    goldStandConfLowHigh = findReference[[2]]
+    goldStandConfHighLow = findReference[[3]]
+    goldStandConfHighHigh = findReference[[4]]
+    goldStandConfSource = findReference[[5]]
+    print(paste("Gold Standard Confidence: ", goldStanConfLowLow, " - ", goldStandConfLowHigh, " <=> ", goldStandConfHighLow, " - ", goldStandConfHighHigh, " (", goldStandConfSource, ")", sep=""))
 
     newLine = c(basename(inputData),
-                paste(attributes(parameters)$icd_result_code, collapse="_"),
-                gsub(",","_",attributes(parameters)$icd_group),
+                paste(attributes(parameters)$resultCodes, collapse="_"),
+                gsub(",","_",attributes(parameters)$group),
                 tSex, tRace, tStime, tEtime,
-                attr(parameters, "icd_selection"),
+                attr(parameters, "selection"),
                 attr(parameters, "icd_pre_limit"),
                 attr(parameters, "icd_post_limit"),
                 attr(parameters, "med_post_limit"),
@@ -231,7 +246,8 @@ write_line_append <- function(parameters, postHornCount, preLimitRef, refConfRes
                 attr(refConfResults, "upperRefUpperLimit"),
                 attr(refConfResults, "confInterval"),
                 attr(refConfResults, "confInterval_Method"),
-                goldStandardRefLow, goldStandardRefHigh, goldStandardSource)
+                goldStandRefLow, goldStandRefHigh, goldStandRefSource,
+                goldStanConfLowLow, goldStandConfLowHigh, goldStandConfHighLow, goldStandConfHighHigh, goldStandConfSource)
 
     write(newLine,ncolumns=length(newLine),sep=",",file=theResultFile, append=TRUE)
 }

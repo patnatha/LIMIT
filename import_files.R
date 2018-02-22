@@ -99,7 +99,11 @@ import_med_admin <- function(pids){
     return(medsAll)
 }
 
-import_reference_range <- function(result_code, sex, race, low_age, high_age, tsource){
-    return(query_reference_interval(result_code, sex, race, low_age, high_age, tsource)) 
+import_reference_range <- function(result_code, sex, race, low_age, high_age, tsources){
+    return(query_reference_interval(result_code, sex, race, low_age, high_age, tsources)) 
+}
+
+import_confidence_range <- function(result_code, sex, race, low_age, high_age, tsources){
+    return(query_confidence_interval(result_code, sex, race, low_age, high_age, tsources))
 }
 

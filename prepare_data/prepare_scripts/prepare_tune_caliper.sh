@@ -1,9 +1,10 @@
+pushd ../
 source ../basedir.sh
 
 sed -i 's/ppn=[0-9]\+/ppn=8/' prepare_data.pbs
 sed -i 's/pmem=[0-9]\+gb/pmem=8gb/' prepare_data.pbs
 
-toswitch="TUNEUP"
+toswitch="TUNE_CALIPER"
 switch_input
 
 run_male_female(){
@@ -14,7 +15,7 @@ run_male_female(){
 }
 
 startDate="2013-01-01"
-endDate="2017-01-01"
+endDate="2018-01-01"
 
 incGrp="outpatient"
 therace="all"
@@ -116,4 +117,5 @@ theage="91D_365D"
 run_male_female
 theage="1Y_19Y"
 run_male_female
+popd
 

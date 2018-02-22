@@ -53,7 +53,7 @@ attr(parameters, "pair_diff_in_secs") = diff_in_secs
 #Get ancillary data
 icdValues=prepare_diagnoses(labValues, patient_bday, encountersAll, toInclude)
 otherLabs=prepare_other_labs(labValues, patient_bday, encountersAll, toInclude, input_val)
-medValuess=prepare_medications(labValues, patient_bday, encountersAll, toInclude)
+medValues=prepare_medications(labValues, patient_bday, encountersAll, toInclude)
 
 #Save the final results
 save(parameters, labValues, icdValues, medValues, otherLabs, encountersAll, file=output_filename)

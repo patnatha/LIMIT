@@ -32,13 +32,9 @@ run_em_limit(){
     mkdir -p $toutdir
 
     #Build the params to send
-    paramsone="--input $tfile --code icd --output $toutdir"
-    paramstwo="--input $tfile --code med --output $toutdir"
-    paramsthree="--input $tfile --code lab --output $toutdir"
+    params="--input $tfile --code all --output $toutdir"
 
-    eval "qsub Nate_LIMIT.pbs -F \"${paramsone}\""
-    eval "qsub Nate_LIMIT.pbs -F \"${paramstwo}\""
-    eval "qsub Nate_LIMIT.pbs -F \"${paramsthree}\""
+    eval "qsub Nate_LIMIT.pbs -F \"${params}\""
     #echo "Rscript Nate_LIMIT.R ${paramsone}"
 }
 
@@ -77,7 +73,7 @@ run_em_select(){
 }
 
 switch_input(){
-    errStmt="ERROR: A1C, ALK, ALK_MAYO, BILI, BMP, CALIPER, ELEC, HGB2, LIVER, PAIR_GLUC, PLT, TEST, TUNEUP, WBC"
+    errStmt="ERROR: A1C, ALK, ALK_MAYO, BILI, BMP, CALIPER, ELEC, HGB2, LIVER, PAIR_GLUC, PLT, TEST, TUNE_CALIPER, TUNE_HGB2, WBC"
     if [[ -z $toswitch ]]
     then
         echo $errStmt
@@ -100,6 +96,9 @@ switch_input(){
     elif [ "${toswitch}" == "HGB2" ]
     then
         preparedir="${preparedir}HGB_two_groups/"
+    elif [ "${toswitch}" == "TUNE_HGB2" ]
+    then
+        preparedir="${preparedir}tune_HGB_two_groups/"
     elif [ "${toswitch}" == "LIVER" ]
     then
         preparedir="${preparedir}liver_enzymes/"
@@ -112,7 +111,7 @@ switch_input(){
     elif [ "${toswitch}" == "WBC" ]
     then
         preparedir="${preparedir}white_blood_cell/"
-    elif [ "${toswitch}" == "TUNEUP" ]
+    elif [ "${toswitch}" == "TUNE_CALIPER" ]
     then
         preparedir="${preparedir}tune_up/"
     elif [ "${toswitch}" == "A1C" ]
@@ -140,6 +139,12 @@ post_process_dir(){
     prepdirs=""
     for tdir in $prepdirstemp
     do
+        temptdir=`dirname ${tdir}`
+        if [[ "${tdir}/" == "${tolistpath}" ]] || [[ "${temptdir}/" == "${tolistpath}" ]]
+        then
+            continue
+        fi
+
         if [[ $tdir == *"random" ]] || [[ $tdir == *"most_recent" ]] || [[ $tdir == *"all" ]] || [[ $tdir == *"latest" ]]
         then
             prepdirs+="${tdir}|"

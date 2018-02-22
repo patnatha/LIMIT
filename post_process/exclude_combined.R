@@ -68,7 +68,9 @@ for (tfile in filelist){
     }
 
     #Writeout all excluded codes to text file
-    totalExludeLabCnt = write_excluded_results(parameters, "icd", tfile, outfile)
+    totalExludeLabCnt = 0
+    totalExludeLabCnt = totalExludeLabCnt + 
+                        write_excluded_results(parameters, "icd", tfile, outfile)
     totalExludeLabCnt = totalExludeLabCnt + 
                         write_excluded_results(parameters, "lab", tfile, outfile) 
     totalExludeLabCnt = totalExludeLabCnt + 
@@ -80,7 +82,9 @@ for (tfile in filelist){
     masterExcludeMED = append_master_list(parameters, "med", resultNameCode, masterExcludeMED)
 
     #Keep track of total unique clean PIDs
-    cleanPIDs = cbind(cleanPIDs, rbind(resultNameCode, cleanLabValues$pid))
+    if(nrow(cleanLabValues)){
+        cleanPIDs = cbind(cleanPIDs, rbind(resultNameCode, cleanLabValues$pid))
+    }
 
     #Write some output
     print(paste(basename(tfile), ": ", totalExludeLabCnt, " excluded labs", sep=""))
@@ -89,8 +93,7 @@ for (tfile in filelist){
 #Run each result code seperately
 for(curResultCode in names(listToCombine)){
     #Get unique exclusion lists and print some info
-    print(paste("COMBINE EXCLUSION: ", curResultCode, " = ", 
-                listToCombine[curResultCode], sep=""))
+    print(paste("COMBINE EXCLUSION: ", curResultCode, " = ", listToCombine[curResultCode], sep=""))
     queryDbForPIDs = TRUE
     if(listToCombine[curResultCode] <= 1){
         queryDbForPIDs = FALSE

@@ -156,6 +156,7 @@ prepare_parse_args <- function(){
     #Parse the include statement
     toInclude = tolower(args[["include"]])
     if(!is.na(toInclude) &
+       toInclude != "all"
        toInclude != "inpatient" &
        toInclude != "outpatient" &
        toInclude != "never_inpatient" &
@@ -268,20 +269,6 @@ appendEncounters <- function(curEncList, newList){
     return(curEncList)
 }
 
-excludeValuesEncType <- function(listType, incGrp){
-    if(!is.na(toInclude)){
-        if(toInclude == "outpatient" || toInclude == "outpatient_and_never_inpatient"){
-            listType = listType %>% filter(PatientClassCode == "Outpatient")
-        }
-    }
-    return(listType)
-}
-
-
-#labValues = import_lab_values(input_val, startDate, endDate)
-#print("Loading Patient B-Day")
-#patient_bday = import_patient_bday(labValues$PatientID)
-
 #Filter the lab results based on partition information
 process_lab_values <- function(labValues, patient_bday, parsedCmds){
     input_val = attr(parsedCmds, "input") 
@@ -375,7 +362,7 @@ process_lab_values <- function(labValues, patient_bday, parsedCmds){
     return(returnVariable)
 }
 
-prepare_diagnoses <- function(labValues, patient_bday, encountersAll, toInclude){
+prepare_diagnoses <- function(labValues, patient_bday, encountersAll){
     print("Loading Diagnoses")
     icdValues = import_diagnoses(unique(labValues$pid))
     icdValues = inner_join(icdValues, patient_bday, by="PatientID")
@@ -383,7 +370,6 @@ prepare_diagnoses <- function(labValues, patient_bday, encountersAll, toInclude)
     print("DX: Combine with encounters")
     encountersAll = appendEncounters(encountersAll, icdValues)
     icdValues = inner_join(icdValues, encountersAll %>% filter(AdmitDate != ""), by=c("PatientID", "EncounterID"))
-    icdValues = excludeValuesEncType(icdValues, toInclude)
 
     print("DX: Calculate Time-Offset")
     icdValues = icdValues %>% rename(pid = PatientID)
@@ -399,7 +385,7 @@ prepare_diagnoses <- function(labValues, patient_bday, encountersAll, toInclude)
     return(icdValues)
 }
 
-prepare_other_labs <- function(labValues, patient_bday, encountersAll, toInclude, input_val){
+prepare_other_labs <- function(labValues, patient_bday, encountersAll, input_val){
     print("Loading Other Labs")
     otherLabs = import_other_abnormal_labs(unique(labValues$pid))
     otherLabs = inner_join(otherLabs, patient_bday, by="PatientID")
@@ -407,7 +393,6 @@ prepare_other_labs <- function(labValues, patient_bday, encountersAll, toInclude
     print("Other Labs: Combine with encounters")
     encountersAll = appendEncounters(encountersAll, otherLabs)
     otherLabs = inner_join(otherLabs, encountersAll %>% filter(AdmitDate != ""), by=c("PatientID", "EncounterID"))
-    otherLabs = excludeValuesEncType(otherLabs, toInclude)
 
     print("Loading Results Codes: find similar result_codes to analyte")
     similarResultCodes = get_similar_lab_codes(input_val)
@@ -441,7 +426,7 @@ prepare_other_labs <- function(labValues, patient_bday, encountersAll, toInclude
     return(otherLabs)
 }
 
-prepare_medications <- function(labValues, patient_bday, encountersAll, toInclude){
+prepare_medications <- function(labValues, patient_bday, encountersAll){
     print("Loading Medications")
     medValues = import_med_admin(unique(labValues$pid))
     medValues = inner_join(medValues, patient_bday, by="PatientID")
@@ -449,7 +434,6 @@ prepare_medications <- function(labValues, patient_bday, encountersAll, toInclud
     print("MED: Combine with encounters")
     encountersAll = appendEncounters(encountersAll, medValues)
     medValues = inner_join(medValues, encountersAll, by=c("PatientID", "EncounterID"))
-    medValues = excludeValuesEncType(medValues, toInclude)
 
     print("MED: Calculate Time-Offset")
     medValues = medValues %>% mutate(timeOffset = as.numeric(

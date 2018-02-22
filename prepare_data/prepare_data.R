@@ -153,6 +153,7 @@ if(is.na(age) || age == "" || age == "adult"){
 #Parse the include statement
 toInclude = tolower(args[["include"]])
 if(!is.na(toInclude) &
+   toInclude != "all" &
    toInclude != "inpatient" &
    toInclude != "outpatient" &
    toInclude != "never_inpatient" &
@@ -299,15 +300,6 @@ appendEncounters <- function(curEncList, newList){
     return(curEncList)
 }
 
-excludeValuesEncType <- function(listType, incGrp){
-    if(!is.na(toInclude)){
-        if(toInclude == "outpatient" || toInclude == "outpatient_and_never_inpatient"){
-            listType = listType %>% filter(PatientClassCode == "Outpatient")
-        }
-    }
-    return(listType)
-}
-
 if(!is.na(toInclude)){
     #Get count of lab values before inclusion groups
     preFilLen = nrow(labValues)
@@ -357,7 +349,6 @@ icdValues = inner_join(icdValues, patient_bday, by="PatientID")
 print("DX: Combine with encounters")
 encountersAll = appendEncounters(encountersAll, icdValues)
 icdValues = inner_join(icdValues, encountersAll %>% filter(AdmitDate != ""), by=c("PatientID", "EncounterID"))
-icdValues = excludeValuesEncType(icdValues, toInclude)
 
 print("DX: Calculate Time-Offset")
 icdValues = icdValues %>% rename(pid = PatientID)
@@ -378,7 +369,6 @@ otherLabs = inner_join(otherLabs, patient_bday, by="PatientID")
 print("Other Labs: Combine with encounters")
 encountersAll = appendEncounters(encountersAll, otherLabs)
 otherLabs = inner_join(otherLabs, encountersAll %>% filter(AdmitDate != ""), by=c("PatientID", "EncounterID"))
-otherLabs = excludeValuesEncType(otherLabs, toInclude)
 
 print("Loading Results Codes: find similar result_codes to analyte")
 similarResultCodes = get_similar_lab_codes(input_val)
@@ -394,6 +384,10 @@ if('HGB' %in% input_val || 'HGBN' %in% input_val){
     calSimilarResultCodes = get_similar_lab_codes(c("CAL"))
     similarResultCodes = c(similarResultCodes, calSimilarResultCodes)
     remove(calSimilarResultCodes)
+} else if('CAL' %in% input_val){
+    icalSimilarResultCodes = get_similar_lab_codes(c("ICAL"))
+    similarResultCodes = c(similarResultCodes, icalSimilarResultCodes)
+    remove(icalSimilarResultCodes)
 }
 similarResultCodes = unique(similarResultCodes)
 
@@ -417,7 +411,6 @@ medValues = inner_join(medValues, patient_bday, by="PatientID")
 print("MED: Combine with encounters")
 encountersAll = appendEncounters(encountersAll, medValues)
 medValues = inner_join(medValues, encountersAll, by=c("PatientID", "EncounterID"))
-medValues = excludeValuesEncType(medValues, toInclude)
 
 print("MED: Calculate Time-Offset")
 medValues = medValues %>% mutate(timeOffset = as.numeric(

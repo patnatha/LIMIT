@@ -1,5 +1,5 @@
 source ../basedir.sh
-toswitch="TUNEUP"
+toswitch=$1
 switch_input
 
 #Calculate number of permutations
@@ -30,7 +30,11 @@ then
 fi
 
 #Load up the already done files
-filesComplete="./files_complete.txt"
+filesComplete="./${toswitch}_files_complete.txt"
+if [ ! -e "$filesComplete" ]
+then
+    touch $filesComplete
+fi
 resultsComplete=`cat ${filesComplete}`
 
 theCounter=0
