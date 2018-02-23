@@ -12,36 +12,50 @@ inval="HGB"
 #Set the include grp
 incGrp="outpatient_and_never_inpatient"
 
-#White Male
-thesex="male"
-therace="white"
-    theage="20Y_60Y"
-    run_em_prepare
-    theage="60Y_120Y"
-    run_em_prepare
+run_em(){
+    #White Male
+    thesex="male"
+    therace="white"
+        theage="20Y_60Y"
+        run_em_prepare
+        theage="60Y_120Y"
+        run_em_prepare
 
-#White Female
-thesex="female"
-therace="white"
-    theage="20Y_50Y"
-    run_em_prepare
-    theage="50Y_120Y"
-    run_em_prepare
+    #White Female
+    thesex="female"
+    therace="white"
+        theage="20Y_50Y"
+        run_em_prepare
+        theage="50Y_120Y"
+        run_em_prepare
 
-#Black Male
-thesex="male"
-therace="black"
-    theage="20Y_60Y"
-    run_em_prepare
-    theage="60Y_120Y"
-    run_em_prepare
+    #Black Male
+    thesex="male"
+    therace="black"
+        theage="20Y_60Y"
+        run_em_prepare
+        theage="60Y_120Y"
+        run_em_prepare
 
-#Black Female
-thesex="female"
-therace="black"
-    theage="20Y_50Y"
-    run_em_prepare
-    theage="50Y_120Y"
-    run_em_prepare
+    #Black Female
+    thesex="female"
+    therace="black"
+        theage="20Y_50Y"
+        run_em_prepare
+        theage="50Y_120Y"
+        run_em_prepare
+}
+
+incGrp="outpatient_and_never_inpatient"
+run_em
+
+incGrp="outpatient"
+run_em
+
+incGrp="inpatient"
+run_em
+
+incGrp="all"
+run_em
 
 popd

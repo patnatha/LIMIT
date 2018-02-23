@@ -20,7 +20,13 @@ do
     #Creat output file for analysis results
     outputFile="${tdir}/analysis_results.csv"
     rm -f ${outputFile}
-    echo "File, Result Code, Group, Sex, Race, Start Days, End Days, Selection, Pre-LIMIT Count,  LIMIT ICD Count, LIMIT Med Count, LIMIT Lab Count, Joined Count, Combined Count, Horn Count, Pre-LIMIT 2.5%, Pre-LIMIT 5%, Pre-LIMIT 95%, Pre-LIMIT 97.5%, RI, RI Method, RI Low, RI High, RI, RI Method, CI Low Low, CI Low High, CI High Low, CI High High, CI, CI Method, GS Ref Low, GS Ref High, GS Ref Source, GS Conf Low Low, GS Conf Low High, GS Conf High Low, GS Conf High High, GS Conf Source" > ${outputFile}
+    echo -n "File, Result Code, Group, Sex, Race, Start Days, End Days, Selection, " > ${outputFile}
+    echo -n "Pre-LIMIT Count,  LIMIT ICD Count, LIMIT Med Count, LIMIT Lab Count, Joined Count, Combined Count, Horn Count, " >> ${outputFile}
+    echo -n "Pre-LIMIT Low, Pre-LIMIT High, RI, RI Method, RI Low, RI High, RI, RI Method, " >> ${outputFile}
+    echo -n "CI Low Low, CI Low High, CI High Low, CI High High, CI, CI Method, " >> ${outputFile}
+    echo -n "GS Ref Low, GS Ref High, GS Ref Source, " >> ${outputFile}
+    echo -n "GS Conf Low Low, GS Conf Low High, GS Conf High Low, GS Conf High High, GS Conf Source, " >> ${outputFile}
+    echo "Original Ratio, LIMIT Ratio" >> ${outputFile}
 
     #List the files to run
     theCnt=0
@@ -33,7 +39,5 @@ do
             exit
         }
     done
-
-    exit
 done
 

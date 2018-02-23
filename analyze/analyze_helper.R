@@ -47,25 +47,29 @@ horn.outliers = function(data){
 
 run_outliers = function(theData, runsCnt){
     print(paste("Lab Values Count: ", length(cleanLabValues$l_val)))
-    print(paste("Lab Values Quantiles: ", paste(round(as.double(quantile(cleanLabValues$l_val, c(0.025, 0.05, 0.95, 0.975), na.rm = TRUE)), digits=2),collapse=" "), sep=""))
+    print(paste("Lab Values Quantiles: ", paste(round(as.double(quantile(cleanLabValues$l_val, c(0.025, 0.975), na.rm = TRUE)), digits=2),collapse=" "), sep=""))
 
     if(length(cleanLabValues$l_val) <= 10){
         return(cleanLabValues)
     }
 
-    runs=0
-    while(runs < runsCnt){
-        outliered = horn.outliers(theData)
-        runs=runs+1
-        print(paste("Horn Outliers: ", runs, " (", nrow(theData), " - ", nrow(outliered), ")", sep=""))
-    print(paste("Lab Values Quantiles: ", paste(round(as.double(quantile(outliered$l_val, c(0.025, 0.05, 0.95, 0.975), na.rm = TRUE)), digits=2),collapse=" "), sep=""))
-        if(nrow(theData) == nrow(outliered)){
+    out <- tryCatch({
+        runs=0
+        while(runs < runsCnt){
+            outliered = horn.outliers(theData)
+            runs=runs+1
+            print(paste("Horn Outliers: ", runs, " (", nrow(theData), " - ", nrow(outliered), ")", sep=""))
+        print(paste("Lab Values Quantiles: ", paste(round(as.double(quantile(outliered$l_val, c(0.025, 0.975), na.rm = TRUE)), digits=2),collapse=" "), sep=""))
+            if(nrow(theData) == nrow(outliered)){
+                theData = outliered
+                break
+            }
             theData = outliered
-            break
         }
         theData = outliered
-    }
-    theData = outliered
+    }, error=function(cond) {
+        print(paste("ERROR: ", cond, sep=""))
+    })
     return(theData)
 }
 
@@ -73,11 +77,9 @@ run_outliers = function(theData, runsCnt){
 nonparRI = function (data, indices = 1:length(data), refConf)
 {
     d = data[indices]
-    results = c(quantile(d, (1 - refConf)/2, type = 6), quantile(d, 1 - ((1 - refConf)/2), type = 6))
+    results = c(quantile(d, (1 - refConf)/2, type = 6), quantile(d, 1 - ((1 - refConf)/2), type = 6, na.rm=T))
     return(results)
 }
-
-
 
 #Define the boot non-parametric function
 run_intervals <- function(data, refConf, limitConf){
@@ -87,6 +89,20 @@ run_intervals <- function(data, refConf, limitConf){
     #Set the confidence interval and type of interval to calculate
     confInterval_Method = "non_parametric" # parametric, non_parametric, boot
 
+    #Do some error checking on data and the parameters
+    if(confInterval_Method == "non_parametric"){ 
+        if(length(data) >= 119 && length(data) <= 1000){
+            if(refConf != 0.95 && limitConf != 0.90){
+                #This function is a table look up that only works for one RI/CI pair
+                confInterval_Method = "boot"
+            }
+        } else if(length(data) > 1000){
+            #Switch to parametric if large sample size
+            #refInterval_Method = "parametric"
+            #confInterval_Method = "parametric"
+        }
+    }
+
     lowerRefLimit = NA
     upperRefLimit = NA
 
@@ -95,90 +111,94 @@ run_intervals <- function(data, refConf, limitConf){
     upperRefLowLimit = NA
     upperRefUpperLimit = NA
 
-    #Run the parametric analysis 
-    if(refInterval_Method == "parametric"){
-        confInterval_Method = "parametric"
+    if(length(data) > 0){
+        #Run the parametric analysis 
+        if(refInterval_Method == "parametric"){
+            confInterval_Method = "parametric"
 
-        refZ = qnorm(1 - ((1 - refConf)/2))
-        limitZ = qnorm(1 - ((1 - limitConf)/2))
+            refZ = qnorm(1 - ((1 - refConf)/2))
+            limitZ = qnorm(1 - ((1 - limitConf)/2))
 
-        mean = mean(data, na.rm = TRUE)
-        sd = sd(data, na.rm = TRUE)
+            mean = mean(data, na.rm = TRUE)
+            sd = sd(data, na.rm = TRUE)
 
-        lowerRefLimit = mean - refZ * sd
-        upperRefLimit = mean + refZ * sd
+            lowerRefLimit = mean - refZ * sd
+            upperRefLimit = mean + refZ * sd
 
-        se = sqrt(((sd^2)/length(data)) + (((refZ^2) * (sd^2))/(2 * length(data))))
+            se = sqrt(((sd^2)/length(data)) + (((refZ^2) * (sd^2))/(2 * length(data))))
 
-        lowerRefLowLimit = lowerRefLimit - limitZ * se
-        lowerRefUpperLimit = lowerRefLimit + limitZ * se
-        upperRefLowLimit = upperRefLimit - limitZ * se
-        upperRefUpperLimit = upperRefLimit + limitZ * se
+            lowerRefLowLimit = lowerRefLimit - limitZ * se
+            lowerRefUpperLimit = lowerRefLimit + limitZ * se
+            upperRefLowLimit = upperRefLimit - limitZ * se
+            upperRefUpperLimit = upperRefLimit + limitZ * se
 
-        if(length(data) > 5000){
-            shap_normalcy = shapiro.test(sample(data, 5000))
-        } else {
-            shap_normalcy = shapiro.test(data)
+            if(length(data) > 5000){
+                shap_normalcy = shapiro.test(sample(data, 5000))
+            } else {
+                shap_normalcy = shapiro.test(data)
+            }
+            shap_output = paste(c("Shapiro-Wilk: W = ", format(shap_normalcy$statistic, digits = 6), ", p-value = ", format(shap_normalcy$p.value, digits = 6)), collapse = "")
+            ks_normalcy = suppressWarnings(ks.test(data, "pnorm", m = mean, sd = sd))
+            ks_output = paste(c("Kolmorgorov-Smirnov: D = ", format(ks_normalcy$statistic, digits = 6), ", p-value = ", format(ks_normalcy$p.value, digits = 6)), collapse = "")
+
+            print(shap_output)
+            print(ks_output)
+
+            #If sample data is not normal then run it non-parametrically
+            if(shap_normalcy$p.value >= 0.05 && ks_normalcy$p.value >= 0.05){
+                confInterval_Method = "non_parametric"
+                refInterval_Method = "non_parametric"
+            }
         }
-        shap_output = paste(c("Shapiro-Wilk: W = ", format(shap_normalcy$statistic, digits = 6), ", p-value = ", format(shap_normalcy$p.value, digits = 6)), collapse = "")
-        ks_normalcy = suppressWarnings(ks.test(data, "pnorm", m = mean, sd = sd))
-        ks_output = paste(c("Kolmorgorov-Smirnov: D = ", format(ks_normalcy$statistic, digits = 6), ", p-value = ", format(ks_normalcy$p.value, digits = 6)), collapse = "")
 
-        print(shap_output)
-        print(ks_output)
-
-        #If sample data is not normal then run it non-parametrically
-        if(shap_normalcy$p.value >= 0.05 && ks_normalcy$p.value >= 0.05){
-            confInterval_Method = "non_parametric"
-            refInterval_Method = "non_parametric"
-        }
-    }
-
-    if (refInterval_Method == "non_parametric") {
-        data = sort(data)
-        holder = nonparRI(data, indices = 1:length(data), refConf)
-        lowerRefLimit = holder[1]
-        upperRefLimit = holder[2]
-    }
-
-    if (confInterval_Method == "non_parametric") {
-        if (length(data) < 119) {
-            #Sample size too small for non-parametric CI, bootstrapping!
-            confInterval_Method = "boot"
-        }
-        else if (length(data) >= 119 && length(data) <= 1000){
-            methodCI = "Confidence Intervals calculated nonparametrically"
+        if (refInterval_Method == "non_parametric") {
             data = sort(data)
+            holder = nonparRI(data, indices = 1:length(data), refConf)
+            lowerRefLimit = holder[1]
+            upperRefLimit = holder[2]
+        }
 
-            load("nonparRanks.Rdata")
-            ranks = subset(nonparRanks, subset = (nonparRanks$SampleSize == length(data)))
-   
-            lowerRefLowLimit = data[ranks$Lower]
-            lowerRefUpperLimit = data[ranks$Upper]
-            upperRefLowLimit = data[(length(data) + 1) - ranks$Upper]
-            upperRefUpperLimit = data[(length(data) + 1) - ranks$Lower]
-        } else {
-            confInterval_Method = "boot"
-        } 
-    }
+        if (confInterval_Method == "non_parametric") {
+            if (length(data) < 119) {
+                confInterval_Method = "boot"
+            }
+            else if (length(data) >= 119 && length(data) <= 1000){
+                methodCI = "Confidence Intervals calculated nonparametrically"
+                data = sort(data)
 
-    if (confInterval_Method == "boot" && refInterval_Method == "non_parametric"){
-        print("Bootstrapping confidence intervals")
-        bootresult = boot(data = data, statistic = nonparRI, refConf = refConf, R = 5000)
+                #This function uses a hard coded table for 90% CI on 95% RI
+                load("nonparRanks.Rdata")
+                refConf = 0.95
+                limitConf = 0.90
+                ranks = subset(nonparRanks, subset = (nonparRanks$SampleSize == length(data)))
+ 
+                lowerRefLowLimit = data[ranks$Lower]
+                lowerRefUpperLimit = data[ranks$Upper]
+                upperRefLowLimit = data[(length(data) + 1) - ranks$Upper]
+                upperRefUpperLimit = data[(length(data) + 1) - ranks$Lower]
+            } else {
+                confInterval_Method = "boot"
+            } 
+        }
 
-        #get the confidence intervals from the boot result
-        bootresultlower = boot.ci(bootresult, conf = limitConf, type = "basic", index = 1)
-        bootresultupper = boot.ci(bootresult, conf = limitConf, type = "basic", index = 2)
+        if (confInterval_Method == "boot" && refInterval_Method == "non_parametric"){
+            print("Bootstrapping confidence intervals")
+            bootresult = boot(data = data, statistic = nonparRI, refConf = refConf, R = 5000)
 
-        #Get the upper and lower limits for limits for displaying
-        lowerRefLowLimit = bootresultlower$basic[4]
-        if(is.null(lowerRefLowLimit)){ lowerRefLowLimit = NA }
-        lowerRefUpperLimit = bootresultlower$basic[5]
-        if(is.null(lowerRefUpperLimit)){ lowerRefUpperLimit = NA }
-        upperRefLowLimit = bootresultupper$basic[4]
-        if(is.null(upperRefLowLimit)){ upperRefLowLimit = NA }
-        upperRefUpperLimit = bootresultupper$basic[5]
-        if(is.null(upperRefUpperLimit)){ upperRefUpperLimit = NA }
+            #get the confidence intervals from the boot result
+            bootresultlower = boot.ci(bootresult, conf = limitConf, type = "basic", index = 1)
+            bootresultupper = boot.ci(bootresult, conf = limitConf, type = "basic", index = 2)
+
+            #Get the upper and lower limits for limits for displaying
+            lowerRefLowLimit = bootresultlower$basic[4]
+            if(is.null(lowerRefLowLimit)){ lowerRefLowLimit = NA }
+            lowerRefUpperLimit = bootresultlower$basic[5]
+            if(is.null(lowerRefUpperLimit)){ lowerRefUpperLimit = NA }
+            upperRefLowLimit = bootresultupper$basic[4]
+            if(is.null(upperRefLowLimit)){ upperRefLowLimit = NA }
+            upperRefUpperLimit = bootresultupper$basic[5]
+            if(is.null(upperRefUpperLimit)){ upperRefUpperLimit = NA }
+        }
     }
 
     print(paste("Lab Values Quantiles: ", paste(round(((1 - refConf)/2.0)*100, digits=1), "% <=CI=> ", round(100-(((1 - refConf)/2.0)*100), digits=1),"%: (", lowerRefLowLimit, "-", lowerRefUpperLimit, ") <=> (", upperRefLowLimit, "-", upperRefUpperLimit, ")", sep="")), sep="")
@@ -197,10 +217,32 @@ run_intervals <- function(data, refConf, limitConf){
     return(results)
 }
 
+calculateDiffRatio <- function(goldStandRefLow, goldStandRefHigh, procLow, procHigh){
+    divisior = NA
+    if(!is.na(goldStandRefLow) && !is.na(goldStandRefHigh) && 
+       !is.na(procLow) && !is.na(procHigh)){
+        divisior = 2.0
+    } else if((!is.na(goldStandRefLow) && is.na(goldStandRefHigh) && !is.na(procLow)) ||
+              (is.na(goldStandRefLow) && !is.na(goldStandRefHigh) && !is.na(procHigh))){
+        divisior = 1.0
+    }
+
+    if(!is.na(divisior)){
+        totalScore = 0
+        if(!is.na(goldStandRefLow) && !is.na(procLow)){
+            totalScore = totalScore + (abs(as.double(goldStandRefLow) - as.double(procLow)) / as.double(goldStandRefLow))
+        }
+        if(!is.na(goldStandRefHigh) && !is.na(procHigh)){
+            totalScore = totalScore + (abs(as.double(goldStandRefHigh) - as.double(procHigh)) / as.double(goldStandRefHigh))
+        }
+        return(totalScore / divisior)
+    } else {
+        return(NA)
+    }
+}
+
 write_line_append <- function(parameters, postHornCount, preLimitRef, refConfResults){
-    
     tResultCode=toupper(attributes(parameters)$resultCodes[[1]])
-    print(tResultCode)
     tSex=tolower(attributes(parameters)$sex)
     tRace=tolower(attributes(parameters)$race)
     tStime=attributes(parameters)$start_time
@@ -223,6 +265,17 @@ write_line_append <- function(parameters, postHornCount, preLimitRef, refConfRes
     goldStandConfSource = findReference[[5]]
     print(paste("Gold Standard Confidence: ", goldStanConfLowLow, " - ", goldStandConfLowHigh, " <=> ", goldStandConfHighLow, " - ", goldStandConfHighHigh, " (", goldStandConfSource, ")", sep=""))
 
+    #Original results
+    origRefLow = preLimitRef[[1]]
+    origRefHigh = preLimitRef[[2]]
+    origRatio = calculateDiffRatio(goldStandRefLow, goldStandRefHigh, origRefLow, origRefHigh)
+ 
+    #Limit results
+    limitRefLow = attr(refConfResults, "lowerRefLimit")
+    limitRefHigh = attr(refConfResults, "upperRefLimit")
+    limitRatio = calculateDiffRatio(goldStandRefLow, goldStandRefHigh, limitRefLow, limitRefHigh)
+
+    print(paste("Difference Radio: ", origRatio, " => ", limitRatio, sep=""))
     newLine = c(basename(inputData),
                 paste(attributes(parameters)$resultCodes, collapse="_"),
                 gsub(",","_",attributes(parameters)$group),
@@ -247,7 +300,7 @@ write_line_append <- function(parameters, postHornCount, preLimitRef, refConfRes
                 attr(refConfResults, "confInterval"),
                 attr(refConfResults, "confInterval_Method"),
                 goldStandRefLow, goldStandRefHigh, goldStandRefSource,
-                goldStanConfLowLow, goldStandConfLowHigh, goldStandConfHighLow, goldStandConfHighHigh, goldStandConfSource)
+                goldStanConfLowLow, goldStandConfLowHigh, goldStandConfHighLow, goldStandConfHighHigh, goldStandConfSource, origRatio, limitRatio)
 
     write(newLine,ncolumns=length(newLine),sep=",",file=theResultFile, append=TRUE)
 }

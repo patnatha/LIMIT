@@ -31,10 +31,7 @@ originalSet=run_outliers(originalSet, 1)
 
 #Calculate some reference intervals from this badboy
 resultsFivePercent=run_intervals(originalSet$l_val, 0.95, 0.90)
-resultsTenPercent=run_intervals(originalSet$l_val, 0.90, 0.90)
 preLimitReference = c(attr(resultsFivePercent, "lowerRefLimit"), 
-                      attr(resultsTenPercent, "lowerRefLimit"),
-                      attr(resultsTenPercent, "upperRefLimit"), 
                       attr(resultsFivePercent, "upperRefLimit"), 
                       attr(resultsFivePercent, "refInterval"),
                       attr(resultsFivePercent, "refInterval_Method"))
@@ -43,17 +40,11 @@ preLimitReference = c(attr(resultsFivePercent, "lowerRefLimit"),
 cleanLabValues = run_outliers(cleanLabValues, 1)
 postHornLabValuesCnt = length(cleanLabValues$l_val)
 
-#Run the 90% reference interval 
+#Run the 95% reference interval 
 results=run_intervals(cleanLabValues$l_val, 0.95, 0.90)
 if(writeToFile){
     write_line_append(parameters, postHornLabValuesCnt, preLimitReference, results)
 }
-
-#Run the 90% reference interval
-#results=run_intervals(cleanLabValues$l_val, 0.90, 0.90)
-#if(writeToFile){
-#    write_line_append(parameters, postHornLabValuesCnt, preLimitReference, results)
-#}
 
 if(graphIt){
     #Find the max and min values

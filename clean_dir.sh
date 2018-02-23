@@ -8,3 +8,4 @@ rm -f ./tune_intersect.o*
 rm -f ./prepare_to_pair.o*
 rm -f ./pair_values.o*
 rm -f ./combine_pairs.o*
+rm -f ./analyze_group.o*
