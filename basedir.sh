@@ -16,6 +16,7 @@ declare -a criticalProps=("0" "0.005" "0.01" "0.025" "0.05")
 declare -a day_time_offset_posts=("54750" "360" "180" "75" "30" "5" "0")
 declare -a day_time_offset_pres=("54750" "360" "180" "75" "30" "5" "0")
 declare -a code_switch=("icd" "med" "lab")
+declare -a sample_sizes=("100000" "75000" "50000" "40000" "30000" "20000" "10000" "8000" "6000" "4000" "3000" "2000" "1000" "500" "100" "50")
 
 run_dir_limit(){
     preplist=`find ${tolistpath} | grep selected`
