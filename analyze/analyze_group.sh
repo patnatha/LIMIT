@@ -20,7 +20,7 @@ do
     #Creat output file for analysis results
     outputFile="${tdir}/analysis_results.csv"
     rm -f ${outputFile}
-    echo -n "File, Result Code, Group, Sex, Race, Start Days, End Days, Selection, " > ${outputFile}
+    echo -n "File, Result Code, Group, Sex, Race, Start Days, End Days, Selection, LIMIT Params, " > ${outputFile}
     echo -n "Pre-LIMIT Count,  LIMIT ICD Count, LIMIT Med Count, LIMIT Lab Count, Joined Count, Combined Count, Horn Count, " >> ${outputFile}
     echo -n "Pre-LIMIT Low, Pre-LIMIT High, RI, RI Method, RI Low, RI High, RI, RI Method, " >> ${outputFile}
     echo -n "CI Low Low, CI Low High, CI High Low, CI High High, CI, CI Method, " >> ${outputFile}

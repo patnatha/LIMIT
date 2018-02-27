@@ -1,18 +1,12 @@
 pushd ../
 source ../basedir.sh
-toswitch="CALIPER"
+toswitch="SAMPLE_CALIPER"
 switch_input
 
 sed -i 's/ppn=[0-9]\+/ppn=4/' prepare_data.pbs
 sed -i 's/pmem=[0-9]\+gb/pmem=8gb/' prepare_data.pbs
 
 run_male_female(){
-    #Skip values that are used for tuning
-#    if [ "$inval" == "AMYL" ] || [ "$inval" == "HPT" ] || [ "$inval" == "IGM" ] || [ "$inval" == "IRON" ] || [ "$inval" == "LDH" ] || [ "$inval" == "PAB" ] || [ "$inval" == "PHOS" ] || [[ "$inval" == "PROT" ]] || [ $inval == "URIC" ]
-#    then
-        #return
-#    fi
-
     thesex="male"
     run_em_prepare
     thesex="female"
@@ -20,7 +14,7 @@ run_male_female(){
 }
 
 #Set basic variables
-#incGrp="all"
+incGrp="all"
 #incGrp="inpatient"
 #incGrp="outpatient"
 #incGrp="outpatient_and_never_inpatient"

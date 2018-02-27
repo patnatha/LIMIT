@@ -30,7 +30,8 @@ option_list <- list(
   make_option("--critical-p-value", type="double", default=NA, help="critical p-value for fisher's test cutoff"),
   make_option("--critical-hampel", type="integer", default=NA, help="hampel algorithm cutoff"),
   make_option("--day-time-offset-post", type="integer", default=NA, help="Offset in days from lab values to include values"),
-  make_option("--day-time-offset-pre", type="integer", default=NA, help="Offset in days from lab values to include values")
+  make_option("--day-time-offset-pre", type="integer", default=NA, help="Offset in days from lab values to include values"),
+  make_option("--sample", type="integer", default=NA, help="down sample lab value cnt")
 )
 
 #Parse the incoming options
@@ -43,6 +44,7 @@ outputName = args[['name']]
 inputData = args[['input']]
 inputCode = args[['codes']]
 versioning = '2.0'
+downSample = args[['sample']]
 
 # Parse the incoming critical proportion
 if(!is.na(args[['critical-proportion']])){
@@ -132,6 +134,16 @@ if(is.na(inputData) || !file.exists(inputData)){
 }
 print(paste("Loading Data: ", inputData, sep=""))
 load(inputData);
+
+#Downsample if instructed to do so
+if(!is.na(downSample)){
+    if(nrow(labValues) > as.numeric(downSample)){
+        labValues = labValues[sample.int(nrow(labValues), as.numeric(downSample), replace=F),]
+    } else {
+        print("ERROR: Unable to down sample, not enough samples")
+        stop()
+    }
+}
 
 tempLabValues = labValues
 tempParameters = parameters

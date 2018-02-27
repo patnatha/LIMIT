@@ -9,3 +9,7 @@ rm -f ./prepare_to_pair.o*
 rm -f ./pair_values.o*
 rm -f ./combine_pairs.o*
 rm -f ./analyze_group.o*
+rm -f ./count_files.o*
+rm -f ./tune_exclude.o*
+rm -f ./intersect_group.o*
+rm -f ./sample_exclude.o*

@@ -36,12 +36,14 @@ append_master_list <- function(parameters, theType, resultCode, masterList){
 
 #Create the options list
 option_list <- list(
-  make_option("--input", type="character", default=NA, help="file to load Rdata")
+  make_option("--input", type="character", default=NA, help="file to load Rdata"),
+  make_option("--prefix", type="character", default=NA, help="which files to include with each other")
 )
 
 parser <- OptionParser(usage="%prog [options] file", option_list=option_list)
 args <- parse_args(parser)
 input_dir = args[['input']]
+prefixVal = args[['prefix']]
 
 #Variables for keeping track during iterations
 masterExcludeICD = list()
@@ -50,11 +52,21 @@ masterExcludeLAB = list()
 cleanPIDs = list()
 
 #Write the first line in the output file
-outfile=paste(input_dir, "/limit_excludes.csv", sep="")
+if(is.na(prefixVal)){
+    outfile=paste(input_dir, "/limit_excludes.csv", sep="")
+} else {
+    outfile=paste(input_dir, "/", tools::file_path_sans_ext(prefixVal), "_limit_excludes.csv", sep="")
+}
 start_excluded_results(outfile)
 
 listToCombine = c()
-filelist = list.files(input_dir, pattern = "joined.Rdata", full.names = TRUE)
+searchPath = "joined.Rdata"
+if(!is.na(prefixVal)){
+    searchPath = prefixVal
+}
+print(searchPath)
+filelist = list.files(input_dir, pattern = searchPath, full.names = TRUE)
+print(filelist)
 for (tfile in filelist){
     #Load up the file
     load(tfile)

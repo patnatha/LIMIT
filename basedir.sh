@@ -13,8 +13,8 @@ mkdir -p "${limitdir}"
 declare -a criticalHampels=("0.5" "1.0" "2.0" "3.0")
 declare -a criticalPs=("0.05" "0.1" "0.2")
 declare -a criticalProps=("0" "0.005" "0.01" "0.025" "0.05")
-declare -a day_time_offset_posts=("360" "180" "120" "90" "60" "30" "5")
-declare -a day_time_offset_pres=("360" "180" "120" "90" "60" "30" "5")
+declare -a day_time_offset_posts=("54750" "360" "180" "75" "30" "5" "0")
+declare -a day_time_offset_pres=("54750" "360" "180" "75" "30" "5" "0")
 declare -a code_switch=("icd" "med" "lab")
 
 run_dir_limit(){
@@ -73,7 +73,7 @@ run_em_select(){
 }
 
 switch_input(){
-    errStmt="ERROR: A1C, ALK, ALK_MAYO, BILI, BMP, CALIPER, ELEC, HGB2, LIVER, PAIR_GLUC, PLT, TEST, TUNE_CALIPER, TUNE_HGB2, WBC"
+    errStmt="ERROR: A1C, ALK, ALK_MAYO, BILI, BMP, CALIPER, ELEC, HGB2, LIVER, PAIR_GLUC, PLT, TEST, TUNE_CALIPER, TUNE_HGB2, SAMPLE_CALIPER, WBC"
     if [[ -z $toswitch ]]
     then
         echo $errStmt
@@ -114,6 +114,9 @@ switch_input(){
     elif [ "${toswitch}" == "TUNE_CALIPER" ]
     then
         preparedir="${preparedir}tune_up/"
+    elif [ "${toswitch}" == "SAMPLE_CALIPER" ]
+    then
+        preparedir="${preparedir}sample_caliper/"
     elif [ "${toswitch}" == "A1C" ]
     then
         preparedir="${preparedir}hgb_a1c/"

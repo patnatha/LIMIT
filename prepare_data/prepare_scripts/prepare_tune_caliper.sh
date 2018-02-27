@@ -17,20 +17,34 @@ run_male_female(){
 startDate="2013-01-01"
 endDate="2018-01-01"
 
-incGrp="outpatient"
-#incGrp="inpatient"
+#incGrp="outpatient"
+incGrp="all"
 therace="all"
 
 inval="ALB"
 theage="8Y_15Y"
 run_male_female
+theage="15Y_19Y"
+run_male_female
 
 inval="AST"
 theage="12Y_19Y"
 run_male_female
+theage="7Y_12Y"
+run_male_female
 
 inval="CHOL"
 theage="1Y_19Y"
+run_male_female
+
+inval="PHOS"
+theage="13Y_16Y"
+run_male_female
+theage="16Y_19Y"
+run_male_female
+
+inval="IRON"
+theage="14Y_19Y"
 run_male_female
 
 popd

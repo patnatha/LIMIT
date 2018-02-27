@@ -275,12 +275,16 @@ write_line_append <- function(parameters, postHornCount, preLimitRef, refConfRes
     limitRefHigh = attr(refConfResults, "upperRefLimit")
     limitRatio = calculateDiffRatio(goldStandRefLow, goldStandRefHigh, limitRefLow, limitRefHigh)
 
+    #Limit parameters string
+    limitParams = paste("H", attr(parameters, "criticalHampel"), "_P", attr(parameters, "criticalP"), "_PROP", attr(parameters, "criticalProp"), "_POST_", attr(parametres, "post_offset"), "_PRE", attr(patameters, "pre_offset"), sep="")
+
     print(paste("Difference Radio: ", origRatio, " => ", limitRatio, sep=""))
     newLine = c(basename(inputData),
                 paste(attributes(parameters)$resultCodes, collapse="_"),
                 gsub(",","_",attributes(parameters)$group),
                 tSex, tRace, tStime, tEtime,
                 attr(parameters, "selection"),
+                limitParams, 
                 attr(parameters, "icd_pre_limit"),
                 attr(parameters, "icd_post_limit"),
                 attr(parameters, "med_post_limit"),

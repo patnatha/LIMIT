@@ -20,11 +20,12 @@ do
                     for (( m=0; m<${#day_time_offset_pres[@]}; m++ ));
                     do
                         #build the output name
-                        toutfilename="${outfilename}H${criticalHampels[$i]}_P${criticalPs[$j]}_PROP${criticalProps[$k]}_POST_${day_time_offset_posts[$l]}_PRE${day_time_offset_pres[$m]}"
+                        toutfilename="H${criticalHampels[$i]}_P${criticalPs[$j]}_PROP${criticalProps[$k]}_POST_${day_time_offset_posts[$l]}_PRE${day_time_offset_pres[$m]}_joined.Rdata"
                         fileCnts=`ls ${tdir}/*${toutfilename}* | wc -l`
                         echo "${toutfilename}: $fileCnts"
                     
-                        thecmd="Rscript exclude_combined.R --input $tdir/ --prefix ${toutfilename}"
+                        thecmd="Rscript exclude_combined.R --input $tdir/ --prefix \"${toutfilename}\""
+                        eval $thecmd
                     done
                 done
             done

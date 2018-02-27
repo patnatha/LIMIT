@@ -9,9 +9,6 @@ sed -i 's/pmem=[0-9]\+gb/pmem=8gb/' prepare_data.pbs
 #Set the input directory
 inval="HGB"
 
-#Set the include grp
-incGrp="outpatient_and_never_inpatient"
-
 runEm(){
     #White Male
     thesex="male"
@@ -52,6 +49,8 @@ runEm
 incGrp="outpatient"
 runEm
 incGrp="inpatient"
+#runEm
+incGrp="all"
 runEm
 
 popd
