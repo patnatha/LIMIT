@@ -23,7 +23,8 @@ run_male_female(){
 #incGrp="all"
 #incGrp="inpatient"
 #incGrp="outpatient"
-#incGrp="outpatient_and_never_inpatient"
+incGrp="outpatient_and_never_inpatient"
+
 therace="all"
 startDate="2013-01-01"
 endDate="2018-01-01"

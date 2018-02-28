@@ -137,7 +137,7 @@ load(inputData);
 
 #Downsample if instructed to do so
 if(!is.na(downSample)){
-    if(nrow(labValues) > as.numeric(downSample)){
+    if(nrow(labValues) >= as.numeric(downSample)){
         labValues = labValues[sample.int(nrow(labValues), as.numeric(downSample), replace=F),]
     } else {
         print("ERROR: Unable to down sample, not enough samples")

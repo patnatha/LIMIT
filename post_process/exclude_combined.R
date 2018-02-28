@@ -34,6 +34,15 @@ append_master_list <- function(parameters, theType, resultCode, masterList){
     return(masterList)
 }
 
+query_list_for_result_code <- function(masterList, cRC){
+    if(is.na(masterList) || length(masterList) == 0){
+        return(list())
+    } else {
+        foundList = unique(masterList[2, which(masterList[1,] == cRC)])
+        return(foundList)
+    }
+}
+
 #Create the options list
 option_list <- list(
   make_option("--input", type="character", default=NA, help="file to load Rdata"),
@@ -64,19 +73,23 @@ searchPath = "joined.Rdata"
 if(!is.na(prefixVal)){
     searchPath = prefixVal
 }
-print(searchPath)
 filelist = list.files(input_dir, pattern = searchPath, full.names = TRUE)
-print(filelist)
 for (tfile in filelist){
+    #SKip any non Rdata files
+    if(tools::file_ext(basename(tfile)) != "Rdata"){
+        print(tfile)
+        next
+    }
+
     #Load up the file
     load(tfile)
 
     #Build the name code
     resultNameCode = paste(sort(attr(parameters, "resultCodes")), collapse="_")
     if(resultNameCode %in% names(listToCombine)){
-        listToCombine[resultNameCode] = listToCombine[resultNameCode] + 1
+        listToCombine[[resultNameCode]] = append(listToCombine[[resultNameCode]], tfile)
     } else {
-        listToCombine[resultNameCode] = 1
+        listToCombine[[resultNameCode]] = list(tfile)
     }
 
     #Writeout all excluded codes to text file
@@ -104,17 +117,16 @@ for (tfile in filelist){
 
 #Run each result code seperately
 for(curResultCode in names(listToCombine)){
-    #Get unique exclusion lists and print some info
-    print(paste("COMBINE EXCLUSION: ", curResultCode, " = ", listToCombine[curResultCode], sep=""))
+    print(paste("COMBINE EXCLUSION: ", curResultCode, " = ", length(listToCombine[[curResultCode]]), sep=""))
     queryDbForPIDs = TRUE
-    if(listToCombine[curResultCode] <= 1){
+    if(length(listToCombine[[curResultCode]]) <= 1){
         queryDbForPIDs = FALSE
     }
 
     #Query unique exclusions codes
-    uniqueExcludeICD = unique(masterExcludeICD[2, which(masterExcludeICD[1,] == curResultCode)])
-    uniqueExcludeMED = unique(masterExcludeMED[2, which(masterExcludeMED[1,] == curResultCode)])
-    uniqueExcludeLAB = unique(masterExcludeLAB[2, which(masterExcludeLAB[1,] == curResultCode)])
+    uniqueExcludeICD = query_list_for_result_code(masterExcludeICD, curResultCode)
+    uniqueExcludeMED = query_list_for_result_code(masterExcludeMED, curResultCode)
+    uniqueExcludeLAB = query_list_for_result_code(masterExcludeLAB, curResultCode)
     print(paste("Unique ICDs to Exclude: ", length(uniqueExcludeICD), sep=""))
     print(paste("Unique Meds to Exclude: ", length(uniqueExcludeMED), sep=""))
     print(paste("Unique Labs to Exclude: ", length(uniqueExcludeLAB), sep=""))
@@ -129,7 +141,7 @@ for(curResultCode in names(listToCombine)){
     }
 
     #Calculate icd offset
-    if(!queryDbForPIDs){
+    if(!queryDbForPIDs || length(uniqueExcludeICD) == 0){
         icdPIDsExclude = list()
     } else {
         icdPIDsExclude <- get_pid_with_icd(uniqueExcludeICD, uniquePIDs)
@@ -147,7 +159,7 @@ for(curResultCode in names(listToCombine)){
     }
 
     #Calculate med offset
-    if(!queryDbForPIDs){
+    if(!queryDbForPIDs || length(uniqueExcludeMED) == 0){
         medPIDsExclude = list()
     } else {
         medPIDsExclude <- get_pid_with_med(uniqueExcludeMED, uniquePIDs)
@@ -161,7 +173,7 @@ for(curResultCode in names(listToCombine)){
     }
 
     #Calculate lab offset
-    if(!queryDbForPIDs){
+    if(!queryDbForPIDs || length(uniqueExcludeLAB) == 0){
         labPIDsExclude = list()
     } else {
         labPIDsExclude <- get_pid_with_result_hlnf(uniqueExcludeLAB, uniquePIDs)
@@ -179,7 +191,7 @@ for(curResultCode in names(listToCombine)){
         remove(patient_bday)
     }
 
-    for (tfile in filelist){
+    for (tfile in listToCombine[[curResultCode]]){
         #Load up the file
         load(tfile)
         
@@ -194,25 +206,25 @@ for(curResultCode in names(listToCombine)){
 
         #Get the abnormal meds and clear them out
         if(length(medPIDsExclude) > 0){
-            medCleanLabs = inner_join(medPIDsExclude, cleanLabValues, by="pid")
-            medCleanLabs = medCleanLabs %>% mutate(timeDiff = timeOffset - timeOffsetMed) %>% filter(timeDiff > (as.numeric(attr(parameters, "pre_offset")) * -1) && timeDiff < as.numeric(attr(parameters, "post_offset"))) %>% select(pid)
-            medCleanLabs = unique(medCleanLabs$pid)
+            #medCleanLabs = inner_join(medPIDsExclude, cleanLabValues, by="pid")
+            #medCleanLabs = medCleanLabs %>% mutate(timeDiff = timeOffset - timeOffsetMed) %>% filter(timeDiff > (as.numeric(attr(parameters, "pre_offset")) * -1) && timeDiff < as.numeric(attr(parameters, "post_offset"))) %>% select(pid)
+            medCleanLabs = unique(medPIDsExclude$pid)
             cleanLabValues = cleanLabValues %>% filter(!pid %in% medCleanLabs)
         }
 
         if(length(labPIDsExclude) > 0){
             #Get the abnormal labs and clear them out
-            labCleanLabs = inner_join(labPIDsExclude, cleanLabValues, by="pid")
-            labCleanLabs = labCleanLabs %>% mutate(timeDiff = timeOffset - timeOffsetLab) %>% filter(timeDiff > (as.numeric(attr(parameters, "pre_offset")) * -1) && timeDiff < as.numeric(attr(parameters, "post_offset"))) %>% select(pid)
-            labCleanLabs = unique(labCleanLabs$pid)
+            #labCleanLabs = inner_join(labPIDsExclude, cleanLabValues, by="pid")
+            #labCleanLabs = labCleanLabs %>% mutate(timeDiff = timeOffset - timeOffsetLab) %>% filter(timeDiff > (as.numeric(attr(parameters, "pre_offset")) * -1) && timeDiff < as.numeric(attr(parameters, "post_offset"))) %>% select(pid)
+            labCleanLabs = unique(labPIDsExclude$pid)
             cleanLabValues = cleanLabValues %>% filter(!pid %in% labCleanLabs)
         }
 
         if(length(icdPIDsExclude) > 0){        
             #Get abnormal icdss and clear them out
-            icdCleanLabs = inner_join(icdPIDsExclude, cleanLabValues, by="pid")
-            icdCleanLabs = icdCleanLabs %>% mutate(timeDiff = timeOffset - timeOffsetIcd) %>% filter(timeDiff > (as.numeric(attr(parameters, "pre_offset")) * -1) && timeDiff < as.numeric(attr(parameters, "post_offset"))) %>% select(pid)
-            icdCleanLabs = unique(icdCleanLabs$pid)
+            #icdCleanLabs = inner_join(icdPIDsExclude, cleanLabValues, by="pid")
+            #icdCleanLabs = icdCleanLabs %>% mutate(timeDiff = timeOffset - timeOffsetIcd) %>% filter(timeDiff > (as.numeric(attr(parameters, "pre_offset")) * -1) && timeDiff < as.numeric(attr(parameters, "post_offset"))) %>% select(pid)
+            icdCleanLabs = unique(icdPIDsExclude$pid)
             cleanLabValues = cleanLabValues %>% filter(!pid %in% icdCleanLabs)
         }
 

@@ -49,7 +49,7 @@ runEm
 incGrp="outpatient"
 runEm
 incGrp="inpatient"
-#runEm
+runEm
 incGrp="all"
 runEm
 

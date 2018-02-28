@@ -79,7 +79,7 @@ do
                     for (( m=0; m<${#day_time_offset_pres[@]}; m++ ));
                     do
                         #build the output name
-                        toutfilename="${outfilename}H${criticalHampels[$i]}_P${criticalPs[$j]}_PROP${criticalProps[$k]}_POST_${day_time_offset_posts[$l]}_PRE${day_time_offset_pres[$m]}"
+                        toutfilename="${outfilename}H${criticalHampels[$i]}_P${criticalPs[$j]}_PROP${criticalProps[$k]}_POST${day_time_offset_posts[$l]}_PRE${day_time_offset_pres[$m]}"
                         
                         #Find all the files with the prefix of the file to run
                         checkFile="find ${outdirname}/${toutfilename}* -type f 2> /dev/null"
