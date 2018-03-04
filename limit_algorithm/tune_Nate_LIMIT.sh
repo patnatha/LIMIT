@@ -2,13 +2,15 @@ source ../basedir.sh
 toswitch=$1
 switch_input
 
+echo ${preparedir}
+
 #Calculate number of permutations
 curOff=$((${#day_time_offset_pres[@]} * ${#day_time_offset_posts[@]} * ${#criticalProps[@]} * ${#criticalPs[@]} * ${#criticalHampels[@]}))
 
 #Check to see how many jobs are queued at the moment
 queuedList=`qstat | grep \`whoami\` | grep Q | grep Nate_LIMIT | wc -l`
 stopIt="FALSE"
-if [ $queuedList != "0" ]
+if [[ $queuedList -gt 0 ]]
 then
     echo "ERROR: there are currently $queuedList job(s) in the queue"
     stopIt="TRUE"
@@ -16,7 +18,7 @@ fi
 
 #Check to see each job that is running
 runningList=`qstat | grep \`whoami\` | grep R | grep Nate_LIMIT | wc -l`
-if [ $runningList != "0" ]
+if [[ $runningList -gt 0 ]]
 then
     echo "ERROR: there are currently $runningList job(s) running"
     stopIt="TRUE"
@@ -26,7 +28,6 @@ fi
 if [ $stopIt == "TRUE" ]
 then
     exit
-    #exi=1
 fi
 
 #Load up the already done files
@@ -88,6 +89,7 @@ do
                         #Check to see if the coded runs are done
                         filesExist=0
                         joinedExists=0
+                        combinedExists=0
                         for cFile in $checkedFiles
                         do
                             joinedExists=`echo $cFile | grep joined | wc -l`
@@ -114,16 +116,14 @@ do
                             continue
                         fi
 
-                        #Finalize output build name 
-                        toutfilename="${toutfilename}"
-                        
                         #Build all the parameters
                         parameters="--input ${tfile} --code all --output ${outdirname} --name ${toutfilename} --critical-hampel ${criticalHampels[$i]} --critical-p-value ${criticalPs[$j]} --critical-proportion ${criticalProps[$k]} --day-time-offset-post ${day_time_offset_posts[$l]} --day-time-offset-pre ${day_time_offset_pres[$m]}"
 
                         #Submit the job
                         cmd="qsub Nate_LIMIT.pbs -F \"$parameters\""
                         OUTPUT=`eval $cmd`
- 
+                        #echo $cmd
+
                         #Don't let the script submit more than necessary
                         theCounter=$((theCounter + 1))
                         if [[ $theCounter == 0 ]]

@@ -21,7 +21,5 @@ do
             eval $thecmd
         fi
     done
-
-    eval "mv ${tdir}/*joined.Rdata" "${tdir}/joined/."
 done
 

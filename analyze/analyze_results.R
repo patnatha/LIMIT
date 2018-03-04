@@ -4,7 +4,9 @@ source('analyze_helper.R')
 
 #Create the options list
 option_list <- list(
-  make_option("--input", type="character", default=NA, help="file to load Rdata"), 
+  make_option("--input", type="character", default=NA, help="file to load Rdata"),
+#  make_option("--output", type="character", default=NA, help="where to write results"), 
+  make_option("--ref", type="character", default=NA, help="which to reference against"),
   make_option("--graph", action="store_true", default=FALSE)
 )
 parser <- OptionParser(usage="%prog [options] file", option_list=option_list)
@@ -18,9 +20,15 @@ inputData = args[['input']]
 print(paste("LOADING: ", inputData, sep=""))
 load(inputData)
 
+theRef=args[['ref']]
+
 #Build the output file name and check for availability
-theResultFile = paste(dirname(inputData), "analysis_results.csv", sep="/")
-writeToFile = file.exists(theResultFile)
+#if(is.na(args[['output']])){
+#    theResultFile = paste(dirname(inputData), "analysis_results.csv", sep="/")
+#} else {
+#    theResultFile = args[['output']]
+#}
+#writeToFile = file.exists(theResultFile)
 
 #Build the excluded list of labs
 finalExluded=combineExcludedLists(parameters)
@@ -42,9 +50,10 @@ postHornLabValuesCnt = length(cleanLabValues$l_val)
 
 #Run the 95% reference interval 
 results=run_intervals(cleanLabValues$l_val, 0.95, 0.90)
-if(writeToFile){
-    write_line_append(parameters, postHornLabValuesCnt, preLimitReference, results)
-}
+
+#Get all the results into one line 
+resultLine=write_line_append(parameters, postHornLabValuesCnt, preLimitReference, results, theRef)
+print(paste("ANALYSIS_RESULTS:", resultLine, sep=""))
 
 if(graphIt){
     #Find the max and min values

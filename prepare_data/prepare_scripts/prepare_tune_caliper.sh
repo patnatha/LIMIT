@@ -16,10 +16,9 @@ run_male_female(){
 
 startDate="2013-01-01"
 endDate="2018-01-01"
-
-#incGrp="outpatient"
-incGrp="all"
 therace="all"
+
+incGrp="all"
 
 inval="ALB"
 theage="8Y_15Y"

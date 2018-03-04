@@ -4,10 +4,10 @@ switch_input
 tolistpath=$limitdir
 post_process_dir
 
-runInPlace="NOPE"
-if [ ! -z $2 ] && [[ "$2" == "inplace" ]]
+analyzeWhich="combined"
+if [ ! -z $2 ] && [[ "$2" == "joined" ]]
 then
-    runInPlace="YASE"
+    analyzeWhich=$2
 fi
 
 for tdir in $prepdirs
@@ -17,25 +17,49 @@ do
     #Create output directory for graphs
     eval "mkdir -p ${tdir}/graphs/"
 
-    #Creat output file for analysis results
-    outputFile="${tdir}/analysis_results.csv"
+    #Create output file for analysis results
+    outputFile="${tdir}/analysis_results_${analyzeWhich}.csv"
     rm -f ${outputFile}
     echo -n "File, Result Code, Group, Sex, Race, Start Days, End Days, Selection, LIMIT Params, " > ${outputFile}
-    echo -n "Pre-LIMIT Count,  LIMIT ICD Count, LIMIT Med Count, LIMIT Lab Count, Joined Count, Combined Count, Horn Count, " >> ${outputFile}
-    echo -n "Pre-LIMIT Low, Pre-LIMIT High, RI, RI Method, RI Low, RI High, RI, RI Method, " >> ${outputFile}
+    echo -n "Pre-LIMIT Count,  LIMIT ICD Count, LIMIT Med Count, LIMIT Lab Count, " >> ${outputFile}
+    echo -n "Joined Count, " >> ${outputFile}
+    if [[ "$analyzeWhich" == "combined" ]]
+    then
+        
+        echo -n "Combined Count, " >> ${outputFile}
+    fi
+    echo -n "Horn Count, " >> ${outputFile}
+    echo -n "Pre-LIMIT Low, Pre-LIMIT High, RI, RI Method, " >> ${outputFile}
+    echo -n "RI Low, RI High, RI, RI Method, " >> ${outputFile}
     echo -n "CI Low Low, CI Low High, CI High Low, CI High High, CI, CI Method, " >> ${outputFile}
     echo -n "GS Ref Low, GS Ref High, GS Ref Source, " >> ${outputFile}
-    echo -n "GS Conf Low Low, GS Conf Low High, GS Conf High Low, GS Conf High High, GS Conf Source, " >> ${outputFile}
+    echo -n "GS Conf Low Low, GS Conf Low High, " >> ${outputFile}
+    echo -n "GS Conf High Low, GS Conf High High, GS Conf Source, " >> ${outputFile}
     echo "Original Ratio, LIMIT Ratio" >> ${outputFile}
 
-    #List the files to run
+    #Find some files to run
+    preplist=`find $tdir | grep "${analyzeWhich}.Rdata" | sort`
+
+    #Run all the files in parallel
+    parOut=`parallel -j8 Rscript analyze_results.R --input {} --ref ${refCodes} ::: ${preplist}`
+    appendLine=`echo -e "$parOut" | grep "ANALYSIS_RESULTS" | cut -d ":" -f2`
+    echo "${appendLine::-1}" >> ${outputFile}
+    continue
+ 
+    #Iterate over the files 
     theCnt=0
-    preplist=`find $tdir | grep -P 'combined.*Rdata' | sort`
     for tfile in $preplist;
     do
         {
-            Rscript analyze_results.R --input ${tfile} 
+            echo "FILE: $tfile"
+            theCnt=$((theCnt + 1))
+            theCmd="Rscript analyze_results.R --input ${tfile} --ref ${refCodes} 2> /dev/null"
+            output=`eval $theCmd`
+            appendLine=`echo -e "$output" | grep "ANALYSIS_RESULTS" | cut -d ":" -f2`
+            echo "$appendLine" >> ${outputFile}
         } || {
+            #Debugging area
+            continue
             exit
         }
     done

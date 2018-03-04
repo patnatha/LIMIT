@@ -1,6 +1,6 @@
 pushd ../
 source ../basedir.sh
-toswitch="CALIPER"
+toswitch="TEST_CALIPER"
 switch_input
 
 sed -i 's/ppn=[0-9]\+/ppn=4/' prepare_data.pbs
@@ -14,10 +14,7 @@ run_male_female(){
 }
 
 #Set basic variables
-#incGrp="all"
-#incGrp="inpatient"
-#incGrp="outpatient"
-incGrp="outpatient_and_never_inpatient"
+incGrp="all"
 
 therace="all"
 startDate="2013-01-01"

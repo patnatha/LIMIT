@@ -13,6 +13,7 @@ query_confidence_interval <- function(result_code, sex, race, low_age, high_age,
             for(tsource in tsources){
                 #Build the query and execute
                 sql = paste('SELECT limit_type, limit_value FROM ReferenceIntervals WHERE (limit_type IN ("conf_low_low", "conf_low_high", "conf_high_low", "conf_high_high")) AND result_code = "', result_code, '" AND sex = "', sex, '" AND low_age <= ', low_age, ' AND high_age >= ', high_age, ' AND race = "', race,'" AND source = "', tsource, '"', sep="")
+                print(sql)
                 con = connect_sqlite_ref()
                 myQuery = dbGetQuery(con, sql)
                 dbDisconnect(con)

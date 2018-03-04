@@ -15,7 +15,7 @@ check_empty_labs_list <- function(theList){
     }
 }
 
-combineExcludedLists <- function(excludedICDs, excludedLabs, excludedMeds){
+combineExcludedLists <- function(parameters){
     excludeICDLabs = check_empty_labs_list(attr(parameters, "icd_excluded_labs"))
     excludeMedLabs = check_empty_labs_list(attr(parameters, "med_excluded_labs"))
     excludeLabLabs = check_empty_labs_list(attr(parameters, "lab_excluded_labs"))
@@ -241,7 +241,7 @@ calculateDiffRatio <- function(goldStandRefLow, goldStandRefHigh, procLow, procH
     }
 }
 
-write_line_append <- function(parameters, postHornCount, preLimitRef, refConfResults){
+write_line_append <- function(parameters, postHornCount, preLimitRef, refConfResults, baseRef){
     tResultCode=toupper(attributes(parameters)$resultCodes[[1]])
     tSex=tolower(attributes(parameters)$sex)
     tRace=tolower(attributes(parameters)$race)
@@ -250,14 +250,14 @@ write_line_append <- function(parameters, postHornCount, preLimitRef, refConfRes
 
 
     #Get the Gold Standard Reference Ranges
-    findReference=import_reference_range(tResultCode, tSex, tRace, tStime, tEtime, c("CALIPER"))
+    findReference=import_reference_range(tResultCode, tSex, tRace, tStime, tEtime, c(baseRef))
     goldStandRefLow = findReference[[1]]
     goldStandRefHigh = findReference[[2]]
     goldStandRefSource = findReference[[3]]
     print(paste("Gold Standard Reference: ", goldStandRefLow, ' - ' , goldStandRefHigh, " (", goldStandRefSource, ")", sep=""))
 
     #Get the Fold Standard Reference Ranges
-    findReference=import_confidence_range(tResultCode, tSex, tRace, tStime, tEtime, c("CALIPER"))
+    findReference=import_confidence_range(tResultCode, tSex, tRace, tStime, tEtime, c(baseRef))
     goldStanConfLowLow = findReference[[1]]
     goldStandConfLowHigh = findReference[[2]]
     goldStandConfHighLow = findReference[[3]]
@@ -276,7 +276,7 @@ write_line_append <- function(parameters, postHornCount, preLimitRef, refConfRes
     limitRatio = calculateDiffRatio(goldStandRefLow, goldStandRefHigh, limitRefLow, limitRefHigh)
 
     #Limit parameters string
-    limitParams = paste("H", attr(parameters, "criticalHampel"), "_P", attr(parameters, "criticalP"), "_PROP", attr(parameters, "criticalProp"), "_POST", attr(parametres, "post_offset"), "_PRE", attr(patameters, "pre_offset"), sep="")
+    limitParams = paste("H", attr(parameters, "criticalHampel"), "_P", attr(parameters, "criticalP"), "_PROP", attr(parameters, "criticalProp"), "_POST", attr(parameters, "post_offset"), "_PRE", attr(parameters, "pre_offset"), sep="")
 
     print(paste("Difference Radio: ", origRatio, " => ", limitRatio, sep=""))
     newLine = c(basename(inputData),
@@ -306,6 +306,7 @@ write_line_append <- function(parameters, postHornCount, preLimitRef, refConfRes
                 goldStandRefLow, goldStandRefHigh, goldStandRefSource,
                 goldStanConfLowLow, goldStandConfLowHigh, goldStandConfHighLow, goldStandConfHighHigh, goldStandConfSource, origRatio, limitRatio)
 
-    write(newLine,ncolumns=length(newLine),sep=",",file=theResultFile, append=TRUE)
+    #write(newLine,ncolumns=length(newLine),sep=",",file=theResultFile, append=TRUE)
+    return(paste(newLine,collapse=","))
 }
 

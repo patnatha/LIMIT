@@ -12,9 +12,12 @@ test_empty_dirs(){
         if [[ $grepRes != "" ]]
         then
             deleteFile="FALSE"
+            if [[ $deleteOverRide != "QUIET" ]]
+            then
+                echo "$grepRes"
+                echo "++++++++++"
+            fi
         fi
-        echo "$grepRes"
-        echo "++++++++++"
 
         if [[ $deleteFile == "TRUE" ]] || [[ $deleteOverRide == "FORCE" ]]
         then
@@ -22,7 +25,11 @@ test_empty_dirs(){
             deletedSuccess=$((deletedSuccess + 1))
         fi
     done
-    echo "${batchoutput} - DELETED: $deletedSuccess"
+
+    if [[ $deleteOverRide != "QUIET" ]]
+    then
+        echo "${batchoutput} - DELETED: $deletedSuccess"
+    fi
 }
 
 batchoutput="Nate_LIMIT.o*"

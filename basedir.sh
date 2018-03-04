@@ -1,5 +1,4 @@
 homedir="/scratch/leeschro_armis/patnatha/"
-
 basedir="${homedir}raw_data/"
 mkdir -p "${basedir}"
 
@@ -16,7 +15,7 @@ declare -a criticalProps=("0" "0.005" "0.01" "0.025" "0.05")
 declare -a day_time_offset_posts=("54750" "360" "180" "75" "30" "5" "0")
 declare -a day_time_offset_pres=("54750" "360" "180" "75" "30" "5" "0")
 declare -a code_switch=("icd" "med" "lab")
-declare -a sample_sizes=("100000" "75000" "50000" "40000" "30000" "20000" "10000" "8000" "6000" "4000" "3000" "2000" "1000" "500" "100" "50")
+declare -a sample_sizes=("10000" "5000" "4000" "3000" "2000" "1000" "800" "600" "400" "300" "200" "100" "50")
 
 run_dir_limit(){
     preplist=`find ${tolistpath} | grep selected`
@@ -36,7 +35,7 @@ run_em_limit(){
     params="--input $tfile --code all --output $toutdir"
 
     eval "qsub Nate_LIMIT.pbs -F \"${params}\""
-    #echo "Rscript Nate_LIMIT.R ${paramsone}"
+    #echo "Rscript Nate_LIMIT.R ${params}"
 }
 
 run_em_prepare(){
@@ -97,6 +96,7 @@ switch_input(){
     elif [ "${toswitch}" == "HGB2" ]
     then
         preparedir="${preparedir}HGB_two_groups/"
+        refCodes="NHANES"
     elif [ "${toswitch}" == "TUNE_HGB2" ]
     then
         preparedir="${preparedir}tune_HGB_two_groups/"
@@ -115,15 +115,26 @@ switch_input(){
     elif [ "${toswitch}" == "TUNE_CALIPER" ]
     then
         preparedir="${preparedir}tune_up/"
+        refCodes="caliper"
+    elif [ "${toswitch}" == "TUNE_CALIPER2" ]
+    then
+        preparedir="${preparedir}tune_caliper/"
+        refCodes="caliper"
     elif [ "${toswitch}" == "SAMPLE_CALIPER" ]
     then
         preparedir="${preparedir}sample_caliper/"
+        refCodes="caliper"
+    elif [ "${toswitch}" == "TEST_CALIPER" ]
+    then
+        preparedir="${preparedir}test_caliper/"
+        refCodes="caliper"
     elif [ "${toswitch}" == "A1C" ]
     then
         preparedir="${preparedir}hgb_a1c/"
     elif [ "${toswitch}" == "CALIPER" ]
     then
         preparedir="${preparedir}caliper/"
+        refCodes="caliper"
     elif [ "${toswitch}" == "PAIR_GLUC" ]
     then
         preparedir="${preparedir}paired_glucose/"

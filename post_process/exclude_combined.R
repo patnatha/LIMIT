@@ -229,12 +229,15 @@ for(curResultCode in names(listToCombine)){
         }
 
         #Update some info
-        attr(parameters, "combined_excluded_labs") = setdiff(oldCleanLabValues, cleanLabValues)
+        attr(parameters, "combined_excluded_labs") = anti_join(oldCleanLabValues, cleanLabValues, by = c("pid", "l_val", "timeOffset", "EncounterID"))
         attr(parameters, "combined_count") = nrow(cleanLabValues)
-        
+ 
         #Save the results
         print(paste(basename(tfile), " to filter: ", nrow(oldCleanLabValues), " => ", nrow(cleanLabValues), sep=""))
         save(cleanLabValues, parameters, file=str_replace(tfile,"joined","combined"))
+
+        #Move the original file to the joined directory
+        file.rename(from=tfile, to=paste(dirname(tfile), "joined", basename(tfile), sep="/"))
     }
 }
 

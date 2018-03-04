@@ -5,5 +5,4 @@ tolistpath=$preparedir
 
 thecmd="Rscript analyze_selection.R --input $tolistpath"
 eval $thecmd
-echo $thecmd
 

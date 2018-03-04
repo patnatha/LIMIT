@@ -1,5 +1,7 @@
 source ../basedir.sh
-tolistpath=$1
+toswitch=$1
+switch_input
+tolistpath=$limitdir
 post_process_dir
 for tdir in $prepdirs
 do

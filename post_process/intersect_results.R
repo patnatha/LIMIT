@@ -15,7 +15,6 @@ args <- parse_args(parser)
 med_file = args[['med']]
 icd_file = args[['icd']]
 lab_file = args[['lab']]
-print(paste("Loading:", icd_file, "<=>",med_file, "<=>",lab_file, sep=" "))
 
 #Load up the results from limit algorithm using Meds
 load(med_file)
@@ -117,7 +116,6 @@ if(!intersect_it){
 }
 
 #Join the results
-print(paste("Joining: ", basename(icd_file), " <=> ", basename(med_file), " <=> ", basename(lab_file), sep=""))
 cleanLabValues=intersect(icdLabValues, intersect(medLabValues, labLabValues))
 print(paste("INTERSECTION: ", nrow(icdLabValues), "(ICD) + ", nrow(medLabValues), "(MED) + ", nrow(labLabValues), "(LAB) = ", nrow(cleanLabValues), sep=""))
 

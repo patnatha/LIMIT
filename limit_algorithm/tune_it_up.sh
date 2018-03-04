@@ -6,7 +6,7 @@ do
     curTime=`date`
     SECONDS=0
     ./tune_Nate_LIMIT.sh $@
-    ../clean_dir.sh
+    ../clean_dir.sh QUIET
     DURATION=$SECONDS 
     echo "TIMING: ${curTime}/${DURATION} secs"
     

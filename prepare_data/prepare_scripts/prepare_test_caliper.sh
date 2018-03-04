@@ -1,6 +1,6 @@
 pushd ../
 source ../basedir.sh
-toswitch="CALIPER"
+toswitch="TEST_CALIPER"
 switch_input
 
 sed -i 's/ppn=[0-9]\+/ppn=4/' prepare_data.pbs
@@ -14,10 +14,7 @@ run_male_female(){
 }
 
 #Set basic variables
-#incGrp="all"
-#incGrp="inpatient"
-#incGrp="outpatient"
-incGrp="outpatient_and_never_inpatient"
+incGrp="all"
 
 therace="all"
 startDate="2013-01-01"
@@ -34,8 +31,8 @@ run_male_female
 inval="IRON"
 theage="0Y_14Y"
 run_male_female
-theage="14Y_19Y"
-run_male_female
+#theage="14Y_19Y"
+#run_male_female
 
 #Phosphate
 inval="PHOS"
@@ -47,10 +44,10 @@ theage="1Y_5Y"
 run_male_female
 theage="5Y_13Y"
 run_male_female
-theage="13Y_16Y"
-run_male_female
-theage="16Y_19Y"
-run_male_female
+#theage="13Y_16Y"
+#run_male_female
+#theage="16Y_19Y"
+#run_male_female
 
 #Uric Acid
 inval="URIC"
@@ -91,10 +88,10 @@ theage="15D_365D"
 run_male_female
 theage="1Y_7Y"
 run_male_female
-theage="7Y_12Y"
-run_male_female
-theage="12Y_19Y"
-run_male_female
+#theage="7Y_12Y"
+#run_male_female
+#theage="12Y_19Y"
+#run_male_female
 
 #LDH
 inval="LDH"
@@ -126,8 +123,8 @@ theage="0D_15D"
 run_male_female
 theage="15D_365D"
 run_male_female
-theage="1Y_19Y"
-run_male_female
+#theage="1Y_19Y"
+#run_male_female
 
 #Triglyceriades
 inval="TRIG"
@@ -146,10 +143,10 @@ theage="15D_365D"
 run_male_female
 theage="1Y_8Y"
 run_male_female
-theage="8Y_15Y"
-run_male_female
-theage="15Y_19Y"
-run_male_female
+#theage="8Y_15Y"
+#run_male_female
+#theage="15Y_19Y"
+#run_male_female
 
 #C3
 inval="C3"

@@ -34,8 +34,5 @@ do
             done
         done
     done
-
-    #Move all the old files to their own directory
-    eval "mv ${tdir}/*joined.Rdata" "${tdir}/joined/."
 done
 

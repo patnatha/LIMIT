@@ -338,7 +338,6 @@ for(codeType in codeTypes){
                     print(paste("Finding ICDs (", as.character(iteration), "): ", as.character(round(time.taken, digits=2)), " secs", sep=""))
                 }
 
-                # Process the results
                 ICDtable = NA
                 if (length(ICDs) != 0 ) {
                     # Flatten the list of ICDs with frequencies
@@ -387,7 +386,17 @@ for(codeType in codeTypes){
 
                         # Find all patients who have the significant codes
                         excludePID = FindExclusions(DOI)
-                        excludedLabValues = data.table(icd=DOI, labValues %>% filter(pid %in% excludePID) %>% select(pid, l_val, timeOffset, EncounterID))
+                        includePID = setdiff(unique(labValues$pid), excludePID)
+                        
+                        # Remove excluded patients from database
+                        oldLabValues = labValues
+                        labValues = labValues[which(labValues$pid %in% includePID), ]
+                        
+                        # Get the excluded lab results
+                        excludedLabValues = anti_join(oldLabValues, labValues, 
+                            by=c("pid", "l_val", "EncounterID", "timeOffset", "outlier"))                            %>% select(pid, l_val, timeOffset, EncounterID)
+                        remove(oldLabValues)
+                        excludedLabValues = data.table(icd=DOI,excludedLabValues)
 
                         # Keep track of which codes were excluded 
                         excludedICDs = c(excludedICDs, DOI)
@@ -395,10 +404,6 @@ for(codeType in codeTypes){
                         excludedPatients = append(excludedPatients, excludePID)
                         excludedPval = c(excludedPval, pvalue)
                         excludedCounts = rbind(excludedCounts, excludedLabValues)
-
-                        # Remove excluded patients from database
-                        includePatients = setdiff(unique(labValues$pid), excludePID)
-                        labValues = labValues[which(labValues$pid %in% includePatients), ]
 
                         if(debug){
                             print(paste('CODE (', as.character(iteration), "): ", DOI, sep=""))
@@ -424,6 +429,7 @@ for(codeType in codeTypes){
     #Save the updated labValues and excluded ICD values
     cleanLabValues = labValues %>% select(pid, l_val, timeOffset, EncounterID)
     save(parameters, cleanLabValues, excludedPatients, excludedICDs, excludedICDNames, excludedCounts, excludedPval, file=saving)
+    remove(cleanLabValues)
 }
 
 #Print out some results
