@@ -46,9 +46,6 @@ horn.outliers = function(data){
 }
 
 run_outliers = function(theData, runsCnt){
-    print(paste("Lab Values Count: ", length(cleanLabValues$l_val)))
-    print(paste("Lab Values Quantiles: ", paste(round(as.double(quantile(cleanLabValues$l_val, c(0.025, 0.975), na.rm = TRUE)), digits=2),collapse=" "), sep=""))
-
     if(length(cleanLabValues$l_val) <= 10){
         return(cleanLabValues)
     }
@@ -59,7 +56,6 @@ run_outliers = function(theData, runsCnt){
             outliered = horn.outliers(theData)
             runs=runs+1
             print(paste("Horn Outliers: ", runs, " (", nrow(theData), " - ", nrow(outliered), ")", sep=""))
-        print(paste("Lab Values Quantiles: ", paste(round(as.double(quantile(outliered$l_val, c(0.025, 0.975), na.rm = TRUE)), digits=2),collapse=" "), sep=""))
             if(nrow(theData) == nrow(outliered)){
                 theData = outliered
                 break
@@ -275,6 +271,24 @@ write_line_append <- function(parameters, postHornCount, preLimitRef, refConfRes
     limitRefHigh = attr(refConfResults, "upperRefLimit")
     limitRatio = calculateDiffRatio(goldStandRefLow, goldStandRefHigh, limitRefLow, limitRefHigh)
 
+    lowLimitInCI = NA
+    if(!is.na(limitRefLow) && !is.na(goldStanConfLowLow) && !is.na(goldStandConfLowHigh)){
+        if(limitRefLow <= goldStandConfLowHigh && limitRefLow >= goldStanConfLowLow){
+            lowLimitInCI = 1
+        } else {
+            lowLimitInCI = 0
+        }
+    }
+
+    highLimitInCI = NA
+    if(!is.na(limitRefHigh) && !is.na(goldStandConfHighLow) && !is.na(goldStandConfHighHigh)){
+        if(limitRefHigh <= goldStandConfHighHigh && limitRefHigh >= goldStandConfHighLow){
+            highLimitInCI = 1
+        } else {
+            highLimitInCI = 0
+        }
+    }
+
     #Limit parameters string
     limitParams = paste("H", attr(parameters, "criticalHampel"), "_P", attr(parameters, "criticalP"), "_PROP", attr(parameters, "criticalProp"), "_POST", attr(parameters, "post_offset"), "_PRE", attr(parameters, "pre_offset"), sep="")
 
@@ -304,7 +318,8 @@ write_line_append <- function(parameters, postHornCount, preLimitRef, refConfRes
                 attr(refConfResults, "confInterval"),
                 attr(refConfResults, "confInterval_Method"),
                 goldStandRefLow, goldStandRefHigh, goldStandRefSource,
-                goldStanConfLowLow, goldStandConfLowHigh, goldStandConfHighLow, goldStandConfHighHigh, goldStandConfSource, origRatio, limitRatio)
+                goldStanConfLowLow, goldStandConfLowHigh, goldStandConfHighLow, goldStandConfHighHigh, goldStandConfSource, 
+                origRatio, limitRatio, lowLimitInCI, highLimitInCI)
 
     #write(newLine,ncolumns=length(newLine),sep=",",file=theResultFile, append=TRUE)
     return(paste(newLine,collapse=","))

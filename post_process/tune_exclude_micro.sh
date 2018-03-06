@@ -4,6 +4,12 @@ switch_input
 tolistpath=$limitdir
 post_process_dir
 
+declare -a criticalHampels=("2.0" "3.0") #"0.5" "1.0"
+declare -a criticalPs=("0.1" "0.2") #"0.05"
+declare -a criticalProps=("0" "0.005") #"0.01" "0.025" "0.05"
+declare -a day_time_offset_posts=("54750" "360" "180" "5" "0") #"75" "30"
+declare -a day_time_offset_pres=("54750" "360" "180" "5" "0") #"75" "30"
+
 for tdir in $prepdirs
 do
     #Create the output directory for the old files

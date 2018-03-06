@@ -2,19 +2,32 @@ iterWaitTime=$((60 * 5))
 
 while true
 do
-    #Time and run the function
     curTime=`date`
     SECONDS=0
-    ./tune_Nate_LIMIT.sh $@
+    if [[ "$1" == "TUNE_CALIPER" ]]
+    then
+        ./tune_Nate_LIMIT.sh $1
+    elif [[ "$1" == "TUNE_CALIPER_MICRO" ]]
+    then
+        ./tune_micro_Nate_LIMIT.sh $1
+    elif [[ "$1" == "SAMPLE_CALIPER" ]]
+    then
+        ./sample_tune_it.sh $1
+        exit
+    else
+        echo "ERROR: incorrect input"
+        exit
+    fi
+    
     ../clean_dir.sh QUIET
-    DURATION=$SECONDS 
+    DURATION=$SECONDS
     echo "TIMING: ${curTime}/${DURATION} secs"
     
-    #Wait for a bit before running it again
     underOver="$(($iterWaitTime - $DURATION))"
     if [ $underOver -gt 0 ]
     then
         sleep ${underOver}s
     fi
+
 done
 

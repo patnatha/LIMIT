@@ -3,10 +3,10 @@ allTime <- Sys.time()
 
 ## Default Arguments
 criticalProp = 0.005 # beta
-criticalP = 0.1 # alpha
+criticalP = 0.15 # alpha
 criticalHampel = 2 # t
-day_time_offset_post = 120 # n
-day_time_offset_pre = 120 # n2, an addition to the Poole method
+day_time_offset_post = 54750 # n
+day_time_offset_pre = 54750 # n2, an addition to the Poole method
 
 #Count the number of CPUs available
 cpuCnt<-system("nproc", ignore.stderr = TRUE, intern = TRUE)
@@ -43,7 +43,7 @@ outputDir = args[['output']]
 outputName = args[['name']]
 inputData = args[['input']]
 inputCode = args[['codes']]
-versioning = '2.0'
+versioning = '2.1'
 downSample = args[['sample']]
 
 # Parse the incoming critical proportion
@@ -148,7 +148,7 @@ if(!is.na(downSample)){
 tempLabValues = labValues
 tempParameters = parameters
 
-for(codeType in codeTypes){
+for(codeType in finalCodeTypes){
     #Reset the values
     labValues = tempLabValues
     parameters = tempParameters
@@ -305,10 +305,6 @@ for(codeType in codeTypes){
             flaggedPatients = unique(labValues$pid[which(labValues$outlier == TRUE)])
             totalFlaggedPatients = length(flaggedPatients)
 
-            if(debug){
-                print(paste("Flagged Patients (", as.character(iteration), "): ", totalFlaggedPatients, sep=""))
-            }
-
             #Create  lists of patients with unflagged test
             unflaggedPatients = setdiff(unique(labValues$pid), flaggedPatients)
             totalUnflaggedPatients = length(unflaggedPatients)
@@ -408,7 +404,7 @@ for(codeType in codeTypes){
                         if(debug){
                             print(paste('CODE (', as.character(iteration), "): ", DOI, sep=""))
                             print(paste('CODE NAME (', as.character(iteration), "): ", DOIName, sep=""))
-                            print(paste('LAB COUNT (', as.character(iteration), "): ", nrow(excludedLabValues), sep=""))
+                            print(paste('EXCLUDE LAB COUNT (', as.character(iteration), "): ", nrow(excludedLabValues), sep=""))
                         }
                     }
                 } else {

@@ -5,7 +5,6 @@ source('analyze_helper.R')
 #Create the options list
 option_list <- list(
   make_option("--input", type="character", default=NA, help="file to load Rdata"),
-#  make_option("--output", type="character", default=NA, help="where to write results"), 
   make_option("--ref", type="character", default=NA, help="which to reference against"),
   make_option("--graph", action="store_true", default=FALSE)
 )
@@ -20,15 +19,8 @@ inputData = args[['input']]
 print(paste("LOADING: ", inputData, sep=""))
 load(inputData)
 
+#Get the reference file to use
 theRef=args[['ref']]
-
-#Build the output file name and check for availability
-#if(is.na(args[['output']])){
-#    theResultFile = paste(dirname(inputData), "analysis_results.csv", sep="/")
-#} else {
-#    theResultFile = args[['output']]
-#}
-#writeToFile = file.exists(theResultFile)
 
 #Build the excluded list of labs
 finalExluded=combineExcludedLists(parameters)

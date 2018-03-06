@@ -9,8 +9,8 @@
 #PBS -l qos=armis
 
 # Change the number of cores (ppn=8), amount of memory, and walltime:
-#PBS -l nodes=1:ppn=4,pmem=4gb
-#PBS -l walltime=24:00:00
+#PBS -l nodes=1:ppn=8,pmem=8gb
+#PBS -l walltime=72:00:00
 #PBS -j oe
 #PBS -V
 
@@ -36,6 +36,9 @@ then
 elif [[ "$1" == "TUNE_CALIPER" ]]
 then
     cmd="./tune_exclude.sh $thedir"
+elif [[ "$1" == "TUNE_CALIPER_MICRO" ]]
+then
+    cmd="./tune_exclude_micro.sh $thedir"
 else
     cmd="./exclude_combined.sh $thedir"
 fi

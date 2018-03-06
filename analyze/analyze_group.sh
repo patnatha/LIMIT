@@ -35,15 +35,20 @@ do
     echo -n "GS Ref Low, GS Ref High, GS Ref Source, " >> ${outputFile}
     echo -n "GS Conf Low Low, GS Conf Low High, " >> ${outputFile}
     echo -n "GS Conf High Low, GS Conf High High, GS Conf Source, " >> ${outputFile}
-    echo "Original Ratio, LIMIT Ratio" >> ${outputFile}
+    echo -n "Original Ratio, LIMIT Ratio, " >> ${outputFile}
+    echo "Low in CI, High in CI" >> ${outputFile}
 
     #Find some files to run
     preplist=`find $tdir | grep "${analyzeWhich}.Rdata" | sort`
 
     #Run all the files in parallel
+    if [[ ${#preplist} == 0 ]]
+    then
+        continue
+    fi
     parOut=`parallel -j8 Rscript analyze_results.R --input {} --ref ${refCodes} ::: ${preplist}`
-    appendLine=`echo -e "$parOut" | grep "ANALYSIS_RESULTS" | cut -d ":" -f2`
-    echo "${appendLine::-1}" >> ${outputFile}
+    appendLine=`echo -e "$parOut" | grep "ANALYSIS_RESULTS" | cut -d ":" -f2 | cut -d "\"" -f1 | sort`
+    echo "${appendLine}" >> ${outputFile}
     continue
  
     #Iterate over the files 
