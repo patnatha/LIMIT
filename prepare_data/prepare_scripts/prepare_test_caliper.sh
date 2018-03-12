@@ -14,7 +14,9 @@ run_male_female(){
 }
 
 #Set basic variables
-incGrp="all"
+#incGrp="all"
+#incGrp="outpatient"
+incGrp="outpatient_and_never_inpatient"
 
 therace="all"
 startDate="2013-01-01"

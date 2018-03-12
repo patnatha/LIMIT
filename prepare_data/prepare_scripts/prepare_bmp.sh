@@ -35,12 +35,5 @@ run_em_prepare
 thesex="female"
 run_em_prepare
 
-#Run one inpatient group for testing
-incGrp="inpatient"
-inval="POT"
-thesex="both"
-therace="all"
-theage="adult"
-run_em_prepare
 popd
 

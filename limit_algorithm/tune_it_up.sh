@@ -10,7 +10,7 @@ do
     elif [[ "$1" == "TUNE_CALIPER_MICRO" ]]
     then
         ./tune_micro_Nate_LIMIT.sh $1
-    elif [[ "$1" == "SAMPLE_CALIPER" ]]
+    elif [[ "$1" == "SAMPLE_CALIPER" ]] || [[ "$1" == "TUNE_CALIPER_SAMPLE" ]]
     then
         ./sample_tune_it.sh $1
         exit

@@ -16,7 +16,7 @@ args <- parse_args(parser)
 input_val = args[['input']]
 print(paste("Loading Data: ", input_val, sep=""))
 load(input_val)
- 
+
 #Parse the output directory and create if doesn't exists
 output_directory = args[['output']]
 if(is.na(output_directory)){
@@ -27,7 +27,10 @@ if(is.na(output_directory)){
 theBasename = basename(input_val)
 output_filename = str_replace(paste(output_directory, theBasename, sep="/"), ".Rdata", "_selected.Rdata")
 output_filename = gsub("//", "/", output_filename)
-print(output_filename)
+if(exists(output_filename)){
+    print("ERROR: output file already exists")
+    stop()
+}
 
 # Parse the singular_value parameter
 singular_value = args[['singular-value']]
