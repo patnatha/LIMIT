@@ -30,7 +30,8 @@ then
 fi
 if [ $stopIt == "TRUE" ] && [ $override != "override" ]
 then
-    exit
+    exiT=1
+    #exit
 fi
 
 #Load up the already done files

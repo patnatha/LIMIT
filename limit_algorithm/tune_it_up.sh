@@ -1,3 +1,4 @@
+source ../basedir.sh
 iterWaitTime=$((60 * 5))
 
 while true
@@ -15,6 +16,8 @@ do
         ./sample_tune_it.sh $1
         exit
     else
+        toswitch=$1
+        switch_input 
         echo "ERROR: incorrect input"
         exit
     fi

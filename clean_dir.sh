@@ -62,7 +62,7 @@ test_empty_dirs
 batchoutput="combine_pairs.o*"
 test_empty_dirs
 
-batchoutput="analyze_group.o*"
+batchoutput="analyze_files.o*"
 test_empty_dirs
 
 batchoutput="count_files.o*"

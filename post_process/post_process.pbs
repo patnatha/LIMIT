@@ -30,7 +30,7 @@ thedir=$1
 cmd="./intersect_group.sh $thedir"
 eval $cmd
 
-if [[ "$1" == "SAMPLE_CALIPER" ]]
+if [[ "$1" == "SAMPLE_CALIPER" ]] || [[ "$1" == "TUNE_CALIPER_SAMPLE" ]]
 then
     cmd="./sample_exclude.sh $thedir"
 elif [[ "$1" == "TUNE_CALIPER" ]]

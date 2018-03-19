@@ -15,7 +15,7 @@ declare -a criticalProps=("0" "0.005" "0.01" "0.025" "0.05")
 declare -a day_time_offset_posts=("54750" "360" "180" "75" "30" "5" "0")
 declare -a day_time_offset_pres=("54750" "360" "180" "75" "30" "5" "0")
 declare -a code_switch=("icd" "med" "lab")
-declare -a sample_sizes=("10000" "5000" "4000" "3000" "2000" "1000" "800" "600" "500" "400" "300" "350" "200" "250" "200" "150" "100" "50")
+declare -a sample_sizes=("10000" "5000" "2500" "1000" "800" "600" "500" "400" "300" "250" "200" "150" "100" "50")
 
 run_dir_limit(){
     preplist=`find ${tolistpath} | grep selected`
@@ -130,15 +130,15 @@ switch_input(){
         refCodes="CALIPER"
     elif [ "${toswitch}" == "TUNE_CALIPER_MICRO" ]
     then
-        preparedir="${preparedir}tune_caliper_micro/"
+        preparedir="${preparedir}caliper_tune_micro/"
         refCodes="CALIPER"
     elif [ "${toswitch}" == "SAMPLE_CALIPER" ]
     then
-        preparedir="${preparedir}sample_caliper/"
+        preparedir="${preparedir}caliper_sample/"
         refCodes="CALIPER"
     elif [ "${toswitch}" == "TEST_CALIPER" ]
     then
-        preparedir="${preparedir}test_caliper/"
+        preparedir="${preparedir}caliper_test/"
         refCodes="CALIPER"
     elif [ "${toswitch}" == "A1C" ]
     then

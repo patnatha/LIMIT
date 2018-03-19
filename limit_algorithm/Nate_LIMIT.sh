@@ -9,8 +9,8 @@ then
     sed -i 's/walltime=[0-9]\+\:[0-9]\+\:[0-9]\+/walltime=24:00:00/' Nate_LIMIT.pbs
 elif [[ $2 == "large" ]]
 then
-    sed -i 's/ppn=[0-9]\+/ppn=8/' Nate_LIMIT.pbs
-    sed -i 's/pmem=[0-9]\+gb/pmem=8gb/' Nate_LIMIT.pbs
+    sed -i 's/ppn=[0-9]\+/ppn=16/' Nate_LIMIT.pbs
+    sed -i 's/pmem=[0-9]\+gb/pmem=16gb/' Nate_LIMIT.pbs
     sed -i 's/walltime=[0-9]\+\:[0-9]\+\:[0-9]\+/walltime=48:00:00/' Nate_LIMIT.pbs
 fi
 

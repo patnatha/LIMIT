@@ -4,7 +4,7 @@ allTime <- Sys.time()
 ## Default Arguments
 criticalProp = 0.005 # beta
 criticalP = 0.15 # alpha
-criticalHampel = 2 # t
+criticalHampel = 1 # t
 day_time_offset_post = 54750 # n
 day_time_offset_pre = 54750 # n2, an addition to the Poole method
 

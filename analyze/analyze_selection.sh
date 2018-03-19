@@ -1,8 +1,8 @@
 source ../basedir.sh
 toswitch=$1
 switch_input
-tolistpath=$preparedir
+tolistpath=$limitdir
 
-thecmd="Rscript analyze_selection.R --input $tolistpath"
+thecmd="qsub analyze_selection.pbs -F \"--input $tolistpath"\"
 eval $thecmd
 

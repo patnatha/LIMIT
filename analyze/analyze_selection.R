@@ -15,7 +15,7 @@ input_dir = args[['input']]
 theResultFile = paste(input_dir, "analysis_selection.csv", sep="/")
 writtenFirstList = FALSE
 
-filelist = list.files(input_dir, pattern = "selected.Rdata", full.names = TRUE, recursive=TRUE)
+filelist = list.files(input_dir, pattern = "selected_combined.Rdata", full.names = TRUE, recursive=TRUE)
 listToCombine = c()
 for (tfile in filelist){
     listToCombine = c(listToCombine, tfile)
