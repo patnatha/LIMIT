@@ -41,7 +41,7 @@ do
             fi
             filesExist=$((filesExist + 1))
         done
-
+        
         #If the output files already exist then skip this iteration                        
         if [[ $filesExist > 2 ]] || [[ $joinedExists == 1 ]] || [[ $combinedExists == 1 ]]
         then

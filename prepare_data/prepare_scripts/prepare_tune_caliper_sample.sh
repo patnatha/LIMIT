@@ -141,9 +141,9 @@ run_all(){
     run_male_female
 }
 
-}
-
 incGrp="all"
+run_all
+incGrp="inpatient"
 run_all
 incGrp="outpatient"
 run_all

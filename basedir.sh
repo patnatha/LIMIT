@@ -34,8 +34,8 @@ run_em_limit(){
     #Build the params to send
     params="--input $tfile --code all --output $toutdir"
 
-    eval "qsub Nate_LIMIT.pbs -F \"${params}\""
-    #echo "Rscript Nate_LIMIT.R ${params}"
+    #eval "qsub Nate_LIMIT.pbs -F \"${params}\""
+    echo "Rscript Nate_LIMIT.R ${params}"
 }
 
 run_em_prepare(){

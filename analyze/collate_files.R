@@ -4,12 +4,12 @@ library(stringr)
 source('../import_files.R')
 source('analyze_helper.R')
 
-outniCuts = 10
-outniCuts = seq(0, 200, by=25)
-outCuts = 20
-outCuts = seq(0, 200, by=25)
+outniCuts = 1600
+outniCuts = seq(0, 2000, by=100)
+outCuts = 1600 
+outCuts = seq(0, 2000, by=100)
 allCuts = 0
-allCuts = seq(0, 200, by=25)
+allCuts = seq(0, 3000, by=100)
 
 whichCnt = "PRE" #"HORN"
 
@@ -75,92 +75,99 @@ for(file in files){
 }
 
 for(allCut in allCuts){
-    print(paste("ALL,", cntTableInIt(allTable), ",N/A,N/A,", allCut, sep=""))
-    print(paste("OUT,", cntTableInIt(outTable), ",N/A,N/A,", allCut, sep=""))
-    print(paste("OUT_NI,", cntTableInIt(outniTable), ",N/A,N/A,", allCut, sep=""))
+    #print(paste("ALL,", cntTableInIt(allTable), ",N/A,N/A,", allCut, sep=""))
+    #print(paste("OUT,", cntTableInIt(outTable), ",N/A,N/A,", allCut, sep=""))
+    #print(paste("OUT_NI,", cntTableInIt(outniTable), ",N/A,N/A,", allCut, sep=""))
 
+    #Get all the outpatient cuts with values greater than final cut
+    for(outCut in outCuts){
+    if(outCut > allCut) next
+
+    #Get all the out_ni cuts with values greater than final cut
     for(outniCut in outniCuts){
-        for(outCut in outCuts){
-            if(outniCut == 0){ outniCut = 1 }
-            if(outCut == 0){ outCut = 1 }
+    if(outniCut > allCut) next
 
-            if(whichCnt == "PRE"){
-                tempAllTable = allTable %>% select(Result.Code, Sex, Race, Start.Days, End.Days, Selection, LIMIT.Params, Pre.LIMIT.Count)
-                tempAllTable = tempAllTable %>% rename(AllPreLimitCnt = Pre.LIMIT.Count)
-            } else if(whichCnt == "HORN"){
-                tempAllTable = allTable %>% select(Result.Code, Sex, Race, Start.Days, End.Days, Selection, LIMIT.Params, Horn.Count)
-                tempAllTable = tempAllTable %>% rename(AllPreLimitCnt = Horn.Count)
-            }
+    if(whichCnt == "PRE"){
+        tempAllTable = allTable %>% select(Result.Code, Sex, Race, Start.Days, End.Days, Selection, LIMIT.Params, Pre.LIMIT.Count)
+        tempAllTable = tempAllTable %>% rename(AllPreLimitCnt = Pre.LIMIT.Count)
+    } else if(whichCnt == "HORN"){
+        tempAllTable = allTable %>% select(Result.Code, Sex, Race, Start.Days, End.Days, Selection, LIMIT.Params, Horn.Count)
+        tempAllTable = tempAllTable %>% rename(AllPreLimitCnt = Horn.Count)
+    }
 
-            if(whichCnt == "PRE"){
-                tempOutTable = outTable  %>% select(Result.Code, Sex, Race, Start.Days, End.Days, Selection, LIMIT.Params, Pre.LIMIT.Count)
-                tempOutTable = tempOutTable %>% filter(Pre.LIMIT.Count >= allCut) %>% 
-                                rename(OutPreLimitCnt = Pre.LIMIT.Count)
-            } else if(whichCnt == "HORN") {
-                tempOutTable = outTable  %>% select(Result.Code, Sex, Race, Start.Days, End.Days, Selection, LIMIT.Params, Horn.Count)
-                tempOutTable = tempOutTable %>% filter(Horn.Count >= allCut) %>% 
-                                rename(OutPreLimitCnt = Horn.Count)
-            }
+    if(whichCnt == "PRE"){
+        tempOutTable = outTable  %>% select(Result.Code, Sex, Race, Start.Days, End.Days, Selection, LIMIT.Params, Pre.LIMIT.Count)
+        tempOutTable = tempOutTable %>% rename(OutPreLimitCnt = Pre.LIMIT.Count)
+    } else if(whichCnt == "HORN") {
+        tempOutTable = outTable  %>% select(Result.Code, Sex, Race, Start.Days, End.Days, Selection, LIMIT.Params, Horn.Count)
+        tempOutTable = tempOutTable %>% rename(OutPreLimitCnt = Horn.Count)
+    }
 
-            if(whichCnt == "PRE"){
-                tempOutniTable = outniTable %>% select(Result.Code, Sex, Race, Start.Days, End.Days, Selection, LIMIT.Params, Pre.LIMIT.Count)
-                tempOutniTable = tempOutniTable %>% filter(Pre.LIMIT.Count >= allCut) %>% 
-                                    rename(OutniPreLimitCnt = Pre.LIMIT.Count)
-            } else if(whichCnt == "HORN"){
-                tempOutniTable = outniTable %>% select(Result.Code, Sex, Race, Start.Days, End.Days, Selection, LIMIT.Params, Horn.Count)
-                tempOutniTable = tempOutniTable %>% filter(Horn.Count >= allCut) %>%
-                                    rename(OutniPreLimitCnt = Horn.Count)
-            }
+    if(whichCnt == "PRE"){
+        tempOutniTable = outniTable %>% select(Result.Code, Sex, Race, Start.Days, End.Days, Selection, LIMIT.Params, Pre.LIMIT.Count)
+        tempOutniTable = tempOutniTable %>% rename(OutniPreLimitCnt = Pre.LIMIT.Count)
+    } else if(whichCnt == "HORN"){
+        tempOutniTable = outniTable %>% select(Result.Code, Sex, Race, Start.Days, End.Days, Selection, LIMIT.Params, Horn.Count)
+        tempOutniTable = tempOutniTable %>%  rename(OutniPreLimitCnt = Horn.Count)
+    }
 
-            joinedTable = inner_join(tempOutniTable, inner_join(tempAllTable, tempOutTable))
+    #Create the table of all the goodies
+    joinedTable = inner_join(tempOutniTable, inner_join(tempAllTable, tempOutTable))
 
-            #Get all the valid outpatient_and_never_inpatient values
-            outNiValid = joinedTable %>% filter(OutniPreLimitCnt >= outniCut) %>% select(Result.Code, Sex, Race, Start.Days, End.Days, Selection)
+    #Get all the valid outpatient_and_never_inpatient values
+    outNiValid = joinedTable %>% filter(OutniPreLimitCnt >= outniCut) %>% select(Result.Code, Sex, Race, Start.Days, End.Days, Selection)
 
-            #Get all the valid outpatient values
-            outValid = joinedTable %>% filter(OutPreLimitCnt >= outCut & OutPreLimitCnt < outniCut) %>% select(Result.Code, Sex, Race, Start.Days, End.Days, Selection)
+    #Get all the valid outpatient values
+    outValid = joinedTable %>% filter(OutPreLimitCnt >= outCut & OutniPreLimitCnt <= outniCut) %>% select(Result.Code, Sex, Race, Start.Days, End.Days, Selection)
 
-            #Combine the out_ni and out tables
-            out_outni_table = union(outNiValid, outValid)
+    #Combine the out_ni and out tables
+    out_outni_table = union(outNiValid, outValid)
 
-            #Get the rest of the values as all
-            allValid = anti_join(joinedTable, out_outni_table) %>% select(Result.Code, Sex, Race, Start.Days, End.Days, Selection)
+    #Get the rest of the values as all
+    allValid = anti_join(joinedTable, out_outni_table) %>% filter(AllPreLimitCnt >= allCut) %>% select(Result.Code, Sex, Race, Start.Days, End.Days, Selection)
 
-            #Build compliation table
-            finalResult = union(inner_join(outValid, outTable), inner_join(outNiValid, outniTable))
-            finalResult = union(finalResult, inner_join(allValid, allTable))
+    #Build compliation table
+    finalResult = union(inner_join(outValid, outTable), inner_join(outNiValid, outniTable))
+    finalResult = union(finalResult, inner_join(allValid, allTable))
 
-            #Sum up the lower limit in CI
-            getLimitRatio = as.numeric(finalResult$Low.in.CI, na.rm=TRUE)
-            totalSum = 0
-            denominator = 0
-            for(x in getLimitRatio){
-                if(!is.na(x) && x != "NA"){
-                    totalSum = totalSum + x
-                    denominator = denominator + 1
-                }
-            }
-
-            #Sum up the upper limit in CI
-            getLimitRatio = as.numeric(finalResult$High.in.CI, na.rm=TRUE)
-            for(x in getLimitRatio){
-                if(!is.na(x) && x != "NA"){
-                    totalSum = totalSum + x
-                    denominator = denominator + 1
-                }
-            }
-
-            getLimitRatio = as.numeric(finalResult$LIMIT.Ratio, na.rm=TRUE)
-            LIMITRatio = 0
-            for(x in getLimitRatio){
-                if(!is.na(x) && x != "NA"){
-                    LIMITRatio = LIMITRatio + x
-                }
-            }
-            print(paste(totalSum, ",", denominator, ",", (totalSum/denominator), ",", LIMITRatio, ",", outniCut, ",", outCut, ",", allCut, sep=""))
+    getLimitRatio = as.numeric(finalResult$Low.in.CI, na.rm=TRUE)
+    totalSum = 0
+    denominator = 0
+    for(x in getLimitRatio){
+        if(!is.na(x) && x != "NA"){
+            totalSum = totalSum + x
+            denominator = denominator + 1
         }
     }
+
+    getLimitRatio = as.numeric(finalResult$High.in.CI, na.rm=TRUE)
+    for(x in getLimitRatio){
+        if(!is.na(x) && x != "NA"){
+            totalSum = totalSum + x
+            denominator = denominator + 1
+        }
     }
+
+    getLimitRatio = as.numeric(finalResult$LIMIT.Ratio, na.rm=TRUE)
+    LIMITRatio = 0
+    for(x in getLimitRatio){
+        if(!is.na(x) && x != "NA"){
+            LIMITRatio = LIMITRatio + x
+        }
+    }
+
+    lowPercentOff = (finalResult %>% filter(Low.in.CI == 0) %>% mutate(lowOffL = abs(RI.Low - GS.Conf.Low.Low)) %>% mutate(lowOffH = abs(RI.Low - GS.Conf.Low.High)) %>% mutate(lowOff = pmin(lowOffL, lowOffH)) %>% select(-c(lowOffL, lowOffH)) %>% mutate(lowOff = lowOff / (GS.Conf.Low.High - GS.Conf.Low.Low)))
+
+    highPercentOff = (finalResult %>% filter(High.in.CI == 0) %>% mutate(highOffL = abs(RI.High - GS.Conf.High.Low)) %>% mutate(highOffH = abs(RI.High - GS.Conf.High.High)) %>% mutate(highOff = pmin(highOffL, highOffH)) %>% select(-c(highOffL, highOffH)) %>% mutate(highOff = highOff / (GS.Conf.High.High - GS.Conf.High.Low)))
+   
+    
+    lowInPerc = nrow(lowPercentOff %>% filter(lowOff <= 1.0)) 
+    highInPrec = nrow(highPercentOff %>% filter(highOff <= 1.0))
+
+    print(paste(totalSum, ",", lowInPerc, ",", highInPrec, ",", (totalSum + lowInPerc + highInPrec), ",", denominator, ",", ((totalSum + lowInPerc + highInPrec)/denominator), ",", LIMITRatio, ",", outniCut, ",", outCut, ",", allCut, sep=""))
+    }
+    }
+}
 
 print(paste("SAVING: ", output_file, sep=""))
 write.csv(finalResult %>% arrange(File), file=output_file, quote=F, row.names=F)

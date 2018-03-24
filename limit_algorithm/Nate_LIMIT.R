@@ -136,9 +136,15 @@ print(paste("Loading Data: ", inputData, sep=""))
 load(inputData);
 
 #Downsample if instructed to do so
+if(is.na(downSample)){
+    downSample = 100000
+}
 if(!is.na(downSample)){
     if(nrow(labValues) >= as.numeric(downSample)){
         labValues = labValues[sample.int(nrow(labValues), as.numeric(downSample), replace=F),]
+        medValues = medValues %>% filter(pid %in% unique(labValues$pid))
+        icdValues = icdValues %>% filter(pid %in% unique(labValues$pid))
+        labValues = labValues %>% filter(pid %in% unique(labValues$pid))
     } else {
         print("ERROR: Unable to down sample, not enough samples")
         stop()

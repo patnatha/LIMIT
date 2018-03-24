@@ -5,9 +5,12 @@ tolistpath=$limitdir
 post_process_dir
 
 analyzeWhich="combined"
-if [ ! -z $2 ] && [[ "$2" == "joined" ]]
+if [ ! -z $2 ]
 then
-    analyzeWhich=$2
+    if [[ "$2" == "joined" ]] || [[ "$2" == "icd" ]] || [[ "$2" == "med" ]] || [[ "$2" == "lab" ]]
+    then
+        analyzeWhich=$2
+    fi
 fi
 
 for tdir in $prepdirs
