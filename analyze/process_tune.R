@@ -1,0 +1,27 @@
+library(optparse)
+source('../import_files.R')
+source('analyze_helper.R')
+
+#Create the options list
+option_list <- list(
+  make_option("--input", type="character", default=NA, help="file to load Rdata")
+)
+parser <- OptionParser(usage="%prog [options] file", option_list=option_list)
+args <- parse_args(parser)
+inputData = args[['input']]
+
+readData <- read.csv(inputData, header=T)
+glimpse(readData)
+
+limitSum = readData %>% group_by(LIMIT.Params) %>% summarise(tsum=sum(LIMIT.Ratio))
+limitCnt = readData %>% group_by(LIMIT.Params) %>% count()
+finalLimit = inner_join(limitSum, limitCnt)
+glimpse(finalLimit)
+
+hinci = readData %>% filter(!is.na(High.in.CI)) %>% group_by(LIMIT.Params) %>% summarise(hsum = sum(High.in.CI))
+linci = readData %>% filter(!is.na(Low.in.CI)) %>% group_by(LIMIT.Params) %>% summarise(lsum = sum(Low.in.CI))
+summedSum = inner_join(hinci, linci) %>% mutate(tsum = lsum + hsum)
+
+write.csv(summedSum, file="./processed_results.csv", quote=F)
+
+

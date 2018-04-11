@@ -16,6 +16,17 @@ graphIt=(args[['graph']])
 
 #Load input data
 inputData = args[['input']]
+
+if(endsWith(inputData, "combined.Rdata") || endsWith(inputData, "joined.Rdata")){
+    method="full"
+} else if(endsWith(inputData, "icd.Rdata")){
+    method="icd"
+} else if(endsWith(inputData, "med.Rdata")){
+    method="med"
+} else if(endsWith(inputData, "lab.Rdata")){
+    method="lab"
+}
+
 print(paste("LOADING: ", inputData, sep=""))
 load(inputData)
 
@@ -23,7 +34,7 @@ load(inputData)
 theRef=args[['ref']]
 
 #Build the excluded list of labs
-finalExluded=combineExcludedLists(parameters)
+finalExluded=combineExcludedLists(parameters, method)
 
 #Combine excluded list with post analysis set to obtain the original set
 originalSet=union(cleanLabValues %>% select(pid, l_val, timeOffset, EncounterID), finalExluded)
@@ -45,6 +56,8 @@ results=run_intervals(cleanLabValues$l_val, 0.95, 0.90)
 
 #Get all the results into one line 
 resultLine=write_line_append(parameters, postHornLabValuesCnt, preLimitReference, results, theRef)
+
+#Print out the final results
 print(paste("ANALYSIS_RESULTS:", resultLine, sep=""))
 
 if(graphIt){

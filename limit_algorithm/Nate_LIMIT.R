@@ -135,20 +135,29 @@ if(is.na(inputData) || !file.exists(inputData)){
 print(paste("Loading Data: ", inputData, sep=""))
 load(inputData);
 
-#Downsample if instructed to do so
-if(is.na(downSample)){
-    downSample = 100000
-}
-if(!is.na(downSample)){
+downSampleIt <- function(){
     if(nrow(labValues) >= as.numeric(downSample)){
-        labValues = labValues[sample.int(nrow(labValues), as.numeric(downSample), replace=F),]
-        medValues = medValues %>% filter(pid %in% unique(labValues$pid))
-        icdValues = icdValues %>% filter(pid %in% unique(labValues$pid))
-        labValues = labValues %>% filter(pid %in% unique(labValues$pid))
+        print(paste("DOWN SAMPLE: ", nrow(labValues), " => ", downSample, sep=""))
+        attr(parameters, "downSample") = nrow(labValues)
+        labValues <<- labValues[sample.int(nrow(labValues), as.numeric(downSample), replace=F),]
+        medValues <<- medValues %>% filter(pid %in% unique(labValues$pid))
+        icdValues <<- icdValues %>% filter(pid %in% unique(labValues$pid))
+        otherLabs <<- otherLabs %>% filter(pid %in% unique(labValues$pid))
+        return(TRUE)
     } else {
         print("ERROR: Unable to down sample, not enough samples")
+        return(FALSE)
+    }
+}
+
+#Downsample if instructed to do so
+if(!is.na(downSample)){
+    if(!downSampleIt()){
         stop()
     }
+} else {
+    downSample = 100000
+    downSampleIt()
 }
 
 tempLabValues = labValues
@@ -175,7 +184,7 @@ for(codeType in finalCodeTypes){
     }
 
     #Sort the table on the important keys
-    icdValues = setkey(data.table(icdValues), "pid","icd")
+    icdValues = setkey(data.table(icdValues), "pid","icd","timeOffset")
 
     #Create the output file path
     if(is.na(outputName)){
@@ -332,7 +341,7 @@ for(codeType in finalCodeTypes){
                 # Find all ICD codes for patients with flagged test results, before the first test
                 start.time <- Sys.time()
                 #ICDs = sapply(flaggedPatients, FindICDs, flaggedResults, icdValues, day_time_offset_post, day_time_offset_pre)
-                cl = makeCluster(parallelCores, outfile='~/parSapply.out')
+                cl = makeCluster(parallelCores)
                 ICDs = parSapply(cl=cl, flaggedPatients, FindICDs, flaggedResults, icdValues, day_time_offset_post, day_time_offset_pre)
                 stopCluster(cl)
                 if(debug){

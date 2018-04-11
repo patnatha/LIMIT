@@ -34,8 +34,8 @@ run_em_limit(){
     #Build the params to send
     params="--input $tfile --code all --output $toutdir"
 
-    #eval "qsub Nate_LIMIT.pbs -F \"${params}\""
-    echo "Rscript Nate_LIMIT.R ${params}"
+    eval "qsub Nate_LIMIT.pbs -F \"${params}\""
+    #echo "Rscript Nate_LIMIT.R ${params}"
 }
 
 run_em_prepare(){
@@ -73,7 +73,7 @@ run_em_select(){
 }
 
 switch_input(){
-    errStmt="ERROR: A1C, ALK, ALK_MAYO, BILI, BMP, CALIPER, ELEC, HGB2, LIVER, PAIR_GLUC, PLT, TEST, TEST_CALIPER, TEST_CALIPER_ANALYZE, TUNE_CALIPER, TUNE_CALIPER_SAMPLE, TUNE_CALIPER_ANALYZE, TUNE_HGB2, SAMPLE_CALIPER, WBC"
+    errStmt="ERROR: A1C, ALK, ALK_MAYO, BILI, BMP, CALIPER, ELEC, HGB2, LIVER, PAIR_GLUC, PLT, TEST, TEST_CALIPER, TEST_CALIPER_ANALYZE, TUNE_CALIPER, TUNE_CALIPER_SAMPLE, TUNE_CALIPER_ANALYZE, SAMPLE_CALIPER, WBC"
     if [[ -z $toswitch ]]
     then
         echo $errStmt
@@ -90,16 +90,15 @@ switch_input(){
     elif [ "${toswitch}" == "BMP" ]
     then
         preparedir="${preparedir}basic_metabolic_panel/"
+        refCodes="UMICH"
     elif [ "${toswitch}" == "ELEC" ]
     then
         preparedir="${preparedir}other_electrolytes/"
+        refCodes="UMICH"
     elif [ "${toswitch}" == "HGB2" ]
     then
         preparedir="${preparedir}HGB_two_groups/"
         refCodes="NHANES"
-    elif [ "${toswitch}" == "TUNE_HGB2" ]
-    then
-        preparedir="${preparedir}tune_HGB_two_groups/"
     elif [ "${toswitch}" == "LIVER" ]
     then
         preparedir="${preparedir}liver_enzymes/"

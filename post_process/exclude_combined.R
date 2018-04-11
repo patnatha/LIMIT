@@ -99,7 +99,7 @@ for (tfile in filelist){
     totalExludeLabCnt = totalExludeLabCnt + 
                         write_excluded_results(parameters, "lab", tfile, outfile) 
     totalExludeLabCnt = totalExludeLabCnt + 
-                        write_excluded_results(parameters, "meb", tfile, outfile)
+                        write_excluded_results(parameters, "med", tfile, outfile)
    
     #Append to master list all the codes
     masterExcludeICD = append_master_list(parameters, "icd", resultNameCode, masterExcludeICD)

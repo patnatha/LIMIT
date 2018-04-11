@@ -4,12 +4,12 @@ library(stringr)
 source('../import_files.R')
 source('analyze_helper.R')
 
-outniCuts = 1600
-outniCuts = seq(0, 2000, by=100)
-outCuts = 1600 
-outCuts = seq(0, 2000, by=100)
+outniCuts = 1400
+#outniCuts = seq(0, 2000, by=100)
+outCuts = 1400 
+#outCuts = seq(0, 2000, by=100)
 allCuts = 0
-allCuts = seq(0, 3000, by=100)
+#allCuts = seq(0, 3000, by=100)
 
 whichCnt = "PRE" #"HORN"
 
@@ -81,11 +81,11 @@ for(allCut in allCuts){
 
     #Get all the outpatient cuts with values greater than final cut
     for(outCut in outCuts){
-    if(outCut > allCut) next
+    if(outCut < allCut) next
 
     #Get all the out_ni cuts with values greater than final cut
     for(outniCut in outniCuts){
-    if(outniCut > allCut) next
+    if(outniCut < allCut) next
 
     if(whichCnt == "PRE"){
         tempAllTable = allTable %>% select(Result.Code, Sex, Race, Start.Days, End.Days, Selection, LIMIT.Params, Pre.LIMIT.Count)
@@ -164,7 +164,7 @@ for(allCut in allCuts){
     lowInPerc = nrow(lowPercentOff %>% filter(lowOff <= 1.0)) 
     highInPrec = nrow(highPercentOff %>% filter(highOff <= 1.0))
 
-    print(paste(totalSum, ",", lowInPerc, ",", highInPrec, ",", (totalSum + lowInPerc + highInPrec), ",", denominator, ",", ((totalSum + lowInPerc + highInPrec)/denominator), ",", LIMITRatio, ",", outniCut, ",", outCut, ",", allCut, sep=""))
+    print(paste(totalSum, ",", lowInPerc, ",", highInPrec, ",", (totalSum + lowInPerc + highInPrec), ",", denominator, ",", ((totalSum + lowInPerc + highInPrec)/denominator), ",", (totalSum/denominator), ",", outniCut, ",", outCut, ",", allCut, sep=""))
     }
     }
 }

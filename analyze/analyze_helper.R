@@ -15,17 +15,21 @@ check_empty_labs_list <- function(theList){
     }
 }
 
-combineExcludedLists <- function(parameters){
-    excludeICDLabs = check_empty_labs_list(attr(parameters, "icd_excluded_labs"))
-    excludeMedLabs = check_empty_labs_list(attr(parameters, "med_excluded_labs"))
-    excludeLabLabs = check_empty_labs_list(attr(parameters, "lab_excluded_labs"))
-    excludeCombined = check_empty_labs_list(attr(parameters, "combined_excluded_labs"))
+combineExcludedLists <- function(parameters, method){
+    if(method == "full"){
+        excludeICDLabs = check_empty_labs_list(attr(parameters, "icd_excluded_labs"))
+        excludeMedLabs = check_empty_labs_list(attr(parameters, "med_excluded_labs"))
+        excludeLabLabs = check_empty_labs_list(attr(parameters, "lab_excluded_labs"))
+        excludeCombined = check_empty_labs_list(attr(parameters, "combined_excluded_labs"))
 
-    finalExcluded=union(
-        excludeICDLabs %>% select(pid, l_val, timeOffset, EncounterID), 
-        excludeMedLabs %>% select(pid, l_val, timeOffset, EncounterID), 
-        excludeLabLabs %>% select(pid, l_val, timeOffset, EncounterID), 
-        excludeCombined %>% select(pid, l_val, timeOffset, EncounterID))
+        finalExcluded=union(
+            excludeICDLabs %>% select(pid, l_val, timeOffset, EncounterID), 
+            excludeMedLabs %>% select(pid, l_val, timeOffset, EncounterID), 
+            excludeLabLabs %>% select(pid, l_val, timeOffset, EncounterID), 
+            excludeCombined %>% select(pid, l_val, timeOffset, EncounterID))
+    } else {
+        finalExcluded = check_empty_labs_list(excludedCounts) %>% select(pid, l_val, timeOffset, EncounterID)
+    }
 
     return(finalExcluded)
 }
@@ -46,25 +50,24 @@ horn.outliers = function(data){
 }
 
 run_outliers = function(theData, runsCnt){
-    if(length(cleanLabValues$l_val) <= 10){
-        return(cleanLabValues)
+    if(length(theData$l_val) <= 10){
+        return(theData)
     }
 
     out <- tryCatch({
         runs=0
         while(runs < runsCnt){
             outliered = horn.outliers(theData)
-            runs=runs+1
+            runs = runs + 1
             print(paste("Horn Outliers: ", runs, " (", nrow(theData), " - ", nrow(outliered), ")", sep=""))
             if(nrow(theData) == nrow(outliered)){
                 theData = outliered
                 break
             }
             theData = outliered
-        }
-        theData = outliered
+u       }
     }, error=function(cond) {
-        print(paste("ERROR: ", cond, sep=""))
+        print(paste("HORN ERROR: ", cond, sep=""))
     })
     return(theData)
 }
@@ -238,12 +241,52 @@ calculateDiffRatio <- function(goldStandRefLow, goldStandRefHigh, procLow, procH
 }
 
 write_line_append <- function(parameters, postHornCount, preLimitRef, refConfResults, baseRef){
-    tResultCode=toupper(attributes(parameters)$resultCodes[[1]])
-    tSex=tolower(attributes(parameters)$sex)
-    tRace=tolower(attributes(parameters)$race)
-    tStime=attributes(parameters)$start_time
-    tEtime=attributes(parameters)$end_time
+    if(method == "full"){
+        tResultCode=toupper(attributes(parameters)$resultCodes[[1]])
+        tResultCodes=paste(attributes(parameters)$resultCodes, collapse="_")
+        tSex=tolower(attributes(parameters)$sex)
+        tRace=tolower(attributes(parameters)$race)
+        tStime=attributes(parameters)$start_time
+        tEtime=attributes(parameters)$end_time
+        tGrp=gsub(",","_",attributes(parameters)$group)
+        tSelect=attributes(parameters)$selection
 
+        icd_pre_limit=attr(parameters, "icd_pre_limit")
+        icd_post_limit=attr(parameters, "icd_post_limit")
+        med_post_limit=attr(parameters, "med_post_limit")
+        lab_post_limit=attr(parameters, "lab_post_limit")
+        joined_cnt=attr(parameters, "joined_count")
+        combined_cnt=attr(parameters, "combined_count")
+
+        limitParams = paste("H", attr(parameters, "criticalHampel"), "_P", attr(parameters, "criticalP"), "_PROP", attr(parameters, "criticalProp"), "_POST", attr(parameters, "post_offset"), "_PRE", attr(parameters, "pre_offset"), sep="")
+    } else {
+        tResultCode=toupper(attributes(parameters)$resultCode[[1]])
+        tResultCodes=paste(attributes(parameters)$resultCode, collapse="_")
+        tSex=tolower(attributes(parameters)$sex)
+        tRace=tolower(attributes(parameters)$race)
+        tStime=attr(parameters, "age")[1]
+        tEtime=attr(parameters, "age")[2]
+        tGrp=gsub(",","_",attributes(parameters)$group)
+        tSelect=attributes(parameters)$singular_value
+
+        icd_pre_limit=NA
+        icd_post_limit=NA
+        med_post_limit=NA
+        lab_post_limit=NA
+        joined_cnt=NA
+        combined_cnt=NA
+
+        icd_pre_limit=attr(parameters, "pre-limit_count")
+        if(method == "icd"){
+            icd_post_limit = icd_pre_limit - nrow(excludedCounts)
+        } else if(method == "med"){
+            med_post_limit = icd_pre_limit - nrow(excludedCounts)
+        } else if(method == "lab"){
+            lab_post_limit = icd_pre_limit - nrow(excludedCounts)
+        }
+    
+        limitParams = paste("H", attr(parameters, "criticalHampel"), "_P", attr(parameters, "criticalP"), "_PROP", attr(parameters, "criticalProp"), "_POST", attr(parameters, "day_time_offset_post"), "_PRE", attr(parameters, "day_time_offset_pre"), sep="")
+    }
 
     #Get the Gold Standard Reference Ranges
     findReference=import_reference_range(tResultCode, tSex, tRace, tStime, tEtime, c(baseRef))
@@ -289,22 +332,16 @@ write_line_append <- function(parameters, postHornCount, preLimitRef, refConfRes
         }
     }
 
-    #Limit parameters string
-    limitParams = paste("H", attr(parameters, "criticalHampel"), "_P", attr(parameters, "criticalP"), "_PROP", attr(parameters, "criticalProp"), "_POST", attr(parameters, "post_offset"), "_PRE", attr(parameters, "pre_offset"), sep="")
-
     print(paste("Difference Radio: ", origRatio, " => ", limitRatio, sep=""))
     newLine = c(basename(inputData),
-                paste(attributes(parameters)$resultCodes, collapse="_"),
-                gsub(",","_",attributes(parameters)$group),
-                tSex, tRace, tStime, tEtime,
-                attr(parameters, "selection"),
-                limitParams, 
-                attr(parameters, "icd_pre_limit"),
-                attr(parameters, "icd_post_limit"),
-                attr(parameters, "med_post_limit"),
-                attr(parameters, "lab_post_limit"),
-                attr(parameters, "joined_count"),
-                attr(parameters, "combined_count"),
+                tResultCodes, tGrp, tSex, tRace, tStime, tEtime, tSelect,
+                limitParams,
+                icd_pre_limit,
+                icd_post_limit,
+                med_post_limit,
+                lab_post_limit,
+                joined_cnt,
+                combined_cnt,
                 postHornCount,
                 preLimitRef, 
                 attr(refConfResults, "lowerRefLimit"),
