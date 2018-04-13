@@ -46,11 +46,16 @@ run_em_prepare(){
     #Space cannot be sent to the batch manager, so one must make them a single string 
     inval=${inval/\ /\?}
 
-    if [[ -z $startDate ]] | [[ -z $endDate ]]
+    parameters="--input '$inval' --sex $thesex --race $therace --include $incGrp --age $theage --output ${toutdir}"
+
+    if [[ ! -z $startDate ]] | [[ ! -z $endDate ]]
     then
-        parameters="--input '$inval' --sex $thesex --race $therace --include $incGrp --age $theage --output ${toutdir}"
-    else
-        parameters="--input '$inval' --start $startDate --end $endDate --sex $thesex --race $therace --include $incGrp --age $theage --output ${toutdir}"
+        parameters="${parameters} --start $startDate --end $endDate"
+    fi
+
+    if [[ ! -z $maxSample ]]
+    then
+        parameters="${parameters} --max-sample $maxSample"
     fi
 
     eval "qsub prepare_data.pbs -F \"${parameters}\""
@@ -73,7 +78,7 @@ run_em_select(){
 }
 
 switch_input(){
-    errStmt="ERROR: A1C, ALK, ALK_MAYO, BILI, BMP, CALIPER, ELEC, HGB2, LIVER, PAIR_GLUC, PLT, TEST, TEST_CALIPER, TEST_CALIPER_ANALYZE, TUNE_CALIPER, TUNE_CALIPER_SAMPLE, TUNE_CALIPER_ANALYZE, SAMPLE_CALIPER, WBC"
+    errStmt="ERROR: A1C, ALK, ALK_MAYO, BILI, BMP, CALIPER, ELEC, HGB2, LIVER, PAIR_GLUC, PLT, TEST, TEST_CALIPER, TEST_CALIPER_ANALYZE, TRAIN_TEST, TUNE_CALIPER, TUNE_CALIPER_SAMPLE, TUNE_CALIPER_ANALYZE, SAMPLE_CALIPER, WBC"
     if [[ -z $toswitch ]]
     then
         echo $errStmt
@@ -149,6 +154,10 @@ switch_input(){
     elif [ "${toswitch}" == "PAIR_GLUC" ]
     then
         preparedir="${preparedir}paired_glucose/"
+        inval="GLUC,GLUC-WB"
+    elif [ "${toswitch}" == "TRAIN_TEST" ]
+    then
+        preparedir="${preparedir}train_test/"
         inval="GLUC,GLUC-WB"
     else
         echo $errStmt

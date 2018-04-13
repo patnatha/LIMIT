@@ -13,7 +13,8 @@ option_list <- list(
     make_option("--age", type="character", default=NA, help="enter range of ages separate by _"),
     make_option("--sex", type="character", default=NA, help="enter Male|Female|Both"),
     make_option("--race", type="character", default=NA, help="enter White|Black|All"),
-    make_option("--include", type="character", default=NA, help="groups to include")
+    make_option("--include", type="character", default=NA, help="groups to include"),
+    make_option("--max-sample", type="character", default=NA, help="max lab values sampling")
 )
 parser <- OptionParser(usage="%prog [options] file", option_list=option_list)
 args <- parse_args(parser)
@@ -335,6 +336,13 @@ if(!is.na(toInclude)){
     }
 
     print(paste("Extracted Labs", preFilLen, '=>', nrow(labValues), ":", toInclude, sep=" "))
+}
+
+if(!is.na(args[['max-sample']])){
+    print(paste("Down-Sampling:", nrow(labValues), "=>", as.numeric(args[['max-sample']]), sep=" "))
+    if(nrow(labValues) > as.numeric(args[['max-sample']])){
+        labValues = labValues %>% sample_n(as.numeric(args[['max-sample']]))
+    }
 }
 
 print("LV: Select columns for output")
