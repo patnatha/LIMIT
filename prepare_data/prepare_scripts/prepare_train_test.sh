@@ -4,7 +4,7 @@ toswitch="TRAIN_TEST"
 switch_input
 
 sed -i 's/ppn=[0-9]\+/ppn=4/' prepare_data.pbs
-sed -i 's/pmem=[0-9]\+gb/pmem=4gb/' prepare_data.pbs
+sed -i 's/pmem=[0-9]\+gb/pmem=8gb/' prepare_data.pbs
 
 incGrp="outpatient"
 therace="all"
@@ -42,12 +42,12 @@ theage="6935D_54750D"
 thesex="female"
 run_em_prepare
 
-inval="AMY"
+inval="AMYL"
 theage="6935D_54750D"
 thesex="male"
 run_em_prepare
 
-inval="AMY"
+inval="AMYL"
 theage="6935D_54750D"
 thesex="female"
 run_em_prepare
@@ -262,12 +262,12 @@ theage="6935D_54750D"
 thesex="female"
 run_em_prepare
 
-inval="HAPT"
+inval="HPT"
 theage="6935D_54750D"
 thesex="male"
 run_em_prepare
 
-inval="HAPT"
+inval="HPT"
 theage="6935D_54750D"
 thesex="female"
 run_em_prepare
@@ -587,7 +587,7 @@ theage="6935D_54750D"
 thesex="female"
 run_em_prepare
 
-inval="HE4"
+inval="Z0072"
 theage="6935D_54750D"
 thesex="female"
 run_em_prepare
@@ -1152,52 +1152,52 @@ theage="730D_6935D"
 thesex="female"
 run_em_prepare
 
-inval="BDIL"
+inval="DBIL"
 theage="0D_15D"
 thesex="male"
 run_em_prepare
 
-inval="BDIL"
+inval="DBIL"
 theage="15D_365D"
 thesex="male"
 run_em_prepare
 
-inval="BDIL"
+inval="DBIL"
 theage="365D_3285D"
 thesex="male"
 run_em_prepare
 
-inval="BDIL"
+inval="DBIL"
 theage="3285D_4745D"
 thesex="male"
 run_em_prepare
 
-inval="BDIL"
+inval="DBIL"
 theage="4745D_6935D"
 thesex="male"
 run_em_prepare
 
-inval="BDIL"
+inval="DBIL"
 theage="0D_15D"
 thesex="female"
 run_em_prepare
 
-inval="BDIL"
+inval="DBIL"
 theage="15D_365D"
 thesex="female"
 run_em_prepare
 
-inval="BDIL"
+inval="DBIL"
 theage="365D_3285D"
 thesex="female"
 run_em_prepare
 
-inval="BDIL"
+inval="DBIL"
 theage="3285D_4745D"
 thesex="female"
 run_em_prepare
 
-inval="BDIL"
+inval="DBIL"
 theage="4745D_6935D"
 thesex="female"
 run_em_prepare
@@ -1947,42 +1947,42 @@ theage="4015D_6935D"
 thesex="female"
 run_em_prepare
 
-inval="HAPT"
+inval="HPT"
 theage="0D_15D"
 thesex="male"
 run_em_prepare
 
-inval="HAPT"
+inval="HPT"
 theage="15D_365D"
 thesex="male"
 run_em_prepare
 
-inval="HAPT"
+inval="HPT"
 theage="365D_4380D"
 thesex="male"
 run_em_prepare
 
-inval="HAPT"
+inval="HPT"
 theage="4380D_6935D"
 thesex="male"
 run_em_prepare
 
-inval="HAPT"
+inval="HPT"
 theage="0D_15D"
 thesex="female"
 run_em_prepare
 
-inval="HAPT"
+inval="HPT"
 theage="15D_365D"
 thesex="female"
 run_em_prepare
 
-inval="HAPT"
+inval="HPT"
 theage="365D_4380D"
 thesex="female"
 run_em_prepare
 
-inval="HAPT"
+inval="HPT"
 theage="4380D_6935D"
 thesex="female"
 run_em_prepare

@@ -9,11 +9,11 @@ limitdir="${homedir}limit_results/"
 mkdir -p "${limitdir}"
 
 #Variables for tuning
-declare -a criticalHampels=("0.5" "1.0" "2.0" "3.0")
-declare -a criticalPs=("0.05" "0.1" "0.2")
-declare -a criticalProps=("0" "0.005" "0.01" "0.025" "0.05")
-declare -a day_time_offset_posts=("54750" "360" "180" "75" "30" "5" "0")
-declare -a day_time_offset_pres=("54750" "360" "180" "75" "30" "5" "0")
+declare -a criticalHampels=("1.0" "2.0" "3.0") #"0.5"
+declare -a criticalPs=("0.05" "0.1" "0.2") 
+declare -a criticalProps=("0" "0.005" "0.01") #"0.025" "0.05"
+declare -a day_time_offset_posts=("54750" "360" "180" "5" "0") #"75" "30" 
+declare -a day_time_offset_pres=("54750" "360" "180" "5" "0") #"75" "30"
 declare -a code_switch=("icd" "med" "lab")
 declare -a sample_sizes=("10000" "5000" "2500" "1000" "800" "600" "500" "400" "300" "250" "200" "150" "100" "50")
 
@@ -78,7 +78,7 @@ run_em_select(){
 }
 
 switch_input(){
-    errStmt="ERROR: A1C, ALK, ALK_MAYO, BILI, BMP, CALIPER, ELEC, HGB2, LIVER, PAIR_GLUC, PLT, TEST, TEST_CALIPER, TEST_CALIPER_ANALYZE, TRAIN_TEST, TUNE_CALIPER, TUNE_CALIPER_SAMPLE, TUNE_CALIPER_ANALYZE, SAMPLE_CALIPER, WBC"
+    errStmt="ERROR: A1C, ALK, ALK_MAYO, BILI, BMP, CALIPER, ELEC, HGB2, LIVER, PAIR_GLUC, PLT, TEST, TEST_CALIPER, TEST_CALIPER_ANALYZE, TRAIN, TRAIN_TEST, TUNE_CALIPER, TUNE_CALIPER_SAMPLE, TUNE_CALIPER_ANALYZE, SAMPLE_CALIPER, WBC"
     if [[ -z $toswitch ]]
     then
         echo $errStmt
@@ -158,7 +158,14 @@ switch_input(){
     elif [ "${toswitch}" == "TRAIN_TEST" ]
     then
         preparedir="${preparedir}train_test/"
-        inval="GLUC,GLUC-WB"
+    elif [ "${toswitch}" == "TRAIN" ]
+    then
+        preparedir="${preparedir}train/"
+        refCodes="CALIPER,MAYO"
+    elif [ "${toswitch}" == "TEST" ]
+    then
+        preparedir="${preparedir}test/"
+        refCodes="CALIPER,MAYO"
     else
         echo $errStmt
         exit

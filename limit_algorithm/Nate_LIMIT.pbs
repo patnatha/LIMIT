@@ -8,9 +8,9 @@
 #PBS -q armis
 #PBS -l qos=armis
 
-# Change the number of cores (ppn=16), amount of memory, and walltime:
-#PBS -l nodes=1:ppn=16,pmem=16gb
-#PBS -l walltime=72:00:00
+# Change the number of cores (ppn=4), amount of memory, and walltime:
+#PBS -l nodes=1:ppn=4,pmem=4gb
+#PBS -l walltime=3:00:00
 #PBS -j oe
 #PBS -V
 

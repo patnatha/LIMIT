@@ -8,6 +8,9 @@ do
     if [[ "$1" == "TUNE_CALIPER" ]]
     then
         ./tune_Nate_LIMIT.sh $1
+    elif [[ "$1" == "TRAIN" ]]
+    then
+        ./tune_Nate_LIMIT.sh $1
     elif [[ "$1" == "TUNE_CALIPER_MICRO" ]]
     then
         ./tune_micro_Nate_LIMIT.sh $1

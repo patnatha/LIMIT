@@ -3,6 +3,7 @@ toswitch=$1
 switch_input
 tolistpath=${limitdir}
 post_process_dir
+echo $prepdirs
 
 for tdir in $prepdirs
 do

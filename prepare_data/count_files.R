@@ -1,6 +1,7 @@
 library(optparse)
 library(tools)
 library(stringr)
+library(dplyr)
 
 option_list <- list(
     make_option("--input", type="character", default=NA, help="file to load Rdata")
@@ -35,12 +36,15 @@ for (tdir in dirlist){
 
     #Iterate over base files in each directory
     tbasenames=c()
-    filelist = list.files(tdir, pattern="*.Rdata", recursive=T, full.names=T)
+    filelist = list.files(tdir, pattern="*.Rdata", recursive=F, full.names=T)
+    tcnt=0
     for(tfile in filelist){
         tbname = file_path_sans_ext(basename(tfile))
         load(tfile)
         labValuesLength = nrow(labValues)
         tbasenames[tbname] = labValuesLength
+        tcnt = tcnt + 1
+        print(paste("    ",paste(incGrp, ": ", tcnt, " / ", length(filelist), sep=""), sep=""))
     }
  
     #Iterate over the selected directories
@@ -59,7 +63,7 @@ for (tdir in dirlist){
                 load(selected_file)
                 labValuesLength = nrow(labValues)
 
-                theline=c(tfbname, incGrp, tbasenames[tfbname], selectMethod, labValuesLength)
+                theline=c(tfbname, attr(parameters, "resultCode"), attr(parameters, "race"), attr(parameters, "sex"), attr(parameters, "age"), attr(parameters, "group"), tbasenames[tfbname], selectMethod, labValuesLength)
                 write(theline, file = outFile, ncolumns = length(theline), append=T,sep=fileDelim)
             }
         }

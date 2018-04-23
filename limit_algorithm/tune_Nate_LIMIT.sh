@@ -30,8 +30,8 @@ then
 fi
 if [ $stopIt == "TRUE" ] && [ $override != "override" ]
 then
-    exiT=1
-    #exit
+    #exiT=1
+    exit
 fi
 
 #Load up the already done files
@@ -87,7 +87,7 @@ do
                         toutfilename="${outfilename}H${criticalHampels[$i]}_P${criticalPs[$j]}_PROP${criticalProps[$k]}_POST${day_time_offset_posts[$l]}_PRE${day_time_offset_pres[$m]}"
                         
                         #Find all the files with the prefix of the file to run
-                        checkFile="find ${outdirname}/${toutfilename}* -type f 2> /dev/null"
+                        checkFile="find ${outdirname}/${toutfilename}_* -type f 2> /dev/null"
                         checkedFiles=`eval $checkFile`
 
                         #Check to see if the coded runs are done
@@ -98,10 +98,6 @@ do
                         do
                             joinedExists=`echo $cFile | grep joined | wc -l`
                             combinedExists=`echo $cFile | grep combined | wc -l`
-                            if [[ $joinedExists == 1 ]] || [[ $combinedExists == 1 ]]
-                            then
-                                break
-                            fi
                             filesExist=$((filesExist + 1))
                         done
 

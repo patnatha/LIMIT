@@ -145,7 +145,6 @@ downSampleIt <- function(){
         otherLabs <<- otherLabs %>% filter(pid %in% unique(labValues$pid))
         return(TRUE)
     } else {
-        print("ERROR: Unable to down sample, not enough samples")
         return(FALSE)
     }
 }
@@ -153,12 +152,10 @@ downSampleIt <- function(){
 #Downsample if instructed to do so
 if(!is.na(downSample)){
     if(!downSampleIt()){
+        print("ERROR: Unable to down sample, not enough samples")
         stop()
     }
-} else {
-    downSample = 100000
-    downSampleIt()
-}
+} 
 
 tempLabValues = labValues
 tempParameters = parameters
