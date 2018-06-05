@@ -60,11 +60,10 @@ run_outliers = function(theData, runsCnt){
             outliered = horn.outliers(theData)
             runs = runs + 1
             print(paste("Horn Outliers: ", runs, " (", nrow(theData), " - ", nrow(outliered), ")", sep=""))
+            theData = outliered
             if(nrow(theData) == nrow(outliered)){
-                theData = outliered
                 break
             }
-            theData = outliered
 u       }
     }, error=function(cond) {
         print(paste("HORN ERROR: ", cond, sep=""))
@@ -276,27 +275,35 @@ write_line_append <- function(parameters, postHornCount, preLimitRef, refConfRes
         joined_cnt=NA
         combined_cnt=NA
 
+        print(excludedCounts)
+        print(is.list(excludedCounts))
+        if(is.null(excludedCounts) || (is.list(excludedCounts) & length(excludedCounts) == 0)){
+            excludedCnts = 0
+        } else {
+            excludedCnts = nrow(excludedCounts)
+        }
+
         icd_pre_limit=attr(parameters, "pre-limit_count")
         if(method == "icd"){
-            icd_post_limit = icd_pre_limit - nrow(excludedCounts)
+            icd_post_limit = icd_pre_limit - excludedCnts
         } else if(method == "med"){
-            med_post_limit = icd_pre_limit - nrow(excludedCounts)
+            med_post_limit = icd_pre_limit - excludedCnts
         } else if(method == "lab"){
-            lab_post_limit = icd_pre_limit - nrow(excludedCounts)
+            lab_post_limit = icd_pre_limit - excludedCnts
         }
-    
+   
         limitParams = paste("H", attr(parameters, "criticalHampel"), "_P", attr(parameters, "criticalP"), "_PROP", attr(parameters, "criticalProp"), "_POST", attr(parameters, "day_time_offset_post"), "_PRE", attr(parameters, "day_time_offset_pre"), sep="")
     }
 
     #Get the Gold Standard Reference Ranges
-    findReference=import_reference_range(tResultCode, tSex, tRace, tStime, tEtime, c(baseRef))
+    findReference=import_reference_range(tResultCode, tSex, tRace, tStime, tEtime, baseRef)
     goldStandRefLow = findReference[[1]]
     goldStandRefHigh = findReference[[2]]
     goldStandRefSource = findReference[[3]]
     print(paste("Gold Standard Reference: ", goldStandRefLow, ' - ' , goldStandRefHigh, " (", goldStandRefSource, ")", sep=""))
 
     #Get the Fold Standard Reference Ranges
-    findReference=import_confidence_range(tResultCode, tSex, tRace, tStime, tEtime, c(baseRef))
+    findReference=import_confidence_range(tResultCode, tSex, tRace, tStime, tEtime, baseRef)
     goldStanConfLowLow = findReference[[1]]
     goldStandConfLowHigh = findReference[[2]]
     goldStandConfHighLow = findReference[[3]]
@@ -316,7 +323,8 @@ write_line_append <- function(parameters, postHornCount, preLimitRef, refConfRes
 
     lowLimitInCI = NA
     if(!is.na(limitRefLow) && !is.na(goldStanConfLowLow) && !is.na(goldStandConfLowHigh)){
-        if(limitRefLow <= goldStandConfLowHigh && limitRefLow >= goldStanConfLowLow){
+        limitRefLow = as.numeric(limitRefLow)
+        if(limitRefLow <= as.numeric(goldStandConfLowHigh) && limitRefLow >= as.numeric(goldStanConfLowLow)){
             lowLimitInCI = 1
         } else {
             lowLimitInCI = 0
@@ -325,7 +333,8 @@ write_line_append <- function(parameters, postHornCount, preLimitRef, refConfRes
 
     highLimitInCI = NA
     if(!is.na(limitRefHigh) && !is.na(goldStandConfHighLow) && !is.na(goldStandConfHighHigh)){
-        if(limitRefHigh <= goldStandConfHighHigh && limitRefHigh >= goldStandConfHighLow){
+        limitRefHigh = as.numeric(limitRefHigh)
+        if(limitRefHigh <= as.numeric(goldStandConfHighHigh) && limitRefHigh >= as.numeric(goldStandConfHighLow)){
             highLimitInCI = 1
         } else {
             highLimitInCI = 0

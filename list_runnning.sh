@@ -20,4 +20,10 @@ do
     echo "Nate_LIMIT ($pid): $yase"
 done
 
+echo "#######################ANALYZE_FILES########################"
+for pid in `qstat | grep \`whoami\` | grep R | grep analyze_files | awk '{print $1}' | cut -d '.' -f1`
+do
+    yase=`qpeek ${pid} | grep 'ANALYZE:' | cut -d':' -f2 | cut -d'"' -f1 | cut -d / -f6-`
+    echo "analyze_files ($pid): $yase"
+done
 

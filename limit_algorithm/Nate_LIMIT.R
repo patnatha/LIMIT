@@ -1,6 +1,8 @@
 #Keep track of timing
 allTime <- Sys.time()
 
+smallLargeCut = 1000
+
 ## Default Arguments
 criticalProp = 0.005 # beta
 criticalP = 0.15 # alpha
@@ -168,12 +170,51 @@ for(codeType in finalCodeTypes){
     # Run algorithm against administered medicines
     if(codeType == 'med'){
         icdValues = medValues
+        if(nrow(labValues <= smallLargeCut)){
+            criticalProp = 0.005 # beta
+            criticalP = 0.10 # alpha
+            criticalHampel = 2 # t
+            day_time_offset_post = 54750 # n
+            day_time_offset_pre = 54750 # n2, an addition to the Poole method
+        } else {
+            criticalProp = 0.005 # beta
+            criticalP = 0.05 # alpha
+            criticalHampel = 1 # t
+            day_time_offset_post = 360 # n
+            day_time_offset_pre = 54750 # n2, an addition to the Poole method
+        }
     }
     else if(codeType == 'lab'){
         icdValues = otherLabs
+        if(nrow(labValues <= smallLargeCut)){
+            criticalProp = 0.005 # beta
+            criticalP = 0.20 # alpha
+            criticalHampel = 1 # t
+            day_time_offset_post = 54750 # n
+            day_time_offset_pre = 54750 # n2, an addition to the Poole method
+        } else {
+            criticalProp = 0.005 # beta
+            criticalP = 0.20 # alpha
+            criticalHampel = 3 # t
+            day_time_offset_post = 180 # n
+            day_time_offset_pre = 5 # n2, an addition to the Poole method
+        }   
     }
     else if(codeType == 'icd'){
         icdValues = icdValues
+        if(nrow(labValues <= smallLargeCut)){
+            criticalProp = 0.005 # beta
+            criticalP = 0.20 # alpha
+            criticalHampel = 2 # t
+            day_time_offset_post = 54750 # n
+            day_time_offset_pre = 54750 # n2, an addition to the Poole method
+        } else {
+            criticalProp = 0.005 # beta
+            criticalP = 0.20 # alpha
+            criticalHampel = 2 # t
+            day_time_offset_post = 54750 # n
+            day_time_offset_pre = 54750 # n2, an addition to the Poole method
+        }
     }
     else{
         print(paste("ERROR: code type is invalid: ", codeType, sep=""))

@@ -5,17 +5,28 @@ tolistpath=$limitdir
 post_process_dir
 
 analyzeWhich="combined"
+graphIt="F"
 if [ ! -z $2 ]
 then
     if [[ "$2" == "joined" ]] || [[ "$2" == "icd" ]] || [[ "$2" == "med" ]] || [[ "$2" == "lab" ]]
     then
         analyzeWhich=$2
     fi
+
+    if [[ "$2" == "graph" ]]
+    then
+        graphIt="T"
+    fi
+fi
+
+if [ ! -z $3 ] && [[ "$3" == "graph" ]]
+then
+    graphIt="T"
 fi
 
 for tdir in $prepdirs
 do
-    echo "ANALYZE: "$tdir
+    echo "ANALYZE: "$tdir $analyzeWhich
 
     #Create output directory for graphs
     eval "mkdir -p ${tdir}/graphs/"
@@ -27,14 +38,7 @@ do
    
     echo -n "Pre-LIMIT Count, " >> ${outputFile}
     echo -n "LIMIT ICD Count, LIMIT Med Count, LIMIT Lab Count, " >> ${outputFile}
-    echo -n "Joined Count, " >> ${outputFile}
-
-    if [[ "$analyzeWhich" == "combined" ]]
-    then
-        
-        echo -n "Combined Count, " >> ${outputFile}
-    fi
-
+    echo -n "Joined Count, Combined Count, " >> ${outputFile}
     echo -n "Horn Count, " >> ${outputFile}
     echo -n "Pre-LIMIT Low, Pre-LIMIT High, RI, RI Method, " >> ${outputFile}
     echo -n "RI Low, RI High, RI, RI Method, " >> ${outputFile}
@@ -53,7 +57,13 @@ do
     then
         continue
     fi
-    parOut=`parallel -j8 Rscript analyze_results.R --input {} --ref ${refCodes} ::: ${preplist}`
+
+    if [[ "$graphIt" == "T" ]]
+    then
+        parOut=`parallel -j16 Rscript analyze_results.R --input {} --ref ${refCodes} --graph ::: ${preplist}`
+    else
+        parOut=`parallel -j16 Rscript analyze_results.R --input {} --ref ${refCodes} ::: ${preplist}`
+    fi
     appendLine=`echo -e "$parOut" | grep "ANALYSIS_RESULTS" | cut -d ":" -f2 | cut -d "\"" -f1 | sort`
     echo "${appendLine}" >> ${outputFile}
     continue
@@ -65,7 +75,12 @@ do
         {
             echo "FILE: $tfile"
             theCnt=$((theCnt + 1))
-            theCmd="Rscript analyze_results.R --input ${tfile} --ref ${refCodes} 2> /dev/null"
+            if [[ "$graphIt" == "T" ]]
+            then
+                theCmd="Rscript analyze_results.R --input ${tfile} --ref ${refCodes} --graph 2> /dev/null"
+            else
+                theCmd="Rscript analyze_results.R --input ${tfile} --ref ${refCodes} 2> /dev/null"
+            fi
             output=`eval $theCmd`
 
             #Append the analysis results

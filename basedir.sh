@@ -32,9 +32,9 @@ run_em_limit(){
     mkdir -p $toutdir
 
     #Build the params to send
-    params="--input $tfile --code all --output $toutdir"
-
-    eval "qsub Nate_LIMIT.pbs -F \"${params}\""
+    params="--input $tfile --output $toutdir"
+   
+    eval "qsub Nate_LIMIT.pbs -F \"${params} --code all\""
     #echo "Rscript Nate_LIMIT.R ${params}"
 }
 
@@ -78,7 +78,7 @@ run_em_select(){
 }
 
 switch_input(){
-    errStmt="ERROR: A1C, ALK, ALK_MAYO, BILI, BMP, CALIPER, ELEC, HGB2, LIVER, PAIR_GLUC, PLT, TEST, TEST_CALIPER, TEST_CALIPER_ANALYZE, TRAIN, TRAIN_TEST, TUNE_CALIPER, TUNE_CALIPER_SAMPLE, TUNE_CALIPER_ANALYZE, SAMPLE_CALIPER, WBC"
+    errStmt="ERROR: A1C, ALK, ALK_MAYO, BILI, BMP, CALIPER, ELEC, HGB2, LIVER, PAIR_GLUC, PLT, TEST, TEST_CALIPER, TEST_CALIPER_ANALYZE, TRAIN, TRAIN_TRAIN, TRAIN_TEST, TUNE_CALIPER, TUNE_CALIPER_SAMPLE, TUNE_CALIPER_ANALYZE, SAMPLE_CALIPER, WBC"
     if [[ -z $toswitch ]]
     then
         echo $errStmt
@@ -89,6 +89,9 @@ switch_input(){
     elif [ "${toswitch}" == "ALK_MAYO" ]
     then
         preparedir="${preparedir}alk_phos_mayo/"
+    elif [ "${toswitch}" == "ALK_UMICH" ]
+    then
+        preparedir="${preparedir}alk_phos_umich/"
     elif [ "${toswitch}" == "BILI" ]
     then
         preparedir="${preparedir}bilirubin/"
@@ -110,9 +113,6 @@ switch_input(){
     elif [ "${toswitch}" == "PLT" ]
     then
         preparedir="${preparedir}platelet/"
-    elif [ "${toswitch}" == "TEST" ]
-    then
-        preparedir="${preparedir}glucose_2_months/"
     elif [ "${toswitch}" == "WBC" ]
     then
         preparedir="${preparedir}white_blood_cell/"
@@ -131,10 +131,6 @@ switch_input(){
     elif [ "${toswitch}" == "TEST_CALIPER_ANALYZE" ]
     then
         preparedir="${preparedir}test_caliper_analyze/"
-        refCodes="CALIPER"
-    elif [ "${toswitch}" == "TUNE_CALIPER_MICRO" ]
-    then
-        preparedir="${preparedir}caliper_tune_micro/"
         refCodes="CALIPER"
     elif [ "${toswitch}" == "SAMPLE_CALIPER" ]
     then
@@ -161,11 +157,31 @@ switch_input(){
     elif [ "${toswitch}" == "TRAIN" ]
     then
         preparedir="${preparedir}train/"
-        refCodes="CALIPER,MAYO"
+        refCodes="ABBOTT_CALIPER,MAYO"
+    elif [ "${toswitch}" == "TRAIN_PEDS" ]
+    then
+        preparedir="${preparedir}train_peds/"
+        refCodes="ABBOTT_CALIPER,MAYO"
+    elif [ "${toswitch}" == "TRAIN_ADULTS" ]
+    then
+        preparedir="${preparedir}train_adult/"
+        refCodes="ABBOTT_CALIPER,MAYO"
+    elif [ "${toswitch}" == "TRAIN_TRAIN" ]
+    then
+        preparedir="${preparedir}train_train/"
+        refCodes="ABBOTT_CALIPER,MAYO"
+    elif [ "${toswitch}" == "TRAIN_SMALL" ]
+    then
+        preparedir="${preparedir}train_small/"
+        refCodes="ABBOTT_CALIPER,MAYO"
+    elif [ "${toswitch}" == "TRAIN_LARGE" ]
+    then
+        preparedir="${preparedir}train_large/"
+        refCodes="ABBOTT_CALIPER,MAYO"
     elif [ "${toswitch}" == "TEST" ]
     then
         preparedir="${preparedir}test/"
-        refCodes="CALIPER,MAYO"
+        refCodes="ABBOTT_CALIPER,MAYO"
     else
         echo $errStmt
         exit

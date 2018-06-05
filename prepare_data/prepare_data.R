@@ -350,6 +350,11 @@ labValues = labValues %>% rename(pid = PatientID)
 labValues = labValues %>% rename(l_val = VALUE)
 labValues = labValues %>% select(pid, l_val, timeOffset, EncounterID)
 
+# Downsample
+if(nrow(labValues >= 300000)){
+    labValues <<- labValues[sample.int(nrow(labValues), as.numeric(300000), replace=F),]
+}
+
 print("Loading Diagnoses")
 icdValues = import_diagnoses(unique(labValues$pid))
 icdValues = inner_join(icdValues, patient_bday, by="PatientID")

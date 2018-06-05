@@ -112,7 +112,7 @@ if(medCritProp != labCritProp || labCritProp != icdCritProp ||
 #Stop if not matching
 if(!intersect_it){
     print("ERROR: not matching LIMIT parameters")
-    stop()
+    #stop()
 }
 
 #Join the results
